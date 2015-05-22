@@ -8,6 +8,10 @@ Authors@R: c(
   person("Grzegorz", "Golonka", , "ggolonka@o2.pl", role = c("aut")))
 Description: Functions for Educational Value-Added data import/export.
 Depends:
+  R (>= 2.15.0),
+  plyr,
+  mirt,
+  polycor
 License:  MIT + file LICENSE
 Language: pl
 VignetteBuilder: knitr
