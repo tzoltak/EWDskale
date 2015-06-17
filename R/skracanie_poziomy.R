@@ -134,62 +134,61 @@ okresl_wzor_skracania <- function(x, mozliweWartosci, maxLPozWyk=5, minLiczebnPo
 #' @param zrodloDanychODBC opcjonalnie nazwa źródła danych ODBC, dającego dostęp do
 #' bazy (domyślnie "EWD")
 #' @return lista wektorów liczbowych
-#' @import RODBCext plyr
 #' @export
 pobierz_mozliwe_wartosci <- function(nazwyKryteriow, zrodloDanychODBC="EWD"){
   stopifnot(is.character(nazwyKryteriow), length(nazwyKryteriow) > 0,
             is.character(zrodloDanychODBC), length(zrodloDanychODBC) == 1)
-  maska = !grepl("^[kp]_[[:digit:]]+$", nazwyKryteriow)
-  if (any(maska)) stop("Niepoprawne nazwy (pseudo)kryteriów: ",
-                       paste(nazwyKryteriow[maska], sep=","))
-  idKryteriow       = as.numeric(gsub("^k_", "",
-                                      nazwyKryteriow[grepl("^k_", nazwyKryteriow)]))
-  idPseudokryteriow = as.numeric(gsub("^p_", "",
-                                      nazwyKryteriow[grepl("^p_", nazwyKryteriow)]))
-  if (length(idPseudokryteriow) > 0) {
-    zapytanie = "SELECT id_pseudokryterium, id_kryterium, wartosc
-    FROM pseudokryteria_oceny
-    JOIN pseudokryteria_oceny_kryteria USING (id_pseudokryterium)
-    JOIN kryteria_oceny USING (id_kryterium)
-    JOIN sl_schematy_pkt USING (schemat_pkt)
-    JOIN sl_schematy_pkt_wartosci USING (schemat_pkt)
-    WHERE id_pseudokryterium = ?"
-    tryCatch({
-      P = odbcConnect(zrodloDanychODBC)
-      pseudokryteria = sqlExecute(P, zapytanie, data = data.frame(idPseudokryteriow),
-                                  fetch = TRUE)
-    },
-    error = stop,
-    finally = odbcClose(P)
-    )
-    pseudokryteria = dlply(pseudokryteria, ~id_pseudokryterium,
-                           function(x) {
-                             x = dlply(x, ~id_kryterium, function(x) {return(x$wartosc)})
-                             return(sort(unique(rowSums(expand.grid(x)))))
-                           })
-    names(pseudokryteria) = paste0("p_", names(pseudokryteria))
-  } else {
-    pseudokryteria = NULL
-  }
-  if (length(idKryteriow) > 0) {
-    zapytanie = "SELECT id_kryterium, wartosc
-                 FROM kryteria_oceny
-                   JOIN sl_schematy_pkt USING (schemat_pkt)
-                   JOIN sl_schematy_pkt_wartosci USING (schemat_pkt)
-                 WHERE id_kryterium = ?"
-    tryCatch({
-      P = odbcConnect(zrodloDanychODBC)
-      kryteria = sqlExecute(P, zapytanie, data = data.frame(idKryteriow),
-                            fetch = TRUE)
-    },
-    error = stop,
-    finally = odbcClose(P)
-    )
-    kryteria = dlply(kryteria, ~id_kryterium, function(x) {return(x$wartosc)})
-    names(kryteria) = paste0("k_", names(kryteria))
-  } else {
-    kryteria = NULL
-  }
-  temp = unlist(list(kryteria, pseudokryteria), recursive=FALSE)
-  return(temp[nazwyKryteriow])
+#   maska = !grepl("^[kp]_[[:digit:]]+$", nazwyKryteriow)
+#   if (any(maska)) stop("Niepoprawne nazwy (pseudo)kryteriów: ",
+#                        paste(nazwyKryteriow[maska], sep=","))
+#   idKryteriow       = as.numeric(gsub("^k_", "",
+#                                       nazwyKryteriow[grepl("^k_", nazwyKryteriow)]))
+#   idPseudokryteriow = as.numeric(gsub("^p_", "",
+#                                       nazwyKryteriow[grepl("^p_", nazwyKryteriow)]))
+#   if (length(idPseudokryteriow) > 0) {
+#     zapytanie = "SELECT id_pseudokryterium, id_kryterium, wartosc
+#     FROM pseudokryteria_oceny
+#     JOIN pseudokryteria_oceny_kryteria USING (id_pseudokryterium)
+#     JOIN kryteria_oceny USING (id_kryterium)
+#     JOIN sl_schematy_pkt USING (schemat_pkt)
+#     JOIN sl_schematy_pkt_wartosci USING (schemat_pkt)
+#     WHERE id_pseudokryterium = ?"
+#     tryCatch({
+#       P = odbcConnect(zrodloDanychODBC)
+#       pseudokryteria = sqlExecute(P, zapytanie, data = data.frame(idPseudokryteriow),
+#                                   fetch = TRUE)
+#     },
+#     error = stop,
+#     finally = odbcClose(P)
+#     )
+#     pseudokryteria = dlply(pseudokryteria, ~id_pseudokryterium,
+#                            function(x) {
+#                              x = dlply(x, ~id_kryterium, function(x) {return(x$wartosc)})
+#                              return(sort(unique(rowSums(expand.grid(x)))))
+#                            })
+#     names(pseudokryteria) = paste0("p_", names(pseudokryteria))
+#   } else {
+#     pseudokryteria = NULL
+#   }
+#   if (length(idKryteriow) > 0) {
+#     zapytanie = "SELECT id_kryterium, wartosc
+#                  FROM kryteria_oceny
+#                    JOIN sl_schematy_pkt USING (schemat_pkt)
+#                    JOIN sl_schematy_pkt_wartosci USING (schemat_pkt)
+#                  WHERE id_kryterium = ?"
+#     tryCatch({
+#       P = odbcConnect(zrodloDanychODBC)
+#       kryteria = sqlExecute(P, zapytanie, data = data.frame(idKryteriow),
+#                             fetch = TRUE)
+#     },
+#     error = stop,
+#     finally = odbcClose(P)
+#     )
+#     kryteria = dlply(kryteria, ~id_kryterium, function(x) {return(x$wartosc)})
+#     names(kryteria) = paste0("k_", names(kryteria))
+#   } else {
+#     kryteria = NULL
+#   }
+#   temp = unlist(list(kryteria, pseudokryteria), recursive=FALSE)
+#   return(temp[nazwyKryteriow])
   }

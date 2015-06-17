@@ -9,9 +9,15 @@ Authors@R: c(
 Description: Functions for Educational Value-Added data import/export.
 Depends:
   R (>= 2.15.0),
-  plyr,
-  mirt,
-  polycor
+  ZPD,
+  polycor,
+  mirt
+Imports:
+  dplyr,
+  reshape2
+Suggests:
+  testthat,
+  knitr
 License:  MIT + file LICENSE
 Language: pl
 VignetteBuilder: knitr

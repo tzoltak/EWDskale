@@ -1,0 +1,49 @@
+#' @title Laczenie kryteriow
+#' @description
+#' Na podstawie informacji pozwalających zidentyfikować skale funkcja
+#' przygotowuje obiekt z kryteriami oceny, który obrabiają potem funkcje
+#' \code{\link{lacz_kryteria_z_nr_zadan}} lub
+#' \code{\link{lacz_kryteria_z_korelacji}}.
+#' @param skale wektor liczbowy z id_skali lub ciąg znaków z wyrażeniem
+#' regularnym identyfikującymi skale po kolumnie 'opis'
+#' @return data table
+#' @import ZPD
+pobierz_kryteria_do_laczenia = function(skale) {
+  stopifnot((is.numeric(skale) & length(skale) > 0) |
+              (is.character(skale) & length(skale) == 1))
+  # pobieranie danych o kryteriach
+  src = polacz()
+  if (is.character(skale)) {
+    skale = pobierz_skale(src, doPrezentacji = NA, PvEap = FALSE) %>%
+      collect() %>%
+      filter_(~grepl(skale, opis_skali)) %>%
+      select_(~id_skali) %>%
+      distinct %>%
+      as.list %>% unlist %>% unname
+  }
+  if (length(skale) == 0) {
+    stop("Nie znaleziono żadnych skal, których opis pasowałby do podanego wyrażenia regularnego.")
+  } else if (length(skale) == 1) {
+    skale = rep(skale, 2) # głupie, ale pozwala użyć %in% w filter()
+  }
+  kryteria = suppressMessages(
+    pobierz_skale(src, doPrezentacji = NA, PvEap = FALSE) %>%
+      filter_(~id_skali %in% skale) %>%
+      select_(~id_skali, ~opis_skali, ~id_testu, ~rodzaj_egzaminu,
+              ~czesc_egzaminu, ~rok) %>%
+      inner_join(pobierz_kryteria_oceny(src)) %>%
+      select_(~id_skali, ~opis_skali, ~rodzaj_egzaminu, ~czesc_egzaminu, ~rok,
+              ~id_wiazki, ~kryterium, ~numer_pytania, ~typ_pytania,
+              ~kolejnosc_w_skali) %>%
+      distinct %>%
+      collect() %>%
+      arrange_(~id_skali, ~kolejnosc_w_skali) %>%  # arrange nie działa dobrze przed collectem
+      select_(~-kolejnosc_w_skali)
+  )
+  if (nrow(kryteria) == 0) {
+    stop("Nie znaleziono żadnych kryteriów oceny przypisanych do skal ",
+         "o podanych identyfikatorach.\n",
+         "Upewnij się, że te skale zostały zdefiniowane.")
+  }
+  return(kryteria)
+}
