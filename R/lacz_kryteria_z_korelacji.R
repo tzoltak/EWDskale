@@ -158,7 +158,7 @@ lacz_kryteria_z_korelacji_w_ramach_czesci_egz = function(x, katalogDane, prog,
   # wyliczanie dyskryminacji
   message("  Wyliczanie dyskryminacji w modelu jednowymiarowym ",
           "(może trochę potrwać...).")
-  model = mirt(dane, 1, TOL = 0.01, verbose = FALSE)
+  model = suppressMessages(mirt(dane, 1, TOL = 0.01, verbose = FALSE))
   dyskryminacjeTemp = unlist(lapply(coef(model), function(x) {return(x[1, 1])}))
   dyskryminacje[1, ] = dyskryminacjeTemp[grep("^[kp]_", names(dyskryminacjeTemp))]
   # wyliczanie korelacji
@@ -166,13 +166,14 @@ lacz_kryteria_z_korelacji_w_ramach_czesci_egz = function(x, katalogDane, prog,
           "(może trochę potrwać...)")
   pb = txtProgressBar(0, nrow(pary), style = 3)
   for (i in 1:nrow(pary)) {
-    pary$korelacja[i] = polychor(ftable(dane[, c(pary$kryterium[i],
-                                                 pary$kryterium2[i])]),
-                                 ML = FALSE, std.err = FALSE)  # użycie ftable pozwala uniknąć konwersji danych na factory
+    pary$korelacja[i] = suppressWarnings(
+      polychor(ftable(dane[, c(pary$kryterium[i], pary$kryterium2[i])]),
+               ML = FALSE, std.err = FALSE))  # użycie ftable pozwala uniknąć konwersji danych na factory
     setTxtProgressBar(pb, i)
   }
   close(pb)
-  message(" Spośród wyliczonych korelacji ", sum(pary$korelacja > prog),
+  message(" Spośród wyliczonych korelacji ",
+          sum(pary$korelacja > prog, na.rm = TRUE),
           " ma(ją) wartość powyżej progu równego ", prog,
           ".\n Łączenie kryteriów:")
   while (max(pary$korelacja, na.rm = TRUE) > prog) {
@@ -188,13 +189,13 @@ lacz_kryteria_z_korelacji_w_ramach_czesci_egz = function(x, katalogDane, prog,
     maska = which(pary$kryterium %in% k1 & !is.na(pary$korelacja))
     maska = maska[maska != wierszMax]
     for (i in maska) {
-      pary$korelacja[i] = polychor(ftable(dane[, c(pary$kryterium[i],
-                                                   pary$kryterium2[i])]),
-                                   ML = FALSE, std.err = FALSE)  # użycie ftable pozwala uniknąć konwersji danych na factory
+      pary$korelacja[i] = suppressWarnings(
+        polychor(ftable(dane[, c(pary$kryterium[i], pary$kryterium2[i])]),
+                 ML = FALSE, std.err = FALSE))  # użycie ftable pozwala uniknąć konwersji danych na factory
     }
     # wyliczanie dyskryminacji
-    model = mirt(dane[, !(names(dane) %in% laczenia$kryterium2)],
-                 1, TOL = 0.01, verbose = FALSE)
+    model = suppressMessages(mirt(dane[, !(names(dane) %in% laczenia$kryterium2)],
+                                  1, TOL = 0.01, verbose = FALSE))
     # to jest to samo, ale naklepane z wartościami startowymi - tyle że daje z 8% zysku szybkości
     #pars = mod2values(model)[, c("item", "class", "name", "value")]
     #maska = !(names(dane) %in% laczenia$kryterium2)
