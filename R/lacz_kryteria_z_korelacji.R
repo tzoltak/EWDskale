@@ -105,17 +105,18 @@ lacz_kryteria_z_korelacji_w_ramach_czesci_egz = function(x, katalogDane, prog,
   for (i in obiekty) {
     temp = zastosuj_skale(get(i), polacz(), x$id_skali[1])
     if (any(grepl("^[pk]_[[:digit:]]+$", names(temp))) &
-        all(c("wynikiSurowe", "czescEgzaminu") %in% class(get(i)))) {
+        all(c("wynikiSurowe", "czescEgzaminu") %in% class(get(i))) &
+        all(x$kryterium %in% names(temp))) {
       assign("dane", temp)
       break
     }
   }
-  rm(list = c(obiekty, "obiekty", "temp"))
-  if (!all(x$kryterium %in% names(dane)[grep("^[pk]_[[:digit:]]+$", names(dane))])) {
+  if (!exists("temp")) {
     stop("W pliku '", plikDane, "' nie ma obiektu, który zawierałby wyniki ",
          "wszystkich (pseudo)kryteriów oceny części '", x$czesc_egzaminu[1],
          "' egzaminu '", x$rodzaj_egzaminu[1], "'.")
   }
+  rm(list = c(obiekty, "obiekty", "temp"))
   # wczytywanie danych kontekstowych i filtrowanie populacji "wzorcowej"
   plikDane = paste0(katalogDane, x$rodzaj_egzaminu[1], "-kontekstowe.RData")
   if (!file.exists(plikDane)) {
