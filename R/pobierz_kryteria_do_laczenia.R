@@ -45,5 +45,19 @@ pobierz_kryteria_do_laczenia = function(skale) {
          "o podanych identyfikatorach.\n",
          "Upewnij się, że te skale zostały zdefiniowane.")
   }
+  # w przypadku skal obejmujących kilka części egzaminu nie da się tak prosto
+  # określić części egzaminów, z której pochodzą poszczególne kryteria
+  if (any(is.na(kryteria$czesc_egzaminu))) {
+    czesciEgzaminu = suppressMessages(
+      pobierz_kryteria_oceny(src, testy = TRUE, skale = FALSE) %>%
+        inner_join(pobierz_testy(src)) %>%
+        filter_(~kryterium %in% kryteria$kryterium, ~czy_egzamin == TRUE) %>%
+        select_(~kryterium, ~czesc_egzaminu) %>%
+        distinct() %>%
+        collect()
+    )
+    kryteria = suppressMessages(left_join(select_(kryteria, ~-czesc_egzaminu),
+                                          czesciEgzaminu))
+  }
   return(kryteria)
 }
