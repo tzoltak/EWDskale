@@ -18,10 +18,13 @@
 #' się pliki .RData z wynikami surowymi egzaminów i danymi kontekstowymi
 #' o uczniach i szkołach ściągnięte wcześniej przy pomocy funkcji
 #' \code{\link[EWDdane]{pobierz_wyniki_surowe}}
+#' @param ... ew. parametry przekazywane do funkcji
+#' \code{\link[ZPD]{normy_ekwikwantylowe}}
 #' @return data table
 #' @import EWDdane
+#' @import ZPD
 #' @export
-wylicz_normy_ekwikwantylowe = function(egzamin, rok, katalogZDanymi) {
+wylicz_normy_ekwikwantylowe = function(egzamin, rok, katalogZDanymi, ...) {
   stopifnot(is.character(egzamin), length(egzamin) == 1,
             is.numeric(rok), length(rok) == 1,
             is.character(katalogZDanymi), length(katalogZDanymi) == 1)
@@ -55,7 +58,7 @@ wylicz_normy_ekwikwantylowe = function(egzamin, rok, katalogZDanymi) {
                    zmienneDoNormalizacji)
   for (i in zmienneDoNormalizacji) {
     message("Zmienna '", i, "'.")
-    normalizacja = normy_ekwikwantylowe(as.matrix(dane[, i]))
+    normalizacja = normy_ekwikwantylowe(as.matrix(dane[, i]), ...)
     idTestow = na.omit(as.matrix(unique(dane[, sub("^(.*)_suma$", "id_testu_\\1", i)])))
     maska = lapply(skaleTesty, function(x, idTestow) {return(all(idTestow %in% x))},
                    idTestow = idTestow)

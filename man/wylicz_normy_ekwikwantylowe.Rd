@@ -4,7 +4,7 @@
 \alias{wylicz_normy_ekwikwantylowe}
 \title{Wyliczanie norm ekwikwantylowych}
 \usage{
-wylicz_normy_ekwikwantylowe(egzamin, rok, katalogZDanymi)
+wylicz_normy_ekwikwantylowe(egzamin, rok, katalogZDanymi, ...)
 }
 \arguments{
 \item{egzamin}{ciąg znaków: "sprawdzian" | "egzamin gimnazjalny" | "matura"}
@@ -15,6 +15,9 @@ wylicz_normy_ekwikwantylowe(egzamin, rok, katalogZDanymi)
 się pliki .RData z wynikami surowymi egzaminów i danymi kontekstowymi
 o uczniach i szkołach ściągnięte wcześniej przy pomocy funkcji
 \code{\link[EWDdane]{pobierz_wyniki_surowe}}}
+
+\item{...}{ew. parametry przekazywane do funkcji
+\code{\link[ZPD]{normy_ekwikwantylowe}}}
 }
 \value{
 data table
