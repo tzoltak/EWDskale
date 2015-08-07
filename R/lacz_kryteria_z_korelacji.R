@@ -102,8 +102,9 @@ lacz_kryteria_z_korelacji_w_ramach_czesci_egz = function(x, katalogDane, prog,
     stop("Nie można wczytać danych z pliku '", plikDane, "'. Plik nie istnieje.")
   }
   obiekty = load(plikDane)
+  src = polacz()
   for (i in obiekty) {
-    temp = zastosuj_skale(get(i), polacz(), x$id_skali[1])
+    temp = zastosuj_skale(get(i), src, x$id_skali[1])
     if (any(grepl("^[pk]_[[:digit:]]+$", names(temp))) &
         all(c("wynikiSurowe", "czescEgzaminu") %in% class(get(i))) &
         all(x$kryterium %in% names(temp))) {
@@ -111,6 +112,7 @@ lacz_kryteria_z_korelacji_w_ramach_czesci_egz = function(x, katalogDane, prog,
       break
     }
   }
+  rozlacz(src)
   if (!exists("temp")) {
     stop("W pliku '", plikDane, "' nie ma obiektu, który zawierałby wyniki ",
          "wszystkich (pseudo)kryteriów oceny części '", x$czesc_egzaminu[1],
@@ -146,6 +148,10 @@ lacz_kryteria_z_korelacji_w_ramach_czesci_egz = function(x, katalogDane, prog,
   pary = suppressMessages(left_join(pary, temp))
   if (tylkoWWiazkach) {
     pary = filter_(pary, ~id_wiazki == id_wiazki2)
+    if (nrow(pary) == 0) {
+      warning("Nie zdefiniowano żadnych wiązek.", immediate. = TRUE)
+      return(list(laczenia = NULL, dyskryminacje = NULL))
+    }
   }
   pary = cbind(pary, korelacja = NA)
   laczenia = matrix(NA, ncol = ncol(pary), nrow = nrow(pary)) %>%
@@ -172,9 +178,18 @@ lacz_kryteria_z_korelacji_w_ramach_czesci_egz = function(x, katalogDane, prog,
     setTxtProgressBar(pb, i)
   }
   close(pb)
+  if (!tylkoWWiazkach) {
+    progTemp = mean(pary$korelacja, na.rm = TRUE)
+    if (progTemp > prog) {
+      prog = progTemp
+      message(" Wartość progu została zwiększona do wartości średniej korelacji ",
+              "w grupie wszystkich par zmiennych.")
+    }
+  }
   message(" Spośród wyliczonych korelacji ",
           sum(pary$korelacja > prog, na.rm = TRUE),
-          " ma(ją) wartość powyżej progu równego ", prog,
+          " ma(ją) wartość powyżej progu równego ",
+          format(prog, digits = 3, nsmall = 3),
           ".\n Łączenie kryteriów:")
   while (max(pary$korelacja, na.rm = TRUE) > prog) {
     wierszMax = which.max(pary$korelacja)
@@ -194,8 +209,11 @@ lacz_kryteria_z_korelacji_w_ramach_czesci_egz = function(x, katalogDane, prog,
                  ML = FALSE, std.err = FALSE))  # użycie ftable pozwala uniknąć konwersji danych na factory
     }
     # wyliczanie dyskryminacji
-    model = suppressMessages(mirt(dane[, !(names(dane) %in% laczenia$kryterium2)],
-                                  1, TOL = 0.01, verbose = FALSE))
+    maska = !(names(dane) %in% laczenia$kryterium2)
+    if (sum(maska) <= 1) {
+      next
+    }
+    model = suppressMessages(mirt(dane[, maska], 1, TOL = 0.01, verbose = FALSE))
     # to jest to samo, ale naklepane z wartościami startowymi - tyle że daje z 8% zysku szybkości
     #pars = mod2values(model)[, c("item", "class", "name", "value")]
     #maska = !(names(dane) %in% laczenia$kryterium2)

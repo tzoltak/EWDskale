@@ -13,6 +13,7 @@ pobierz_kryteria_do_laczenia = function(skale) {
               (is.character(skale) & length(skale) == 1))
   # pobieranie danych o kryteriach
   src = polacz()
+  on.exit(rozlacz(src))
   if (is.character(skale)) {
     skale = pobierz_skale(src, doPrezentacji = NA, PvEap = FALSE) %>%
       collect() %>%
