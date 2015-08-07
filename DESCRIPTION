@@ -9,11 +9,12 @@ Authors@R: c(
 Description: Functions for Educational Value-Added data import/export.
 Depends:
   R (>= 2.15.0),
-  ZPD,
+  ZPD (>= 1.4.0),
   polycor,
   mirt
 Imports:
   dplyr,
+  EWDdane,
   reshape2
 Suggests:
   testthat,
