@@ -1,2 +1,9 @@
 --------------------
-Publikacja EWDskale 0.1 (???)
+Publikacja EWDskale 0.1 (2015-08-30)
+
+Nowe funkcje:
+- wylicz_normy_ekwikwantylowe();
+- lacz_kryteria_z_korelacji();
+- rysuj_laczenia_z_korelacji;
+- lacz_kryteria_z_nr_zadan();
+- skroc_skale().

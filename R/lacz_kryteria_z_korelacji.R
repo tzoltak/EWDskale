@@ -1,4 +1,4 @@
-#' @title Laczenie kryteriow na podstawie korelachi polichorycznych
+#' @title Laczenie kryteriow na podstawie korelacji polichorycznych
 #' @description
 #' Funkcja łączy, w ramach podanych skal, kryteria oceny poszczególnych zadań
 #' w pseudokryteria. Łączenie odbywa się na podstawie wartości korelacji
@@ -39,7 +39,7 @@ lacz_kryteria_z_korelacji = function(skale, katalogDane = "dane surowe/",
   class(temp) = append(class(temp), "wynikLaczKryteriaZKorelacji")
   return(temp)
 }
-#' @title Laczenie kryteriow na podstawie korelachi polichorycznych
+#' @title Laczenie kryteriow na podstawie korelacji polichorycznych
 #' @description Koń roboczy wywoływany przez \code{\link{lacz_kryteria_z_korelacji}}.
 #' @param x data frame opisujący kryteria oceny w ramach skali
 #' @param katalogDane ciąg znaków - ścieżka do katalogu, w którym znajdują
@@ -69,7 +69,7 @@ lacz_kryteria_z_korelacji_w_ramach_skali = function(x, katalogDane, prog,
                          "laczenia"))
   return(x)
 }
-#' @title Laczenie kryteriow na podstawie korelachi polichorycznych
+#' @title Laczenie kryteriow na podstawie korelacji polichorycznych
 #' @description Koń roboczy wywoływany przez
 #' \code{\link{lacz_kryteria_z_korelacji_w_ramach_skali}}.
 #' @param x data frame opisujący kryteria oceny w ramach skali
@@ -105,15 +105,22 @@ lacz_kryteria_z_korelacji_w_ramach_czesci_egz = function(x, katalogDane, prog,
   src = polacz()
   for (i in obiekty) {
     temp = zastosuj_skale(get(i), src, x$id_skali[1])
-    if (any(grepl("^[pk]_[[:digit:]]+$", names(temp))) &
-        all(c("wynikiSurowe", "czescEgzaminu") %in% class(get(i))) &
-        all(x$kryterium %in% names(temp))) {
-      assign("dane", temp)
-      break
+    temp = select_(temp, ~-id_testu)
+    maska = grepl("^[kp]_[[:digit:]]+$", names(temp))
+    if (any(maska) & all(names(temp)[maska] %in% x$kryterium) &
+        all(c("wynikiSurowe", "czescEgzaminu") %in% class(get(i)))) {
+      if (!exists("dane")) {
+        assign("dane", temp)
+      } else {
+        dane = suppressMessages(full_join(get("dane"), temp))
+        if (all(x$kryterium %in% names(dane))) {
+          break
+        }
+      }
     }
   }
   rozlacz(src)
-  if (!exists("temp")) {
+  if (!exists("dane")) {
     stop("W pliku '", plikDane, "' nie ma obiektu, który zawierałby wyniki ",
          "wszystkich (pseudo)kryteriów oceny części '", x$czesc_egzaminu[1],
          "' egzaminu '", x$rodzaj_egzaminu[1], "'.")
@@ -133,7 +140,7 @@ lacz_kryteria_z_korelacji_w_ramach_czesci_egz = function(x, katalogDane, prog,
   }
   daneKontekstowe = get(obiekty[maska])
   rm(list = c(obiekty, "obiekty", "maska"))
-  daneKontekstowe = filter_(daneKontekstowe, ~populacja_wy)
+  daneKontekstowe = filter_(daneKontekstowe, ~populacja_wy & !pomin_szkole)
   dane = suppressMessages(semi_join(dane, daneKontekstowe))
   rm(daneKontekstowe)
   dane = dane[, grep("^[kp]_", names(dane))]

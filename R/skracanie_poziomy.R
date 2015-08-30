@@ -1,37 +1,41 @@
 #' @title Skracanie skal oceny
 #' @description
-#' Funkcja dokonuje skrótu skali oceny (pseudo)kryterium w oparciu o rozkład jego
-#' wyników w grupie kalibracyjnej i informację o wszystkich możliwych wartościach,
-#' jakie może przyjąć dane (pseudo)kryterium.
-#' @param x data frame zawierający wyniki cześći egzaminu (typowo pobrane przy pomocy
-#' funkcji \code{pobierz_czesc_egzaminu()} z pakietu \code{ZPD}) lub lista takich
-#' data frame'ów
+#' Funkcja dokonuje skrótu skali oceny (pseudo)kryterium w oparciu o rozkład
+#' jego wyników w grupie kalibracyjnej i informację o wszystkich możliwych
+#' wartościach, jakie może przyjąć dane (pseudo)kryterium.
+#' @param x data frame zawierający wyniki cześći egzaminu (typowo pobrane przy
+#' pomocy funkcji \code{pobierz_czesc_egzaminu()} z pakietu \code{ZPD}) lub
+#' lista takich data frame'ów
 #' @param maxLPozWyk maksymalna liczba poziomów pytania
 #' @param minLiczebnPozWyk minimalna liczebność obserwacji w każdym z poziomów
-#' @param minOdsPozWyk minimalny odsetek obserwacji, które ma zawierać każdy poziom
+#' @param minOdsPozWyk minimalny odsetek obserwacji, które ma zawierać każdy
+#' poziom
 #' @param print wartość logiczna - czy pokazywać informacje o skracaniu?
-#' @param zrodloDanychODBC opcjonalnie nazwa źródła danych ODBC, dającego dostęp do
-#' bazy (domyślnie "EWD")
-#' @return Data frame, pasujący swoją strukturą jako argument \code{elementy} do
-#' funkcji \code{edytuj_skale} z pakietu \code{ZPD} lub lista takich data frame'ów.
+#' @param zrodloDanychODBC opcjonalnie nazwa źródła danych ODBC, dającego dostęp
+#' do bazy (domyślnie "EWD")
+#' @return Data frame, pasujący swoją strukturą jako argument \code{elementy}
+#' do funkcji \code{edytuj_skale} z pakietu \code{ZPD} lub lista takich data
+#' frame'ów.
 #' @export
-skroc_skale <- function(x, maxLPozWyk=5, minLiczebnPozWyk=100, minOdsPozWyk=0.05, print=TRUE, zrodloDanychODBC="EWD") {
+skroc_skale = function(x, maxLPozWyk = 5, minLiczebnPozWyk = 100,
+                       minOdsPozWyk = 0.05, print = TRUE,
+                       zrodloDanychODBC = "EWD") {
   stopifnot(is.data.frame(x) | is.list(x),
             is.numeric(maxLPozWyk)      , length(maxLPozWyk      ) == 1,
             is.numeric(minLiczebnPozWyk), length(minLiczebnPozWyk) == 1,
             is.numeric(minLiczebnPozWyk), length(minLiczebnPozWyk) == 1)
   stopifnot(maxLPozWyk >= 2,
-            minLiczebnPozWyk>=0, minLiczebnPozWyk < Inf,
+            minLiczebnPozWyk >= 0, minLiczebnPozWyk < Inf,
             minOdsPozWyk >= 0, minOdsPozWyk <= 1)
   if (is.data.frame(x)) x = list(x)
 
-  elementy = vector(mode="list", length=length(x))
+  elementy = vector(mode = "list", length = length(x))
   names(elementy) = names(x)
   for (j in names(x)) {
     nazwyKryteriow =  # właściwie kryteriów i pseudokryteriów
       names(x[[j]])[grep("^[kp]_[[:digit:]]+$", names(x[[j]]))]
     mozliweWartosci = pobierz_mozliwe_wartosci(nazwyKryteriow, zrodloDanychODBC)
-    skroty = vector(mode="list", length=length(nazwyKryteriow))
+    skroty = vector(mode = "list", length = length(nazwyKryteriow))
     names(skroty) = nazwyKryteriow
     for (k in nazwyKryteriow) {
       message(j, ": ", k)
@@ -134,7 +138,6 @@ okresl_wzor_skracania <- function(x, mozliweWartosci, maxLPozWyk=5, minLiczebnPo
 #' @param zrodloDanychODBC opcjonalnie nazwa źródła danych ODBC, dającego dostęp do
 #' bazy (domyślnie "EWD")
 #' @return lista wektorów liczbowych
-#' @export
 pobierz_mozliwe_wartosci <- function(nazwyKryteriow, zrodloDanychODBC="EWD"){
   stopifnot(is.character(nazwyKryteriow), length(nazwyKryteriow) > 0,
             is.character(zrodloDanychODBC), length(zrodloDanychODBC) == 1)

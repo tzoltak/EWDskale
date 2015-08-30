@@ -2,7 +2,7 @@
 % Please edit documentation in R/lacz_kryteria_z_korelacji.R
 \name{lacz_kryteria_z_korelacji_w_ramach_skali}
 \alias{lacz_kryteria_z_korelacji_w_ramach_skali}
-\title{Laczenie kryteriow na podstawie korelachi polichorycznych}
+\title{Laczenie kryteriow na podstawie korelacji polichorycznych}
 \usage{
 lacz_kryteria_z_korelacji_w_ramach_skali(x, katalogDane, prog, tylkoWWiazkach)
 }
