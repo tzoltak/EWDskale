@@ -37,10 +37,15 @@ pobierz_kryteria_do_laczenia = function(skale) {
               ~id_wiazki, ~kryterium, ~numer_pytania, ~typ_pytania,
               ~kolejnosc_w_skali) %>%
       distinct %>%
-      collect() %>%
-      arrange_(~id_skali, ~kolejnosc_w_skali) %>%  # arrange nie działa dobrze przed collectem
-      select_(~-kolejnosc_w_skali)
+      collect()
   )
+  if (nrow(kryteria) == 0) {
+    stop("Skala o id_skali równym ", skale[1],
+         " nie ma przypisanych rzadnych kryteriów.")
+  }
+  # arrange nie działa dobrze przed collectem
+  kryteria = arrange_(kryteria, ~id_skali, ~kolejnosc_w_skali) %>%
+    select_(~-kolejnosc_w_skali)
   if (nrow(kryteria) == 0) {
     stop("Nie znaleziono żadnych kryteriów oceny przypisanych do skal ",
          "o podanych identyfikatorach.\n",

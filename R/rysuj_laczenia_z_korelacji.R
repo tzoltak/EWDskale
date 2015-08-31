@@ -3,12 +3,15 @@
 #' Funkcja wizualizuje skutki łączeń kryteriów oceny, będących efektem użycia
 #' funkcji \code{\link{lacz_kryteria_z_korelacji}} dla dyskryminacji zadań.
 #' @param x obiekt klasy \code{wynikLaczKryteriaZKorelacji}
+#' @param wielkoscTekstu bazowa wielkość tekstu w \code{pts}
 #' @return data frame
 #' @import dplyr
 #' @export
-rysuj_laczenia_z_korelacji = function(x) {
-  stopifnot("wynikLaczKryteriaZKorelacji" %in% class(x))
-  x = do_(x, .dots = list(~rysuj_laczenia_z_korelacji_w_ramach_skali(.)))
+rysuj_laczenia_z_korelacji = function(x, wielkoscTekstu = 1) {
+  stopifnot("wynikLaczKryteriaZKorelacji" %in% class(x),
+            is.numeric(wielkoscTekstu), length(wielkoscTekstu) == 1)
+  stopifnot(is.finite(wielkoscTekstu), wielkoscTekstu > 0)
+  x = do_(x, .dots = list(~rysuj_laczenia_z_korelacji_w_ramach_skali(., wielkoscTekstu)))
   class(x) = sub("wynikLaczKryteriaZKorelacji",
                  "wynikRysujLaczeniaZKorelacji", class(x))
   return(x)
@@ -17,16 +20,20 @@ rysuj_laczenia_z_korelacji = function(x) {
 #' @description
 #' Koń roboczy dla \code{\link{rysuj_laczenia_z_korelacji}}.
 #' @param x pojedynczy wiersz obiektu klasy \code{wynikLaczKryteriaZKorelacji}
+#' @param wielkoscTekstu bazowa wielkość tekstu w \code{pts}
 #' @return data frame
 #' @import dplyr
 #' @import ggplot2
-rysuj_laczenia_z_korelacji_w_ramach_skali = function(x) {
+rysuj_laczenia_z_korelacji_w_ramach_skali = function(x, wielkoscTekstu = 12) {
+  stopifnot(is.numeric(wielkoscTekstu), length(wielkoscTekstu) == 1)
+  stopifnot(is.finite(wielkoscTekstu), wielkoscTekstu > 0)
+
   egzamin = x[, names(x) %in% c("rodzaj_egzaminu", "czesc_egzaminu", "rok")]
   egzamin = mutate(egzamin, wykres = NA, elementy = NA)
   tytul = with(x, paste0(rodzaj_egzaminu, " ", rok, ", część ",
                          czesc_egzaminu, "\n", "id_skali: ", id_skali))
-  with(x, message(tytul, "\n", "zbadano ", nrow(laczenia[[1]]$laczenia),
-                  " łączeń/nia/nie\n"))
+  with(x, cat(tytul, "\n", "zbadano ", nrow(laczenia[[1]]$laczenia),
+                  " łączeń/nia/nie\n\n", sep = ""))
   if (nrow(x$laczenia[[1]]$laczenia) == 0) {
     return(egzamin)
   }
@@ -50,8 +57,9 @@ rysuj_laczenia_z_korelacji_w_ramach_skali = function(x) {
     theme(plot.title = element_text(face = "bold"),
           panel.grid.major = element_line(colour = "#404040", linetype = "dashed"),
           panel.grid.minor = element_line(colour = "#404040", linetype = "dotted"),
-          axis.text.x = element_text(color = "#303030"),
-          axis.text.y = element_text(color = "#303030"))
+          axis.text.x = element_text(color = "#303030", size = rel(1.2)),
+          axis.text.y = element_text(color = "#303030", size = rel(1.2)),
+          text = element_text(size = wielkoscTekstu))
   plot(wykres)
   # przygotowywanie obiektów 'elementy' dla edytuj_skale()
   elementy = vector(mode = "list", length = nrow(x$dyskryminacje))
@@ -79,7 +87,7 @@ rysuj_laczenia_z_korelacji_w_ramach_skali = function(x) {
       elementy[[i]] = bind_rows(elementy[[i]], polaczone)
     }
   }
-  elementy = lapply(elementy[-1], function(x) {
+  elementy = lapply(elementy[-1], function(x, czescEgzaminu) {
     maska = unlist(lapply(x$polaczone, is.null))
     polaczone = bind_rows(lapply(x$polaczone[!maska], function(x) {
       return(data.frame(matrix(x, nrow = 1)))
@@ -87,12 +95,14 @@ rysuj_laczenia_z_korelacji_w_ramach_skali = function(x) {
     names(polaczone) = paste0("id_kryterium_", 1:ncol(polaczone))
     polaczone = cbind(polaczone,
                       opis = unlist(lapply(x$polaczone[!maska],
-                                           paste0, collapse = ";")))
+                                           paste0, collapse = ";")),
+                      stringsAsFactors = FALSE)
+    polaczone$opis = paste0(czescEgzaminu, ";", polaczone$opis)
     x = bind_rows(select_(x[maska, ], ~-polaczone), polaczone)
     maska = grepl("^id_kryterium", names(x))
     x = x[, c(names(x)[maska], names(x)[!maska])]
     return(x)
-  })
+  }, czescEgzaminu = egzamin$czesc_egzaminu)
   # zwracanie
   x = egzamin
   x$wykres[1] = list(wykres)

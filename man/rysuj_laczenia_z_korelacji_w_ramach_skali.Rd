@@ -4,10 +4,12 @@
 \alias{rysuj_laczenia_z_korelacji_w_ramach_skali}
 \title{Laczenie kryteriow na podstawie korelacji polichorycznych}
 \usage{
-rysuj_laczenia_z_korelacji_w_ramach_skali(x)
+rysuj_laczenia_z_korelacji_w_ramach_skali(x, wielkoscTekstu = 12)
 }
 \arguments{
 \item{x}{pojedynczy wiersz obiektu klasy \code{wynikLaczKryteriaZKorelacji}}
+
+\item{wielkoscTekstu}{bazowa wielkość tekstu w \code{pts}}
 }
 \value{
 data frame
