@@ -86,7 +86,6 @@ skaluj_spr = function(rok, processors = 2, katalogSurowe = "../../dane surowe",
   # wyrzucamy wszystko, co niepotrzebne do skalowania (rypanie po dysku zajmuje potem cenny czas)
   maskaZmienne = grep("^(id_obserwacji|id_testu|[kpst]_[[:digit:]]+)$", names(dane))
   zmienneKryteria = names(dane[grep("^[kpst]_[[:digit:]]+$", names(dane))])
-  names(dane) = sub("^id_testu$", "id_testu_s", names(dane))
   tytulWzorcowe = paste0("spr", rok, " wzor")
   tytulWszyscy = paste0("spr", rok, " wszyscy")
   # jeśli nic w bazie nie znaleźliśmy, to robimy skalowanie wzorcowe
@@ -97,7 +96,7 @@ skaluj_spr = function(rok, processors = 2, katalogSurowe = "../../dane surowe",
     message("\n### Skalowanie wzorcowe ###\n")
     opisWzorcowe = procedura_1k_1w(zmienneKryteria, "s", processors = processors)
     sprWzorcowe = skaluj(daneWzorcowe, opisWzorcowe, "id_obserwacji",
-                         tytul = tytulWzorcowe, zmienneDolaczaneDoOszacowan = "id_testu_s")
+                         tytul = tytulWzorcowe, zmienneDolaczaneDoOszacowan = "id_testu")
     # wyliczanie rzetelności empirycznej
     rzetelnoscEmpiryczna = sprWzorcowe[[1]][[length(sprWzorcowe[[1]])]]$zapis[["s"]]
     rzetelnoscEmpiryczna = var(rzetelnoscEmpiryczna)
@@ -115,7 +114,8 @@ skaluj_spr = function(rok, processors = 2, katalogSurowe = "../../dane surowe",
     # w przeciwnym wypadku podstawiamy zapisane w bazie parametry
     # i sprawdzamy, czy ktoś już ma zapisane oszacowania
     wartosciZakotwiczone = as.data.frame(parametry)  # pozbywamy się "tbl_df-owatości"
-    zmienneKryteriaPoUsuwaniu = zmienneKryteria
+    zmienneKryteriaPoUsuwaniu =
+      zmienneKryteria[zmienneKryteria %in% unique(wartosciZakotwiczone$zmienna2)]
 
     daneWyskalowane = wczytaj_wyniki_wyskalowane(katalogWyskalowane,
                                                  rodzajEgzaminu, idSkali)
@@ -135,11 +135,12 @@ skaluj_spr = function(rok, processors = 2, katalogSurowe = "../../dane surowe",
   opisWszyscy = procedura_1k_1w(zmienneKryteriaPoUsuwaniu, "s",
                                  wartosciZakotwiczone, processors = processors)
   sprWszyscy = skaluj(dane , opisWszyscy , "id_obserwacji", tytul = tytulWszyscy,
-                      zmienneDolaczaneDoOszacowan = "id_testu_s")
+                      zmienneDolaczaneDoOszacowan = "id_testu")
 
   # koniec
   wyniki = list(
     idSkali = idSkali,
+    skalowanie = skalowanie,
     usunieteKryteria = zmienneKryteria[!(zmienneKryteria %in% zmienneKryteriaPoUsuwaniu)],
     parametry = NULL,
     oszacowania = sprWszyscy[[1]][[length(sprWszyscy[[1]])]]$zapis,
