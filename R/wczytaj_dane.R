@@ -67,7 +67,7 @@ wczytaj_wyniki_surowe = function(katalogDane, rodzajEgzaminu, czescEgzaminu,
   }
   rozlacz(src)
   if (length(idTestu) == 1) {
-    dane = mutate_(dane, dots.= setNames(list(~idTestu),
+    dane = mutate_(dane, .dots= setNames(list(~idTestu),
                                          "id_testu"))
   }
   if (!exists("dane")) {
