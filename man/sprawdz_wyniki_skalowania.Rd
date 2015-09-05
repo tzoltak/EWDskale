@@ -4,25 +4,19 @@
 \alias{sprawdz_wyniki_skalowania}
 \title{Diagnostyka skalowania}
 \usage{
-sprawdz_wyniki_skalowania(model, nazwa = "")
+sprawdz_wyniki_skalowania(nazwaPliku)
 }
 \arguments{
-\item{model}{lista zawierająca wyniki skalowania, typowo pojedynczy element listy
-będącej wynikiem działania funkcji \code{\link{skaluj_egz_gimn}},
-\code{\link{skaluj_egz_gimn_rasch}}, \code{\link{skaluj_matura_rasch}} lub wynik
-działania funkcji \code{\link{skaluj_spr}}}
-
-\item{nazwa}{ciag znaków - nazwa konstruktu}
+\item{nazwaPliku}{ciąg znaków - nazwa pliku .RData, zawierającego wyniki
+skalowania (typowo zapisanego przez funkcję \code{\link{skaluj_spr}},
+\code{\link{skaluj_egz_gimn}}, \code{\link{skaluj_egz_gimn_rasch}},
+\code{\link{skaluj_matura}} lub \code{\link{skaluj_matura_rasch}}).}
 }
 \value{
 funkcja nie zwraca żadnych wartości
 }
 \description{
-Funkcja wyrysowuje zestaw wykresów diagnostycznych pozwalających przyjrzeć się wynikom
-uzyskanym z modelu skalowania.
-}
-\seealso{
-\code{\link{skaluj_egz_gimn}}, \code{\link{skaluj_egz_gimn_rasch}},
-\code{\link{skaluj_matura_rasch}}, \code{\link{skaluj_spr}}
+Funkcja wyrysowuje zestaw wykresów diagnostycznych pozwalających przyjrzeć
+się wynikom uzyskanym z modelu skalowania.
 }
 
