@@ -93,56 +93,14 @@ lacz_kryteria_z_korelacji_w_ramach_czesci_egz = function(x, katalogDane, prog,
   stopifnot(prog > 0, prog < 1)
   stopifnot(dir.exists(katalogDane))
 
-  message(" ", x$rodzaj_egzaminu[1], " ", x$rok[1], ", część ",
+  message(" ", x$rodzaj_egzaminu[1], " ", x$rok[1],
+          ifelse(x$czesc_egzaminu[1] != "", ", część ", ""),
           x$czesc_egzaminu[1], ":")
   # wczytywanie danych z wynikami egzaminu
-  katalogDane = paste0(sub("/$", "", katalogDane), "/")
-  plikDane = paste0(katalogDane, x$rodzaj_egzaminu[1], " ", x$rok[1], ".RData")
-  if (!file.exists(plikDane)) {
-    stop("Nie można wczytać danych z pliku '", plikDane, "'. Plik nie istnieje.")
-  }
-  obiekty = load(plikDane)
-  src = polacz()
-  for (i in obiekty) {
-    temp = zastosuj_skale(get(i), src, x$id_skali[1])
-    temp = select_(temp, ~-id_testu)
-    maska = grepl("^[kp]_[[:digit:]]+$", names(temp))
-    if (any(maska) & all(names(temp)[maska] %in% x$kryterium) &
-        all(c("wynikiSurowe", "czescEgzaminu") %in% class(get(i)))) {
-      if (!exists("dane")) {
-        assign("dane", temp)
-      } else {
-        dane = suppressMessages(full_join(get("dane"), temp))
-        if (all(x$kryterium %in% names(dane))) {
-          break
-        }
-      }
-    }
-  }
-  rozlacz(src)
-  if (!exists("dane")) {
-    stop("W pliku '", plikDane, "' nie ma obiektu, który zawierałby wyniki ",
-         "wszystkich (pseudo)kryteriów oceny części '", x$czesc_egzaminu[1],
-         "' egzaminu '", x$rodzaj_egzaminu[1], "'.")
-  }
-  rm(list = c(obiekty, "obiekty", "temp"))
-  # wczytywanie danych kontekstowych i filtrowanie populacji "wzorcowej"
-  plikDane = paste0(katalogDane, x$rodzaj_egzaminu[1], "-kontekstowe.RData")
-  if (!file.exists(plikDane)) {
-    stop("Nie można wczytać danych z pliku '", plikDane, "'. Plik nie istnieje.")
-  }
-  obiekty = load(plikDane)
-  maska = grepl("^[[:alpha:]]Kontekstowe$", obiekty)
-  if (!any(maska)) {
-    stop("W pliku '", plikDane, "' brak obiektu zawierającego dane kontekstowe.")
-  } else if (!("daneKontekstowe" %in% class(get(obiekty[maska])))) {
-    stop("W pliku '", plikDane, "' brak obiektu zawierającego dane kontekstowe.")
-  }
-  daneKontekstowe = get(obiekty[maska])
-  rm(list = c(obiekty, "obiekty", "maska"))
-  daneKontekstowe = filter_(daneKontekstowe, ~populacja_wy & !pomin_szkole)
-  dane = suppressMessages(semi_join(dane, daneKontekstowe))
-  rm(daneKontekstowe)
+  dane = wczytaj_wyniki_surowe(katalogDane, x$rodzaj_egzaminu[1],
+                              x$czesc_egzaminu[1], x$rok[1], x$id_skali[1],
+                              x$kryterium)
+  dane = filter_(dane, ~populacja_wy & !pomin_szkole)
   dane = dane[, grep("^[kp]_", names(dane))]
   message("  Wczytano dane z wynikami egzaminu.")
 

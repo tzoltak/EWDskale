@@ -1,4 +1,19 @@
 --------------------
+EWDskale 0.2 (2015-09-0?)
+
+Funkcje przeniesione z pakieru EWDskalowanie:
+- skaluj_sprawdzian();
+- skaluj_egz_gimn();
+- skaluj_egz_gimn_rasch();
+- skaluj_matura();
+- skaluj_matura_rasch();
+- sprawdz_wyniki_skalowania().
+
+Nowe funkcje:
+- wczytaj_wyniki_surowe() - z dysku;
+- wczytaj_wyniki_wyskalowane() - z dysku;
+
+--------------------
 Publikacja EWDskale 0.1 (2015-08-30)
 
 Nowe funkcje:
@@ -6,4 +21,4 @@ Nowe funkcje:
 - lacz_kryteria_z_korelacji();
 - rysuj_laczenia_z_korelacji;
 - lacz_kryteria_z_nr_zadan();
-- skroc_skale().
+- skroc_skale();
