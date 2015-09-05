@@ -154,7 +154,7 @@ skaluj_spr = function(rok, processors = 2, katalogSurowe = "../../dane surowe",
   if (zapisz) {
     nazwaObiektu = paste0("s", rok, "Skalowanie")
     assign(nazwaObiektu, wyniki)
-    save(nazwaObiektu, file = paste0(nazwaObiektu, ".RData"))
+    save(list = nazwaObiektu, file = paste0(nazwaObiektu, ".RData"))
   }
   return(wyniki)
 }
