@@ -30,20 +30,24 @@ wczytaj_wyniki_surowe = function(katalogDane, rodzajEgzaminu, czescEgzaminu,
   }
   obiekty = load(plikDane)
   src = polacz()
-  idTestu = pobierz_skale(src) %>%
-    filter_(~id_skali == idSkali) %>%
-    select_(~id_testu) %>%
-    collect() %>%
-    as.matrix() %>%
-    as.vector()
+  idTestu = suppressMessages(
+    pobierz_skale(src) %>%
+      filter_(~id_skali == idSkali) %>%
+      select_(~id_testu) %>%
+      semi_join(pobierz_testy(src) %>% filter_(~!czy_egzamin)) %>%
+      collect() %>%
+      as.matrix() %>%
+      as.vector()
+  )
+  if (length(idTestu) > 1) {
+    stop("Jeśli skala jest powiązana z testem nie będącym 'atomową' częścią egzaminu, ",
+         "to musi być powiązana z tylko jednym takim testem.")
+  }
   for (i in obiekty) {
     temp = zastosuj_skale(get(i), src, idSkali)
-    # Jeśli skala ma przypisanych wiele testów, to (przynajmniej dla skal EWD)
-    # każdy zdający pisał tylko jeden test i nie trzeba usuwać informacji o id_testu.
-    # Jeśli skala ma przypisany jeden test, to zbiera wyniki wielu części egzaminu
-    # i trzeba usunąć z danych "pierwotne" id_testu tych poszczególnych części
-    # a zastąpić je id_testu specjalnie stworzonego wcześniej testu, powiązanego
-    # ze skalą (co dzieje się kawałek dalej).
+    # Jeśli skala ma przypisanych test który nie jest częścią egzaminu, to
+    # trzeba usunąć z danych "pierwotne" id_testu poszczególnych części egzaminu
+    # i zastąpić je id_testu właśnie tego testu (co dzieje się kawałek dalej).
     if (length(idTestu) == 1) {
       temp = select_(temp, ~-id_testu)
     }

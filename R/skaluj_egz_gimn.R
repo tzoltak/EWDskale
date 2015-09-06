@@ -97,7 +97,7 @@ skaluj_egz_gimn = function(rok, processors = 2, katalogSurowe = "../../dane suro
     idSkali = parametry$id_skali[i]
     opis = parametry$opis_skali[i]
     skalowanie = parametry$skalowanie[i]
-    parametrySkala = parametry$parametry[[i]][[1]]
+    parametrySkala = parametry$parametry[[i]]
 
     message(rodzajEgzaminu, " ", rok, " (id_skali: ", idSkali, ", '", opis,
             "'; skalowanie ", skalowanie, ".):")
@@ -106,8 +106,8 @@ skaluj_egz_gimn = function(rok, processors = 2, katalogSurowe = "../../dane suro
     # będziemy wyrzucać wszystko, co niepotrzebne do skalowania (rypanie po dysku zajmuje potem cenny czas)
     maskaZmienne = grep("^(id_obserwacji|id_testu|[kpst]_[[:digit:]]+)$", names(dane))
     zmienneKryteria = names(dane[grep("^[kpst]_[[:digit:]]+$", names(dane))])
-    tytulWzorcowe = paste0("spr", rok, " wzor")
-    tytulWszyscy = paste0("spr", rok, " wszyscy")
+    tytulWzorcowe = paste0(names(wyniki)[i], rok, " wzor")
+    tytulWszyscy = paste0(names(wyniki)[i], rok, " wszyscy")
     # jeśli nic w bazie nie znaleźliśmy, to robimy skalowanie wzorcowe
     if (!is.data.frame(parametrySkala)) {
       zmLaur = paste0("laur_", names(wyniki)[i])
@@ -182,8 +182,8 @@ skaluj_egz_gimn = function(rok, processors = 2, katalogSurowe = "../../dane suro
       rzetelnoscEmpiryczna = NULL
     )
     if (!is.data.frame(parametrySkala)) {
-      wyniki[["parametry"]] = wartosciZakotwiczone
-      wyniki[["rzetelnoscEmpiryczna"]] = rzetelnoscEmpiryczna
+      wyniki[[i]][["parametry"]] = wartosciZakotwiczone
+      wyniki[[i]][["rzetelnoscEmpiryczna"]] = rzetelnoscEmpiryczna
     }
     class(wyniki[[i]]) = c(class(wyniki), "wynikiSkalowania")
     attributes(wyniki[[i]])$dataSkalowania = Sys.time()
