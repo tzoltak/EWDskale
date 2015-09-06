@@ -29,9 +29,11 @@ wyskalowanymi wynikami egzaminu}
 regularnym, do którego ma pasować opis skali}
 }
 \value{
-lista z elementami:
+lista klasy \code{listaWynikowSkalowania} z jednym elementem "s",
+klasy \code{wynikiSkalowania}, będącym listą o elementach:
 \itemize{
   \item{\code{idSkali} id_skali w bazie;}
+  \item{\code{skalowanie} nr skalowania w bazie;}
   \item{\code{usunieteKryteria} wektor tekstowy z nazwami (pseudo)kryteriów, które
         zostały usunięte podczas skalowania wzorcowego;}
   \item{\code{parametry} data frame z wyestymowanymi parametrami modelu w jego

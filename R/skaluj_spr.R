@@ -15,9 +15,11 @@
 #' @param skala id_skali (liczba naturalna) lub ciąg znaków z wyrażeniem
 #' regularnym, do którego ma pasować opis skali
 #' @return
-#' lista z elementami:
+#' lista klasy \code{listaWynikowSkalowania} z jednym elementem "s",
+#' klasy \code{wynikiSkalowania}, będącym listą o elementach:
 #' \itemize{
 #'   \item{\code{idSkali} id_skali w bazie;}
+#'   \item{\code{skalowanie} nr skalowania w bazie;}
 #'   \item{\code{usunieteKryteria} wektor tekstowy z nazwami (pseudo)kryteriów, które
 #'         zostały usunięte podczas skalowania wzorcowego;}
 #'   \item{\code{parametry} data frame z wyestymowanymi parametrami modelu w jego
@@ -58,7 +60,7 @@ skaluj_spr = function(rok, processors = 2, katalogSurowe = "../../dane surowe",
   } else if (is.character(skala)) {
     if (!grepl("^ewd;s;", skala)) {
       warning("Skala, której opis ma pasować do wyrażenia '", skala,
-              "' raczej nie odnosi się do sprawdzianu!")
+              "' raczej nie odnosi się do sprawdzianu!", immediate. = TRUE)
     }
   }
   parametry = suppressMessages(pobierz_parametry_skalowania(skala, doPrezentacji = TRUE,
@@ -72,18 +74,20 @@ skaluj_spr = function(rok, processors = 2, katalogSurowe = "../../dane surowe",
            ", która byłaby oznaczona jako 'do prezentacji'.")
     }
   } else if (nrow(parametry) > 1) {
-    stop("Znaleziono wiele skal oznaczonych jako 'do prezentacji', ",
+    stop("Znaleziono wiele skal lub skalowań oznaczonych jako 'do prezentacji', ",
          "których opis pasuje do wyrażenia '", skala, "'.")
   }
-  rodzajEgzaminu = parametry$rodzaj_egzaminu[1]
-  idSkali = parametry$id_skali[1]
-  skalowanie = parametry$skalowanie[1]
+  rodzajEgzaminu = parametry$rodzaj_egzaminu
+  idSkali = parametry$id_skali
+  opis = parametry$opis_skali
+  skalowanie = parametry$skalowanie
   parametry = parametry$parametry[[1]]
 
-  message(rodzajEgzaminu, " ", rok, " (id_skali: ", idSkali, "):")
+  message(rodzajEgzaminu, " ", rok, " (id_skali: ", idSkali, ", '", opis,
+          "'; skalowanie ", skalowanie, ".):")
   # wczytywanie danych z dysku i sprawdzanie, czy jest dla kogo skalować
   dane = wczytaj_wyniki_surowe(katalogSurowe, rodzajEgzaminu, "", rok, idSkali)
-  # wyrzucamy wszystko, co niepotrzebne do skalowania (rypanie po dysku zajmuje potem cenny czas)
+  # będziemy wyrzucać wszystko, co niepotrzebne do skalowania (rypanie po dysku zajmuje potem cenny czas)
   maskaZmienne = grep("^(id_obserwacji|id_testu|[kpst]_[[:digit:]]+)$", names(dane))
   zmienneKryteria = names(dane[grep("^[kpst]_[[:digit:]]+$", names(dane))])
   tytulWzorcowe = paste0("spr", rok, " wzor")
@@ -134,7 +138,7 @@ skaluj_spr = function(rok, processors = 2, katalogSurowe = "../../dane surowe",
   # skalowanie dla oszacowań
   opisWszyscy = procedura_1k_1w(zmienneKryteriaPoUsuwaniu, "s",
                                  wartosciZakotwiczone, processors = processors)
-  sprWszyscy = skaluj(dane , opisWszyscy , "id_obserwacji", tytul = tytulWszyscy,
+  sprWszyscy = skaluj(dane, opisWszyscy, "id_obserwacji", tytul = tytulWszyscy,
                       zmienneDolaczaneDoOszacowan = "id_testu")
 
   # koniec
@@ -152,6 +156,8 @@ skaluj_spr = function(rok, processors = 2, katalogSurowe = "../../dane surowe",
   }
   class(wyniki) = c(class(wyniki), "wynikiSkalowania")
   attributes(wyniki)$dataSkalowania = Sys.time()
+  wyniki = list("s" = wyniki)
+  class(wyniki) = c(class(wyniki), "listaWynikowSkalowania")
   if (zapisz) {
     nazwaObiektu = paste0("s", rok, "Skalowanie")
     assign(nazwaObiektu, wyniki)
