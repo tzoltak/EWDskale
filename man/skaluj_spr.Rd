@@ -4,14 +4,17 @@
 \alias{skaluj_spr}
 \title{Procedury skalowania egzaminow}
 \usage{
-skaluj_spr(rok, processors = 2, katalogSurowe = "../../dane surowe",
+skaluj_spr(rok, processors = 2, opis = "skalowanie do EWD",
+  katalogSurowe = "../../dane surowe",
   katalogWyskalowane = "../../dane wyskalowane", zapisz = TRUE,
-  skala = NULL)
+  skala = NULL, proba = -1)
 }
 \arguments{
 \item{rok}{rok przeprowadzenie egzaminu}
 
 \item{processors}{liczba rdzeni do wykorzystania przy estymacji}
+
+\item{opis}{opcjonalnie ciąg znaków - opis skalowania}
 
 \item{katalogSurowe}{opcjonalnie ścieżka do katalogu, w którym znajdują się
 pliki z zapisanymi (przy pomocy funkcji
@@ -27,22 +30,66 @@ wyskalowanymi wynikami egzaminu}
 
 \item{skala}{id_skali (liczba naturalna) lub ciąg znaków z wyrażeniem
 regularnym, do którego ma pasować opis skali}
+
+\item{proba}{opcjonalnie liczba natrualna - wielkość próby, jaka ma być
+wylosowana z danych przed estymacją modelu; przydatne (tylko) do testów
+działania funkcji}
 }
 \value{
 lista klasy \code{listaWynikowSkalowania} z jednym elementem "s",
 klasy \code{wynikiSkalowania}, będącym listą o elementach:
 \itemize{
-  \item{\code{idSkali} id_skali w bazie;}
-  \item{\code{skalowanie} nr skalowania w bazie;}
+  \item{\code{skalowania} data frame o kolumnach:
+        \itemize{
+          \item{\code{skalowanie,}}
+          \item{\code{opis,}}
+          \item{\code{estymacja,}}
+          \item{\code{id_skali,}}
+          \item{\code{do_prezentacji,}}
+          \item{\code{data;}}
+        }}
+  \item{\code{skalowania_grupy} data frame o kolumnach:
+        \itemize{
+          \item{\code{id_skali,}}
+          \item{\code{skalowanie,}}
+          \item{\code{grupa;}}
+        }}
+  \item{\code{skalowania_elementy} data frame o kolumnach:
+        \itemize{
+          \item{\code{id_skali,}}
+          \item{\code{kolejnosc,}}
+          \item{\code{skalowanie,}}
+          \item{\code{parametr,}}
+          \item{\code{model,}}
+          \item{\code{wartosc,}}
+          \item{\code{uwagi,}}
+          \item{\code{bs,}}
+          \item{\code{grupowy,}}
+          \item{\code{grupa;}}
+        }}
+  \item{\code{skalowania_obserwacje} data frame o kolumnach:
+        \itemize{
+          \item{\code{id_skali,}}
+          \item{\code{skalowanie,}}
+          \item{\code{id_obserwacji,}}
+          \item{\code{id_testu,}}
+          \item{\code{estymacja,}}
+          \item{\code{nr_pv,}}
+          \item{\code{wynik,}}
+          \item{\code{bs,}}
+          \item{\code{grupa;}}
+        }}
+  \item{\code{skalowania} data frame o kolumnach:
+        \itemize{
+          \item{\code{skalowanie,}}
+          \item{\code{opis,}}
+          \item{\code{estymacja,}}
+          \item{\code{id_skali,}}
+          \item{\code{do_prezentacji,}}
+          \item{\code{data;}}
+        }}
   \item{\code{usunieteKryteria} wektor tekstowy z nazwami (pseudo)kryteriów, które
         zostały usunięte podczas skalowania wzorcowego;}
-  \item{\code{parametry} data frame z wyestymowanymi parametrami modelu w jego
-        ostatecznej postaci (tj. takiej, jak w ostatnim kroku skalowania wzorcowego
-        i w jedynym kroku skalowania na wszystkich zdających);}
-  \item{\code{oszacowania} data frame zawierający id_obserwacji i wyliczone
-        oszacowania umiejętności dla wszystkich zdających;}
-  \item{\code{rzetelnoscEmpiryczna} rzetelność wyliczona na podstawie oszacowań ze
-        skalowania wzorcowego (jako wariancja oszacowań EAP);}
 }
 }
 \description{

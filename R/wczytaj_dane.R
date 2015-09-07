@@ -12,10 +12,18 @@
 #' zastosowana do wyników surowych
 #' @param kryteria opcjonalnie wektor tekstowy z nazwami wszystkich
 #' kryteriów oceny, jakie powinna zawierać dana część/ci egzaminu
+#' @details
+#' Funkcja co do zasady dołącza do wyników egzaminu dane kontekstowe, zawężając
+#' grupę zwracanych obserwacji do tych, dla których te dane istnieją. Jeśli
+#' jednak stwierdzi, że w efekcie usunięci zostaliby wszyscy, to zwróci wyniki,
+#' bez dołączania do nich danych kontekstowych. Dojdzie do tego w szczególności
+#' przy wczytywaniu wyników egzaminu gimnazjalnego z lat wcześniejszych niż
+#' 2006 r., gdyż są to dane CKE i dane pobierane funkcją
+#' \code{\link[EWDdane]{pobierz_dane_kontekstowe}} ich nie obejmują.
 #' @return data frame (data table)
 #' @import ZPD
 wczytaj_wyniki_surowe = function(katalogDane, rodzajEgzaminu, czescEgzaminu,
-                                   rok, idSkali, kryteria = NULL) {
+                                 rok, idSkali, kryteria = NULL) {
   stopifnot(is.character(katalogDane), length(katalogDane) == 1,
             is.character(rodzajEgzaminu), length(rodzajEgzaminu) == 1,
             is.numeric(rok), length(rok) == 1,
@@ -94,7 +102,10 @@ wczytaj_wyniki_surowe = function(katalogDane, rodzajEgzaminu, czescEgzaminu,
   }
   daneKontekstowe = get(obiekty[maska])
   rm(list = c(obiekty, "obiekty", "maska"))
-  dane = suppressMessages(inner_join(daneKontekstowe, dane))
+  temp = suppressMessages(inner_join(daneKontekstowe, dane))
+  if (nrow(temp) > 0) {
+    dane = temp
+  }
   return(dane)
 }
 #' @title Wczytywanie wynikow egzaminow zapisanych na dysku

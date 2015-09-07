@@ -4,12 +4,10 @@
 \alias{sprawdz_wyniki_skalowania_konstruktu}
 \title{Diagnostyka skalowania}
 \usage{
-sprawdz_wyniki_skalowania_konstruktu(model, rok)
+sprawdz_wyniki_skalowania_konstruktu(model)
 }
 \arguments{
 \item{model}{obiekt klasy \code{wynikiSkalowania}}
-
-\item{rok}{ciąg znaków opisujący rok przeprowadzenia egzaminu}
 }
 \value{
 funkcja nie zwraca żadnych wartości

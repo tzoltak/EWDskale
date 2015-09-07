@@ -3,6 +3,7 @@
 #' Funkcja przeprowadza skalowanie wyników egzaminu gimnazjalnego.
 #' @param rok rok przeprowadzenie egzaminu
 #' @param processors liczba rdzeni do wykorzystania przy estymacji
+#' @param opis opcjonalnie ciąg znaków - opis skalowania
 #' @param katalogSurowe opcjonalnie ścieżka do katalogu, w którym znajdują się
 #' pliki z zapisanymi (przy pomocy funkcji
 #' \code{\link[EWDdane]{pobierz_wyniki_surowe}} z pakietu EWDdane) surowymi
@@ -14,21 +15,64 @@
 #' @param zapisz wartość logiczna - czy zapisać wyniki do pliku .RData?
 #' @param skala id_skali (liczba naturalna) lub ciąg znaków z wyrażeniem
 #' regularnym, do którego ma pasować opis skali
+#' @param proba opcjonalnie liczba natrualna - wielkość próby, jaka ma być
+#' wylosowana z danych przed estymacją modelu; przydatne (tylko) do testów
+#' działania funkcji
 #' @return
 #' lista klasy \code{listaWynikowSkalowania}, której elementy są listami
 #' klasy \code{wynikiSkalowania} i składają się z elementów:
 #' \itemize{
-#'   \item{\code{idSkali} id_skali w bazie;}
-#'   \item{\code{skalowanie} nr skalowania w bazie;}
+#'   \item{\code{skalowania} data frame o kolumnach:
+#'         \itemize{
+#'           \item{\code{skalowanie,}}
+#'           \item{\code{opis,}}
+#'           \item{\code{estymacja,}}
+#'           \item{\code{id_skali,}}
+#'           \item{\code{do_prezentacji,}}
+#'           \item{\code{data;}}
+#'         }}
+#'   \item{\code{skalowania_grupy} data frame o kolumnach:
+#'         \itemize{
+#'           \item{\code{id_skali,}}
+#'           \item{\code{skalowanie,}}
+#'           \item{\code{grupa;}}
+#'         }}
+#'   \item{\code{skalowania_elementy} data frame o kolumnach:
+#'         \itemize{
+#'           \item{\code{id_skali,}}
+#'           \item{\code{kolejnosc,}}
+#'           \item{\code{skalowanie,}}
+#'           \item{\code{parametr,}}
+#'           \item{\code{model,}}
+#'           \item{\code{wartosc,}}
+#'           \item{\code{uwagi,}}
+#'           \item{\code{bs,}}
+#'           \item{\code{grupowy,}}
+#'           \item{\code{grupa;}}
+#'         }}
+#'   \item{\code{skalowania_obserwacje} data frame o kolumnach:
+#'         \itemize{
+#'           \item{\code{id_skali,}}
+#'           \item{\code{skalowanie,}}
+#'           \item{\code{id_obserwacji,}}
+#'           \item{\code{id_testu,}}
+#'           \item{\code{estymacja,}}
+#'           \item{\code{nr_pv,}}
+#'           \item{\code{wynik,}}
+#'           \item{\code{bs,}}
+#'           \item{\code{grupa;}}
+#'         }}
+#'   \item{\code{skalowania} data frame o kolumnach:
+#'         \itemize{
+#'           \item{\code{skalowanie,}}
+#'           \item{\code{opis,}}
+#'           \item{\code{estymacja,}}
+#'           \item{\code{id_skali,}}
+#'           \item{\code{do_prezentacji,}}
+#'           \item{\code{data;}}
+#'         }}
 #'   \item{\code{usunieteKryteria} wektor tekstowy z nazwami (pseudo)kryteriów, które
 #'         zostały usunięte podczas skalowania wzorcowego;}
-#'   \item{\code{parametry} data frame z wyestymowanymi parametrami modelu w jego
-#'         ostatecznej postaci (tj. takiej, jak w ostatnim kroku skalowania wzorcowego
-#'         i w jedynym kroku skalowania na wszystkich zdających);}
-#'   \item{\code{oszacowania} data frame zawierający id_obserwacji i wyliczone
-#'         oszacowania umiejętności dla wszystkich zdających;}
-#'   \item{\code{rzetelnoscEmpiryczna} rzetelność wyliczona na podstawie oszacowań ze
-#'         skalowania wzorcowego (jako wariancja oszacowań EAP);}
 #' }
 #' @seealso \code{\link[EWDskalowanie]{skaluj}},
 #' \code{\link[EWDskalowanie]{procedura_1k_1w}},
@@ -36,20 +80,24 @@
 #' @import EWDdane
 #' @importFrom EWDskalowanie procedura_1k_1w skaluj
 #' @export
-skaluj_egz_gimn = function(rok, processors = 2, katalogSurowe = "../../dane surowe",
+skaluj_egz_gimn = function(rok, processors = 2, opis = "skalowanie do EWD",
+                           katalogSurowe = "../../dane surowe",
                            katalogWyskalowane = "../../dane wyskalowane",
-                           zapisz = TRUE, skala = NULL) {
+                           zapisz = TRUE, skala = NULL, proba = -1) {
   stopifnot(is.numeric(rok), length(rok) == 1,
             is.numeric(processors), length(processors) == 1,
+            is.character(opis), length(opis) == 1,
             is.character(katalogSurowe), length(katalogSurowe) == 1,
             is.character(katalogWyskalowane), length(katalogWyskalowane) == 1,
             is.logical(zapisz), length(zapisz) == 1,
-            is.null(skala) | is.numeric(skala) | is.character(skala))
+            is.null(skala) | is.numeric(skala) | is.character(skala),
+            is.numeric(proba), length(proba) == 1)
   stopifnot(as.integer(rok) == rok, rok >= 2002,
             processors %in% (1:32),
             dir.exists(katalogSurowe),
             dir.exists(katalogWyskalowane),
-            zapisz %in% c(TRUE, FALSE))
+            zapisz %in% c(TRUE, FALSE),
+            as.integer(proba) == proba, proba == -1 | proba > 0)
   if (!is.null(skala)) {
     stopifnot(length(skala) == 1)
   }
@@ -98,6 +146,7 @@ skaluj_egz_gimn = function(rok, processors = 2, katalogSurowe = "../../dane suro
     opis = parametry$opis_skali[i]
     skalowanie = parametry$skalowanie[i]
     parametrySkala = parametry$parametry[[i]]
+    rzetelnoscEmpiryczna = attributes(parametrySkala)$"r EAP"
 
     message(rodzajEgzaminu, " ", rok, " (id_skali: ", idSkali, ", '", opis,
             "'; skalowanie ", skalowanie, ".):")
@@ -111,9 +160,20 @@ skaluj_egz_gimn = function(rok, processors = 2, katalogSurowe = "../../dane suro
     # jeśli nic w bazie nie znaleźliśmy, to robimy skalowanie wzorcowe
     if (!is.data.frame(parametrySkala)) {
       zmLaur = paste0("laur_", names(wyniki)[i])
-      daneWzorcowe = subset(dane, get("populacja_wy") & !get("pomin_szkole") &
-                              !get(zmLaur))
+      # trochę baroku, żeby móc wyskalować egzamin z 2005 r., który mamy tylko w danych z CKE
+      if (all(c(zmLaur, "populacja_wy", "pomin_szkole") %in% names(dane))) {
+        daneWzorcowe = subset(dane, get("populacja_wy") & !get("pomin_szkole") &
+                                !get(zmLaur))
+      } else {
+        warning("Brak danych kontekstowych - skalowanie wzorcowe zostanie ",
+                "przeprowadzone na wszystkich zdających, bez żadnych wykluczeń.",
+                immediate. = TRUE)
+        daneWzorcowe = dane
+      }
       daneWzorcowe = daneWzorcowe[, maskaZmienne]
+      if (proba > 0) {
+        daneWzorcowe = daneWzorcowe[sample(nrow(daneWzorcowe), proba), ]
+      }
       # sztuczka, żeby przy skalowaniu gh i gm w nowej formule już nie usuwał (pseudo)kryteriów
       if ( ((names(wyniki)[i] == "gh") & all(c("gh_h", "gh_p") %in% names(wyniki))) |
            ((names(wyniki)[i] == "gm") & all(c("gm_p", "gm_m") %in% names(wyniki))) ) {
@@ -145,6 +205,7 @@ skaluj_egz_gimn = function(rok, processors = 2, katalogSurowe = "../../dane suro
       #  wartosciZakotwiczone[!(wartosciZakotwiczone$typ %in% c("mean", "variance")), ]
       zmienneKryteriaPoUsuwaniu =
         wartosciZakotwiczone$zmienna2[wartosciZakotwiczone$typ == "by"]
+      rm(egWzorcowe, daneWzorcowe)
       message("\n### Wyliczanie oszacowań dla wszystkich zdających ###\n")
     } else {
       # w przeciwnym wypadku podstawiamy zapisane w bazie parametry
@@ -159,7 +220,10 @@ skaluj_egz_gimn = function(rok, processors = 2, katalogSurowe = "../../dane suro
       dane = suppressMessages(anti_join(dane, daneWyskalowane))
       rm(daneWyskalowane)
       lPo = nrow(dane)
-      if (lPo < lPrzed) {
+      if (lPo == 0) {
+        message("\n### Brak zdających, dla których trzeba by wyliczyć oszacowania. ###\n")
+        next
+      } else if (lPo < lPrzed) {
         message("\n### Wyliczanie oszacowań dla ", format(lPo, big.mark = "'"),
                 " zdających, ###\n    którzy ich jeszcze nie mają.")
       } else {
@@ -167,23 +231,40 @@ skaluj_egz_gimn = function(rok, processors = 2, katalogSurowe = "../../dane suro
       }
     }
     dane = dane[, maskaZmienne]
+    if (proba > 0) {
+      dane = dane[sample(nrow(dane), proba), ]
+    }
     # skalowanie dla oszacowań
     opisWszyscy = procedura_1k_1w(zmienneKryteriaPoUsuwaniu, names(wyniki)[i],
                                   wartosciZakotwiczone, processors = processors)
     egWszyscy = skaluj(dane, opisWszyscy, "id_obserwacji", tytul = tytulWszyscy,
                         zmienneDolaczaneDoOszacowan = "id_testu")
+
+    oszacowania = egWszyscy[[1]][[length(egWszyscy[[1]])]]$zapis
+    rm(egWszyscy, dane)
     # przypisywanie wyników
     wyniki[[i]] = list(
-      idSkali = idSkali,
-      skalowanie = skalowanie,
-      usunieteKryteria = zmienneKryteria[!(zmienneKryteria %in% zmienneKryteriaPoUsuwaniu)],
-      parametry = NULL,
-      oszacowania = egWszyscy[[1]][[length(egWszyscy[[1]])]]$zapis,
-      rzetelnoscEmpiryczna = NULL
+      skalowania = data.frame(skalowanie = skalowanie, opis = opis,
+                              estymacja = "MML (Mplus)", id_skali = idSkali,
+                              do_prezentacji = FALSE, data = Sys.Date(),
+                              stringsAsFactors = FALSE),
+      skalowania_grupy = data.frame(id_skali = idSkali, skalowanie = skalowanie,
+                                    grupa = "", stringsAsFactors = FALSE),
+      skalowania_elementy = NULL,
+      skalowania_obserwacje =
+        data.frame(id_skali = idSkali, skalowanie = skalowanie,
+                   oszacowania[, c("id_obserwacji", "id_testu")],
+                   estymacja = "EAP", nr_pv = -1,
+                   wynik = oszacowania[, names(wyniki)[i]] / sqrt(rzetelnoscEmpiryczna),
+                   bs = oszacowania[, names(wyniki)[i]] / sqrt(rzetelnoscEmpiryczna),
+                   grupa = "", stringsAsFactors = FALSE),
+      usunieteKryteria =
+        zmienneKryteria[!(zmienneKryteria %in% zmienneKryteriaPoUsuwaniu)]
     )
-    if (!is.data.frame(parametrySkala)) {
-      wyniki[[i]][["parametry"]] = wartosciZakotwiczone
-      wyniki[[i]][["rzetelnoscEmpiryczna"]] = rzetelnoscEmpiryczna
+    if (!is.data.frame(parametry)) {
+      wyniki[[i]][["skalowania_elementy"]] =
+        zmien_parametry_na_do_bazy(wartosciZakotwiczone, idSkali, skalowanie,
+                                   rzetelnoscEmpiryczna)
     }
     class(wyniki[[i]]) = c(class(wyniki), "wynikiSkalowania")
     attributes(wyniki[[i]])$dataSkalowania = Sys.time()
