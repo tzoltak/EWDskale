@@ -30,8 +30,8 @@ zmien_parametry_na_do_bazy = function(x, idSkali, skalowanie,
   # dyskryminacje
   dyskryminacje = with(dyskryminacje, data.frame(
     id_skali = idSkali, skalowanie = skalowanie, kryterium = get("zmienna2"),
-    parametr = "dyskryminacja", model = NA, wartosc = get("wartosc"),
-    uwagi = NA, bs = get("S.E."), id_elementu = NA, grupowy = FALSE, grupa = NA,
+    parametr = "a", model = NA, wartosc = get("wartosc"), uwagi = NA,
+    bs = get("S.E."), id_elementu = NA, grupowy = FALSE, grupa = NA,
     stringsAsFactors = FALSE
   ))
   # trudności
