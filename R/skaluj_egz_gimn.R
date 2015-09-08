@@ -179,7 +179,8 @@ skaluj_egz_gimn = function(rok, processors = 2, opis = "skalowanie do EWD",
            ((names(wyniki)[i] == "gm") & all(c("gm_p", "gm_m") %in% names(wyniki))) ) {
         # dajemy tu data frame, żeby nie było usuwania kryteriów, ale wtedy trzeba zadać w nim wartość oczekiwaną i wariancję
         zmUsuniete = unlist(lapply(wyniki, function(x) {return(x$usunieteKryteria)}))
-        zmienneKryteria = zmienneKryteria[!(zmienneKryteria %in% zmUsuniete)]
+        zmUsuniete = intersect(zmUsuniete, zmienneKryteria)
+        zmienneKryteria = setdiff(zmienneKryteria, zmUsuniete)
         wartosciZakotwiczone = data.frame(typ = c("mean", "variance"),
                                           zmienna1 = names(daneWzorcowe)[i],
                                           zmienna2 = "", wartosc = c(0, 1),
@@ -205,6 +206,11 @@ skaluj_egz_gimn = function(rok, processors = 2, opis = "skalowanie do EWD",
       #  wartosciZakotwiczone[!(wartosciZakotwiczone$typ %in% c("mean", "variance")), ]
       zmienneKryteriaPoUsuwaniu =
         wartosciZakotwiczone$zmienna2[wartosciZakotwiczone$typ == "by"]
+      if ( ((names(wyniki)[i] == "gh") & all(c("gh_h", "gh_p") %in% names(wyniki))) |
+           ((names(wyniki)[i] == "gm") & all(c("gm_p", "gm_m") %in% names(wyniki))) ) {
+        # żeby dalej wszystko mogło działać już normalnie
+        zmienneKryteria = c(zmienneKryteria, zmUsuniete)
+      }
       rm(egWzorcowe, daneWzorcowe)
       message("\n### Wyliczanie oszacowań dla wszystkich zdających ###\n")
     } else {
