@@ -261,7 +261,7 @@ skaluj_egz_gimn = function(rok, processors = 2, opis = "skalowanie do EWD",
       usunieteKryteria =
         zmienneKryteria[!(zmienneKryteria %in% zmienneKryteriaPoUsuwaniu)]
     )
-    if (!is.data.frame(parametry)) {
+    if (!is.data.frame(parametrySkala)) {
       wyniki[[i]][["skalowania_elementy"]] =
         zmien_parametry_na_do_bazy(wartosciZakotwiczone, idSkali, skalowanie,
                                    rzetelnoscEmpiryczna)

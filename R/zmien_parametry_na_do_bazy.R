@@ -63,29 +63,35 @@ zmien_parametry_na_do_bazy = function(x, idSkali, skalowanie,
       mutate_(.dots = setNames(list(~wartosc - b), "wartosc")) %>%
       select_(~-b, ~-lpw)
   )
-  trudnosciZadanGrm = with(trudnosciZadanGrm, data.frame(
-    id_skali = idSkali, skalowanie = skalowanie, kryterium = get("kryterium"),
-    parametr = "trudność", model = "GRM", wartosc = get("b"), uwagi = NA,
-    bs = NA, id_elementu = NA, grupowy = FALSE, grupa = NA,
-    stringsAsFactors = FALSE
-  ))
+  if (nrow(trudnosciZadanGrm) > 0) {
+    trudnosciZadanGrm = with(trudnosciZadanGrm, data.frame(
+      id_skali = idSkali, skalowanie = skalowanie, kryterium = get("kryterium"),
+      parametr = "trudność", model = "GRM", wartosc = get("b"), uwagi = NA,
+      bs = NA, id_elementu = NA, grupowy = FALSE, grupa = NA,
+      stringsAsFactors = FALSE
+    ))
+  }
   # przypisywanie modelu dyskryminacjom
   dyskryminacje$model[dyskryminacje$kryterium %in% trudnosciBinarne$kryterium] = "2PL"
   dyskryminacje$model[dyskryminacje$kryterium %in% trudnosciZadanGrm$kryterium] = "GRM"
   # wartości oczekiwane i wariancje konstruktu
-  grupowe = with(grupowe, data.frame(
-    id_skali = idSkali, skalowanie = skalowanie, kryterium = NA,
-    parametr = get("typ"), model = "n.d.", wartosc = get("wartosc"), uwagi = NA,
-    bs = get("S.E."), id_elementu = NA, grupowy = TRUE,
-    grupa = sub("^(mean|variance)(|[.]gr)(|.+)$", "\\3", get("typ")),
-    stringsAsFactors = FALSE
-  ))
-  grupowe$bs = ifelse(grupowe$bs == 0, NA, grupowe$bs)
-  grupowe$parametr = sub("^(mean|variance)(|[.]gr)(|.+)$",
-                         paste0("group_\\1"), grupowe$parametr)
-  grupowe$parametr = sub("variance", paste0("sd"), grupowe$parametr)
-  maskaWar = grepl("group_sd", grupowe$parametr)
-  grupowe$wartosc[maskaWar] = sqrt(grupowe$wartosc[maskaWar])
+  if (nrow(grupowe) > 0) {
+    grupowe = with(grupowe, data.frame(
+      id_skali = idSkali, skalowanie = skalowanie, kryterium = NA,
+      parametr = get("typ"), model = "n.d.", wartosc = get("wartosc"), uwagi = NA,
+      bs = get("S.E."), id_elementu = NA, grupowy = TRUE,
+      grupa = sub("^(mean|variance)(|[.]gr)(|.+)$", "\\3", get("typ")),
+      stringsAsFactors = FALSE
+    ))
+    grupowe$bs = ifelse(grupowe$bs == 0, NA, grupowe$bs)
+    grupowe$parametr = sub("^(mean|variance)(|[.]gr)(|.+)$",
+                           paste0("group_\\1"), grupowe$parametr)
+    grupowe$parametr = sub("variance", paste0("sd"), grupowe$parametr)
+    maskaWar = grepl("group_sd", grupowe$parametr)
+    grupowe$wartosc[maskaWar] = sqrt(grupowe$wartosc[maskaWar])
+  } else {
+    grupowe = NULL
+  }
   # łączenie, obsługa parametrów specjalnych i przypisywanie kolejnosci
   x = bind_rows(dyskryminacje, trudnosciBinarne, trudnosciZadanGrm,
                 trudnosciGrm, grupowe)
