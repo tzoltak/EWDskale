@@ -45,7 +45,8 @@ wczytaj_wyniki_surowe = function(katalogDane, rodzajEgzaminu, czescEgzaminu,
       semi_join(pobierz_testy(src) %>% filter_(~!czy_egzamin)) %>%
       collect() %>%
       as.matrix() %>%
-      as.vector()
+      as.vector() %>%
+      unique()
   )
   if (length(idTestu) > 1) {
     stop("Jeśli skala jest powiązana z testem nie będącym 'atomową' częścią egzaminu, ",
