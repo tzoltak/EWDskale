@@ -61,6 +61,7 @@ lacz_kryteria_z_korelacji_w_ramach_skali = function(x, katalogDane, prog,
   stopifnot(prog > 0, prog < 1)
   stopifnot(dir.exists(katalogDane))
 
+  message("Skala '", x$opis_skali[1], "', id_skali = ", x$id_skali[1], ":")
   x = group_by_(x, ~rodzaj_egzaminu, ~czesc_egzaminu, ~rok) %>%
     do_(.dots = setNames(list(~lacz_kryteria_z_korelacji_w_ramach_czesci_egz(.,
                                                                              katalogDane,

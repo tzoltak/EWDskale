@@ -53,7 +53,7 @@ wczytaj_wyniki_surowe = function(katalogDane, rodzajEgzaminu, czescEgzaminu,
          "to musi być powiązana z tylko jednym takim testem.")
   }
   for (i in obiekty) {
-    temp = zastosuj_skale(get(i), src, idSkali)
+    temp = suppressMessages(zastosuj_skale(get(i), src, idSkali))
     # Jeśli skala ma przypisanych test który nie jest częścią egzaminu, to
     # trzeba usunąć z danych "pierwotne" id_testu poszczególnych części egzaminu
     # i zastąpić je id_testu właśnie tego testu (co dzieje się kawałek dalej).
