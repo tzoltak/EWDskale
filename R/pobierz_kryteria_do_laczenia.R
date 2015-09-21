@@ -19,8 +19,8 @@ pobierz_kryteria_do_laczenia = function(skale) {
       collect() %>%
       filter_(~grepl(skale, opis_skali)) %>%
       select_(~id_skali) %>%
-      distinct %>%
-      as.list %>% unlist %>% unname
+      distinct() %>%
+      as.list() %>% unlist() %>% unname()
   }
   if (length(skale) == 0) {
     stop("Nie znaleziono żadnych skal, których opis pasowałby do podanego wyrażenia regularnego.")
@@ -36,7 +36,7 @@ pobierz_kryteria_do_laczenia = function(skale) {
       select_(~id_skali, ~opis_skali, ~rodzaj_egzaminu, ~czesc_egzaminu, ~rok,
               ~id_wiazki, ~kryterium, ~numer_pytania, ~typ_pytania,
               ~kolejnosc_w_skali) %>%
-      distinct %>%
+      distinct() %>%
       collect()
   )
   if (nrow(kryteria) == 0) {
@@ -63,7 +63,8 @@ pobierz_kryteria_do_laczenia = function(skale) {
         collect()
     )
     kryteria = suppressMessages(left_join(select_(kryteria, ~-czesc_egzaminu),
-                                          czesciEgzaminu))
+                                          czesciEgzaminu)) %>%
+      distinct()
   }
   return(kryteria)
 }
