@@ -215,7 +215,7 @@ skaluj_egz_gimn_rasch = function(rok, processors = 2,
       rzetelnoscEmpiryczna = var(rzetelnoscEmpiryczna)
       # uśrednianie oszacowań, aby były funkcją sum punktów (i przynależności do grup)
       if (rok < 2012) {
-        maksSuma = setNames(50, tolower(names(wyniki)[i]))
+        maksSuma = setNames(50, "sumaG")
       } else {
         maksSuma = NULL
       }
@@ -234,15 +234,16 @@ skaluj_egz_gimn_rasch = function(rok, processors = 2,
       wartosciZakotwiczone =
         egWzorcowe[[1]][[length(egWzorcowe[[1]])]]$parametry$surowe
       odsUtraconejWariancji = oszacowania$odsUtraconejWariancji
-      oszacowania = left_join(temp$oszacowania,
-                              oszacowania[, !grepl(names(wyniki)[i],
-                                                   names(oszacowania))])
+      oszacowania = suppressMessages(
+        left_join(temp$oszacowania, oszacowania[, !grepl(names(wyniki)[i],
+                                                         names(oszacowania))])
+      )
       rm(egWzorcowe, daneWzorcowe, temp)
     }
     # zamiast skalowania dla oszacowań
     dane = cbind(dane[, c("id_obserwacji", "id_testu")],
                  wartosc = rowSums(dane[, zmienneKryteria]))
-    dane = inner_join(dane, normySkala)
+    dane = suppressMessages(inner_join(dane, normySkala))
     # przypisywanie wyników
     wyniki[[i]] = list(
       skalowania = data.frame(skalowanie = skalowanie, opis = opis,
@@ -273,7 +274,7 @@ skaluj_egz_gimn_rasch = function(rok, processors = 2,
   # koniec
   class(wyniki) = c(class(wyniki), "listaWynikowSkalowania")
   if (zapisz) {
-    nazwaObiektu = paste0("g", rok, "Skalowanie")
+    nazwaObiektu = paste0("gRasch", rok, "Skalowanie")
     assign(nazwaObiektu, wyniki)
     save(list = nazwaObiektu, file = paste0(nazwaObiektu, ".RData"))
   }
