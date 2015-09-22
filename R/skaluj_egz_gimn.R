@@ -195,7 +195,8 @@ skaluj_egz_gimn = function(rok, processors = 2, opis = "skalowanie do EWD",
       egWzorcowe = skaluj(daneWzorcowe, opisWzorcowe, "id_obserwacji",
                           tytul = tytulWzorcowe, zmienneDolaczaneDoOszacowan = "id_testu")
       # wyliczanie rzetelności empirycznej
-      rzetelnoscEmpiryczna = egWzorcowe[[1]][[length(egWzorcowe[[1]])]]$zapis[[names(wyniki)[i]]]
+      rzetelnoscEmpiryczna =
+        egWzorcowe[[1]][[length(egWzorcowe[[1]])]]$zapis[[names(wyniki)[i]]]
       rzetelnoscEmpiryczna = var(rzetelnoscEmpiryczna)
 
       wartosciZakotwiczone =

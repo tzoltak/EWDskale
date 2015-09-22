@@ -1,7 +1,9 @@
 --------------------
 EWDskale 0.2 (2015-09-0?)
 
-Funkcje przeniesione z pakieru EWDskalowanie:
+Funkcje przeniesione z pakietu EWDskalowanie (i, co do zasady, gruntownie
+przepisane):
+- przewidywanie_rasch();
 - skaluj_sprawdzian();
 - skaluj_egz_gimn();
 - skaluj_egz_gimn_rasch();

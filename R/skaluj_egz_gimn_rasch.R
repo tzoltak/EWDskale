@@ -1,124 +1,281 @@
-#' @title Procedury skalowania egzaminow.
+#' @title Procedury skalowania egzaminow
 #' @description
-#' Funkcja przeprowadza skalowanie części mat.-przyr. egzaminu gimnazjalnego z użyciem
-#' modelu Rascha (na potrzeby maturalnego Kalkulatora EWD).
-#' @param daneWzorcowe lista data frame'ów zawierających dane do skalowania wzorcowego
-#' @param daneWszyscy lista data frame'ów zawierających zawierający dane wszystkich
-#' zdających (do wyliczenia oszacowań umiejętności na podstawe parametrów ze skalowania
-#' wzorcowego)
+#' Funkcja przeprowadza skalowanie części mat.-przyr. egzaminu gimnazjalnego
+#' z użyciem modelu Rascha (na potrzeby maturalnego Kalkulatora EWD).
+#' @param rok rok przeprowadzenie egzaminu
 #' @param processors liczba rdzeni do wykorzystania przy estymacji
-#' @details
-#' Argumenty (poza ostatnim) muszą być listami (mogą być jednoelementowe), których
-#' elementy mają nazwy ze zbioru: \code{"gm", "gm_p", "gm_m"} i są data frame'ami
-#' zawierającymi dane z wynikami odpowiednich części egzaminu gimnazjalnego.
-#'
-#' W przypadku nowej struktury egzaminu gimnazjalnego wystarczy podać wyniki testów,
-#' dane do wyskalowania części jako całości zostaną połączone automatycznie, wewnątrz
-#' funkcji.
-#'
-#' Schemat przekodowania sum punktów na oszacowania umiejętności wyliczany jest na
-#' podstawie danych wzorcowych, przy pomocy funkcji \code{\link{przewidywanie_rasch}},
-#' a następnie na jego podstawie przypisywane są wartości przewidywane wszystkim zdającym.
+#' @param opis opcjonalnie ciąg znaków - opis skalowania
+#' @param katalogSurowe opcjonalnie ścieżka do katalogu, w którym znajdują się
+#' pliki z zapisanymi (przy pomocy funkcji
+#' \code{\link[EWDdane]{pobierz_wyniki_surowe}} z pakietu EWDdane) surowymi
+#' wynikami egzaminu
+#' @param katalogWyskalowane opcjonalnie ścieżka do katalogu, w którym znajdują
+#' się pliki z zapisanymi (przy pomocy funkcji
+#' \code{\link[EWDdane]{pobierz_wyniki_wyskalowane}} z pakietu EWDdane)
+#' wyskalowanymi wynikami egzaminu
+#' @param zapisz wartość logiczna - czy zapisać wyniki do pliku .RData?
+#' @param skala id_skali (liczba naturalna) lub ciąg znaków z wyrażeniem
+#' regularnym, do którego ma pasować opis skali
+#' @param proba opcjonalnie liczba natrualna - wielkość próby, jaka ma być
+#' wylosowana z danych przed estymacją modelu; przydatne (tylko) do testów
+#' działania funkcji
 #' @return
-#' lista z elementami:
+#' lista klasy \code{listaWynikowSkalowania}, której elementy są listami
+#' klasy \code{wynikiSkalowania} i składają się z elementów:
 #' \itemize{
-#'   \item{\code{usunieteKryteria} lista wektorów tekstowych z nazwami (pseudo)kryteriów,
-#'    które zostały usunięte podczas skalowania wzorcowego.}
-#'   \item{\code{parametry} lista data frame'ów z wyestymowanymi parametrami modeli w ich
-#'         ostatecznej postaci (tj. takiej, jak w ostatnim kroku skalowania wzorcowego
-#'         i w jedynym kroku skalowania na wszystkich zdających).}
-#'   \item{\code{oszacowania} lista data frame'ów zawierających id_obserwacji i wyliczone
-#'         oszacowania umiejętności dla wszystkich zdających.}
-#'   \item{\code{rzetelnoscEmpiryczna} rzetelność wyliczona na podstawie oszacowań ze
-#'         skalowania wzorcowego (jako wariancja oszacowań EAP).}
-#'   \item{\code{mapowanie} data frame zawierający wzorzec przekodowania
-#'         wyników surowych na wyniki wyskalowane.}
-#'   \item{\code{odsUtraconejWariancji} odsetek wariancji przewidywania mierzonej cechy
-#'         utracony w wyniku uśrednienia oszacowań w funkcji sumy punktów.}
+#'   \item{\code{skalowania} data frame o kolumnach:
+#'         \itemize{
+#'           \item{\code{skalowanie,}}
+#'           \item{\code{opis,}}
+#'           \item{\code{estymacja,}}
+#'           \item{\code{id_skali,}}
+#'           \item{\code{do_prezentacji,}}
+#'           \item{\code{data;}}
+#'         }}
+#'   \item{\code{skalowania_grupy} data frame o kolumnach:
+#'         \itemize{
+#'           \item{\code{id_skali,}}
+#'           \item{\code{skalowanie,}}
+#'           \item{\code{grupa;}}
+#'         }}
+#'   \item{\code{skalowania_elementy} data frame o kolumnach:
+#'         \itemize{
+#'           \item{\code{id_skali,}}
+#'           \item{\code{kolejnosc,}}
+#'           \item{\code{skalowanie,}}
+#'           \item{\code{parametr,}}
+#'           \item{\code{model,}}
+#'           \item{\code{wartosc,}}
+#'           \item{\code{uwagi,}}
+#'           \item{\code{bs,}}
+#'           \item{\code{grupowy,}}
+#'           \item{\code{grupa;}}
+#'         }}
+#'   \item{\code{skalowania_obserwacje} data frame o kolumnach:
+#'         \itemize{
+#'           \item{\code{id_skali,}}
+#'           \item{\code{skalowanie,}}
+#'           \item{\code{id_obserwacji,}}
+#'           \item{\code{id_testu,}}
+#'           \item{\code{estymacja,}}
+#'           \item{\code{nr_pv,}}
+#'           \item{\code{wynik,}}
+#'           \item{\code{bs,}}
+#'           \item{\code{grupa;}}
+#'         }}
+#'   \item{\code{skalowania} data frame o kolumnach:
+#'         \itemize{
+#'           \item{\code{skalowanie,}}
+#'           \item{\code{opis,}}
+#'           \item{\code{estymacja,}}
+#'           \item{\code{id_skali,}}
+#'           \item{\code{do_prezentacji,}}
+#'           \item{\code{data;}}
+#'         }}
+#'   \item{\code{normy} data frame o kolumnach:
+#'         \itemize{
+#'           \item{\code{id_skali,}}
+#'           \item{\code{skalowanie,}}
+#'           \item{\code{wartosc,}}
+#'           \item{\code{wartosc_zr;}}
+#'        }}
+#'   \item{\code{usunieteKryteria} wektor tekstowy z nazwami (pseudo)kryteriów, które
+#'         zostały usunięte podczas skalowania wzorcowego;}
 #' }
-#' @seealso \code{\link{skaluj}}, \code{\link{procedura_1k_1w}}, \code{\link{przewidywanie_rasch}}
-#' @importFrom EWDskalowanie skaluj
+#' @seealso \code{\link[EWDskalowanie]{skaluj}},
+#' \code{\link[EWDskalowanie]{procedura_1k_1w}},
+#' \code{\link{sprawdz_wyniki_skalowania}}
+#' @import EWDdane
+#' @importFrom EWDskalowanie procedura_1k_1w skaluj
 #' @export
-skaluj_egz_gimn_rasch = function(daneWzorcowe, daneWszyscy, processors=2) {
-  stopifnot(length(daneWzorcowe) == length(daneWszyscy))
-  stopifnot(!is.null(names(daneWzorcowe)), !is.null(names(daneWszyscy)))
-  stopifnot(all(names(daneWzorcowe) %in% c("gm_r", "gm_pr", "gm_mr")),
-            all(names(daneWszyscy ) %in% c("gm_r", "gm_pr", "gm_mr")))
-#   # wyciągnimy rok do nazw plików i podpisów
-#   lata = lapply(daneWzorcowe, function(x) {return(unique(x$rok))})
-#   if (length(unique(unlist(lata))) != 1) {
-#     stop("Dane pochodzą z różnych lat.")
-#   } else {
-#     rok = lata[[1]]
-#   }
-#   for (i in 1:length(daneWzorcowe)) {
-#     # sprawdzanie, czy zgadzają sie zestawy (pseudo)kryteriów
-#     zmienneKryteria = list(
-#       wzorcowe = names(daneWzorcowe[[i]])[grepl("^[kp]_[[:digit:]]+$", names(daneWzorcowe[[i]]))],
-#       wszyscy  = names(daneWszyscy[[i]] )[grepl("^[kp]_[[:digit:]]+$", names(daneWszyscy[[i]] ))])
-#     if (!all(zmienneKryteria$wzorcowe %in% zmienneKryteria$wszyscy) |
-#           !all(zmienneKryteria$wszyscy %in% zmienneKryteria$wzorcowe)) {
-#       stop("Niezgodność zestawu zmiennych do skalowania pomiędzy ", i, ". elementami argumentów 'daneWzorcowe' i 'daneWszyscy'")
-#     }
-#     # wyrzucamy wszystko, co niepotrzebne do skalowania (rypanie po dysku zajmuje potem cenny czas)
-#     zmienneKryteria = zmienneKryteria[[1]]
-#     daneWzorcowe[[i]] = daneWzorcowe[[i]][, c("id_obserwacji", "id_testu", zmienneKryteria)]
-#     daneWszyscy[[i]]  =  daneWszyscy[[i]][, c("id_obserwacji", "id_testu", zmienneKryteria)]
-#     # i dopisujemy do "id_testu" sufiks, żeby mieć szansę połączyć dane z nowej formuły
-#     names(daneWzorcowe[[i]]) = sub("^(id_testu)$", paste0("\\1_", names(daneWzorcowe)[i]),
-#                                    names(daneWzorcowe[[i]]))
-#     names( daneWszyscy[[i]]) = sub("^(id_testu)$", paste0("\\1_", names(daneWszyscy )[i]),
-#                                    names( daneWszyscy[[i]]))
-#   }
-#
-#   # ew. dopisywanie części zbierających po dwa testy z nowej formuły
-#   if (all(c("gm_pr", "gm_mr") %in% names(daneWzorcowe)) & !("gm_r" %in% names(daneWzorcowe))) {
-#     daneWzorcowe$gm = merge(daneWzorcowe$gm_pr, daneWzorcowe$gm_mr)
-#      daneWszyscy$gm = merge( daneWszyscy$gm_pr,  daneWszyscy$gm_mr)
-#     daneWzorcowe = daneWzorcowe[!(names(daneWzorcowe %in% c("gm_pr", "gm_mr")))]
-#   }
-#   # skalowanie jako takie
-#   wyniki = setNames(vector(mode="list", length=length(daneWzorcowe)), names(daneWzorcowe))
-#   for (i in 1:length(daneWzorcowe)) {
-#     tytulWzorcowe = paste0(names(daneWzorcowe)[i], rok, " wzor")
-#     zmienneKryteria = names(daneWzorcowe[[i]])[grepl("^[kp]_[[:digit:]]+$", names(daneWzorcowe[[i]]))]
-#
-#     message("### Skalowanie wzorcowe ", names(daneWzorcowe)[i], " ###\n")
-#     opisWzorcowe = procedura_1k_1w(zmienneKryteria, names(daneWzorcowe)[i],
-#                                    rasch = TRUE, processors = processors)
-#     egWzorcowe   = skaluj(daneWzorcowe[[i]], opisWzorcowe, "id_obserwacji", tytul = tytulWzorcowe,
-#                           zmienneDolaczaneDoOszacowan = names(daneWzorcowe[[i]])[grepl("^id_testu", names(daneWzorcowe[[i]]))])
-#     # wyliczanie schematu przekodowania suma - oszacowania
-#     suma = daneWzorcowe[[i]][, grep("^[kp]_", names(daneWzorcowe[[i]]))]
-#     suma = cbind(daneWzorcowe[[i]][, "id_obserwacji", drop=FALSE],
-#                  sumaGm = rowSums(suma, na.rm=TRUE))
-#     oszacowania = egWzorcowe[[1]][[length(egWzorcowe[[1]])]]$zapis[, c("id_obserwacji",
-#                                                                        names(daneWzorcowe)[i])]
-#     oszacowania = przewidywanie_rasch(suma, oszacowania, max=c(sumaGm=50))
-#     # wyliczanie rzetelności empirycznej
-#     rzetelnoscEmpiryczna = var(oszacowania$przewidywania[, names(daneWzorcowe)[i]])
-#
-#     message("### Wyliczanie oszacowań dla wszystkich zdających ", names(daneWzorcowe)[i], " ###\n")
-#     suma = daneWszyscy[[i]][, grep("^[kp]_", names(daneWszyscy[[i]]))]
-#     suma = cbind(daneWszyscy[[i]][, "id_obserwacji", drop=FALSE],
-#                  suma = rowSums(suma, na.rm=TRUE))
-#     suma = cbind(suma, sumaGm = !is.na(suma$suma))
-#     suma = suppressMessages(join(suma, oszacowania$mapowanie))
-#     suma = suma[, c("id_obserwacji", names(daneWzorcowe)[i])]
-#     # rzeczy do zwrócenia
-#     wartosciZakotwiczone = egWzorcowe[[1]][[length(egWzorcowe[[1]])]]$parametry$surowe
-#     wartosciZakotwiczone = wartosciZakotwiczone[!(wartosciZakotwiczone$typ %in% c("mean", "variance")), ]
-#     zmienneKryteriaPoUsuwaniu = wartosciZakotwiczone$zmienna2[wartosciZakotwiczone$typ == "by"]
-#     usunieteKryteria = zmienneKryteria[!(zmienneKryteria %in% zmienneKryteriaPoUsuwaniu)]
-#
-#     wyniki[[i]] = list(
-#       usunieteKryteria = usunieteKryteria,
-#       parametry = wartosciZakotwiczone,
-#       oszacowania = suma,
-#       rzetelnoscEmpiryczna = rzetelnoscEmpiryczna,
-#       mapowanie = oszacowania$mapowanie,
-#       odsUtraconejWariancji = oszacowania$odsUtraconejWariancji
-#     )
-#   }
-#   return(wyniki)
+skaluj_egz_gimn_rasch = function(rok, processors = 2,
+                                 opis = "skalowanie do Kalkulatora EWD",
+                                 katalogSurowe = "../../dane surowe",
+                                 katalogWyskalowane = "../../dane wyskalowane",
+                                 zapisz = TRUE, skala = NULL, proba = -1) {
+  stopifnot(is.numeric(rok), length(rok) == 1,
+            is.numeric(processors), length(processors) == 1,
+            is.character(opis), length(opis) == 1,
+            is.character(katalogSurowe), length(katalogSurowe) == 1,
+            is.character(katalogWyskalowane), length(katalogWyskalowane) == 1,
+            is.logical(zapisz), length(zapisz) == 1,
+            is.null(skala) | is.numeric(skala) | is.character(skala),
+            is.numeric(proba), length(proba) == 1)
+  stopifnot(as.integer(rok) == rok, rok >= 2002,
+            processors %in% (1:32),
+            dir.exists(katalogSurowe),
+            dir.exists(katalogWyskalowane),
+            zapisz %in% c(TRUE, FALSE),
+            as.integer(proba) == proba, proba == -1 | proba > 0)
+  if (!is.null(skala)) {
+    stopifnot(length(skala) == 1)
+  }
+
+  # sprawdzanie, czy w bazie są zapisane skala i jakieś skalowanie z parametrami
+  if (is.null(skala)) {
+    skala = paste0("^ewd;g[hm](|_[hmp])R;", rok)
+  } else if (is.character(skala)) {
+    if (!grepl("^ewd;g", skala)) {
+      warning("Skale, których opis ma pasować do wyrażenia '", skala,
+              "' raczej nie odnoszą się do egzaminu gimnazjalnego!", immediate. = TRUE)
+    }
+  }
+  parametry = suppressMessages(pobierz_parametry_skalowania(skala, doPrezentacji = TRUE,
+                                                            parametryzacja = "mplus"))
+  if (nrow(parametry) == 0) {
+    if (is.character(skala)) {
+      stop("Nie znaleziono skal o opisie pasującym do wyrażenia '", skala,
+           "', która byłaby oznaczona jako 'do prezentacji'.")
+    } else {
+      stop("Nie znaleziono skali o id_skali = ", skala,
+           ", która byłaby oznaczona jako 'do prezentacji'.")
+    }
+  }
+  # sortujemy tak, żeby w nowej formule gh i gm były na końcu
+  parametry = parametry[order(grepl(";g[hm];", parametry$opis)), ]
+
+  normy = suppressMessages(
+    pobierz_normy(polacz()) %>%
+      semi_join(parametry, copy = TRUE) %>%
+      collect()
+  )
+  if (ncol(normy) == 0) {  # semi_join() brzydko zwraca, jak mu się nic nie łączy
+    normy = as.data.frame(
+      matrix(nrow = 0, ncol = 5,
+             dimnames = list(NULL, c("id_skali", "skalowanie", "grupa",
+                                     "wartosc", "wartosc_zr"))))
+  }
+
+  rodzajEgzaminu = unique(parametry$rodzaj_egzaminu)
+  if (length(rodzajEgzaminu) > 1) {
+    stop("Skale są związane z więcej niż jednym egzaminem: '",
+         paste0(rodzajEgzaminu, collapse = "', "), "'.")
+  }
+  skale = group_by_(parametry, ~id_skali) %>%
+    summarize_(.dots = setNames(list(~n(), ~opis_skali[1]),
+                                c("lSkalowan", "opis"))) %>%
+    ungroup()
+  if (any(skale$lSkalowan > 1)) {
+    stop("Dla skal '", paste0(skale$opis[skale$lSkalowan > 1], collapse = "', '"),
+         "' znaleziono wiele skalowań oznaczonych jako 'do prezentacji'.")
+  }
+
+  wyniki = vector(mode = "list", length = nrow(skale))
+  names(wyniki) = gsub("^.*ewd;([^;]+);.*$", "\\1", parametry$opis_skali)
+  for (i in 1:nrow(parametry)) {
+    idSkali = parametry$id_skali[i]
+    opis = parametry$opis_skali[i]
+    skalowanie = parametry$skalowanie[i]
+    parametrySkala = parametry$parametry[[i]]
+    rzetelnoscEmpiryczna = attributes(parametrySkala)$"r EAP"
+    normySkala = filter_(normy, ~id_skali == idSkali)
+    odsUtraconejWariancji = NULL
+
+    message(rodzajEgzaminu, " ", rok, " (id_skali: ", idSkali, ", '", opis,
+            "'; skalowanie ", skalowanie, ".):")
+    # wczytywanie danych z dysku i sprawdzanie, czy jest dla kogo skalować
+    dane = wczytaj_wyniki_surowe(katalogSurowe, rodzajEgzaminu, "", rok, idSkali)
+    # będziemy wyrzucać wszystko, co niepotrzebne do skalowania (rypanie po dysku zajmuje potem cenny czas)
+    maskaZmienne = grep("^(id_obserwacji|id_testu|[kpst]_[[:digit:]]+)$", names(dane))
+    zmienneKryteria = names(dane[grep("^[kpst]_[[:digit:]]+$", names(dane))])
+    tytulWzorcowe = paste0(names(wyniki)[i], rok, " wzor")
+    tytulWszyscy = paste0(names(wyniki)[i], rok, " wszyscy")
+    # jeśli nic w bazie nie znaleźliśmy, to robimy skalowanie wzorcowe
+    if (!is.data.frame(parametrySkala) | nrow(normySkala) == 0) {
+      zmLaur = sub("R$", "", paste0("laur_", names(wyniki)[i]))
+      # trochę baroku, żeby móc wyskalować egzamin z 2005 r., który mamy tylko w danych z CKE
+      if (all(c(zmLaur, "populacja_wy", "pomin_szkole") %in% names(dane))) {
+        daneWzorcowe = subset(dane, get("populacja_wy") & !get("pomin_szkole") &
+                                !get(zmLaur))
+      } else {
+        warning("Brak danych kontekstowych - skalowanie wzorcowe zostanie ",
+                "przeprowadzone na wszystkich zdających, bez żadnych wykluczeń.",
+                immediate. = TRUE)
+        daneWzorcowe = dane
+      }
+      daneWzorcowe = daneWzorcowe[, maskaZmienne]
+      if (proba > 0) {
+        daneWzorcowe = daneWzorcowe[sample(nrow(daneWzorcowe), proba), ]
+      }
+      # skalowanie wzorcowe
+      message("\n### Skalowanie wzorcowe ###\n")
+      opisWzorcowe = procedura_1k_1w(zmienneKryteria, names(wyniki)[i],
+                                     rasch = TRUE, processors = processors)
+      egWzorcowe = skaluj(daneWzorcowe, opisWzorcowe, "id_obserwacji",
+                          tytul = tytulWzorcowe, zmienneDolaczaneDoOszacowan = "id_testu")
+      daneWzorcowe = cbind(daneWzorcowe[, "id_obserwacji", drop = FALSE],
+                           sumaG = rowSums(daneWzorcowe[, zmienneKryteria]))
+      daneWzorcowe = na.omit(daneWzorcowe)
+      oszacowania =
+        egWzorcowe[[1]][[length(egWzorcowe[[1]])]]$zapis
+      names(oszacowania) = sub(tolower( names(wyniki)[i]), names(wyniki)[i],
+                               names(oszacowania))
+      # wyliczanie rzetelności empirycznej
+      rzetelnoscEmpiryczna = oszacowania[, names(wyniki)[i]]
+      rzetelnoscEmpiryczna = var(rzetelnoscEmpiryczna)
+      # uśrednianie oszacowań, aby były funkcją sum punktów (i przynależności do grup)
+      if (rok < 2012) {
+        maksSuma = setNames(50, tolower(names(wyniki)[i]))
+      } else {
+        maksSuma = NULL
+      }
+      temp =
+        przewidywanie_rasch(daneWzorcowe,
+                            oszacowania[, c("id_obserwacji", names(wyniki)[i])],
+                            maks = maksSuma)
+      names(temp$mapowanie) = sub("^suma$", "wartosc", names(temp$mapowanie))
+      names(temp$mapowanie) = sub(paste0("^", names(wyniki)[i], "$"),
+                                  "wartosc_zr", names(temp$mapowanie))
+      temp$mapowanie = temp$mapowanie[, c("wartosc", "wartosc_zr")]
+      normySkala = data.frame(id_skali = idSkali, skalowanie = skalowanie,
+                              grupa = "", temp$mapowanie,
+                              stringsAsFactors = FALSE)
+      # zapamiętywanie parametrów modelu
+      wartosciZakotwiczone =
+        egWzorcowe[[1]][[length(egWzorcowe[[1]])]]$parametry$surowe
+      odsUtraconejWariancji = oszacowania$odsUtraconejWariancji
+      oszacowania = left_join(temp$oszacowania,
+                              oszacowania[, !grepl(names(wyniki)[i],
+                                                   names(oszacowania))])
+      rm(egWzorcowe, daneWzorcowe, temp)
+    }
+    # zamiast skalowania dla oszacowań
+    dane = cbind(dane[, c("id_obserwacji", "id_testu")],
+                 wartosc = rowSums(dane[, zmienneKryteria]))
+    dane = inner_join(dane, normySkala)
+    # przypisywanie wyników
+    wyniki[[i]] = list(
+      skalowania = data.frame(skalowanie = skalowanie, opis = opis,
+                              estymacja = "MML (Mplus)", id_skali = idSkali,
+                              do_prezentacji = FALSE, data = Sys.Date(),
+                              stringsAsFactors = FALSE),
+      skalowania_grupy = data.frame(id_skali = idSkali, skalowanie = skalowanie,
+                                    grupa = "", stringsAsFactors = FALSE),
+      skalowania_elementy = NULL,
+      skalowania_obserwacje =
+        data.frame(id_skali = idSkali, skalowanie = skalowanie,
+                   dane[, c("id_obserwacji", "id_testu")],
+                   estymacja = "EAP", nr_pv = -1,
+                   wynik = dane$wartosc_zr / sqrt(rzetelnoscEmpiryczna),
+                   bs = NA,
+                   grupa = "", stringsAsFactors = FALSE),
+      usunieteKryteria = vector(mode = "character", length = 0),
+      odsUtraconejWariancji = odsUtraconejWariancji
+    )
+    if (!is.data.frame(parametrySkala)) {
+      wyniki[[i]][["skalowania_elementy"]] =
+        zmien_parametry_na_do_bazy(wartosciZakotwiczone, idSkali, skalowanie,
+                                   rzetelnoscEmpiryczna)
+    }
+    class(wyniki[[i]]) = c(class(wyniki), "wynikiSkalowania")
+    attributes(wyniki[[i]])$dataSkalowania = Sys.time()
+  }
+  # koniec
+  class(wyniki) = c(class(wyniki), "listaWynikowSkalowania")
+  if (zapisz) {
+    nazwaObiektu = paste0("g", rok, "Skalowanie")
+    assign(nazwaObiektu, wyniki)
+    save(list = nazwaObiektu, file = paste0(nazwaObiektu, ".RData"))
+  }
+  return(wyniki)
 }

@@ -2,55 +2,111 @@
 % Please edit documentation in R/skaluj_egz_gimn_rasch.R
 \name{skaluj_egz_gimn_rasch}
 \alias{skaluj_egz_gimn_rasch}
-\title{Procedury skalowania egzaminow.}
+\title{Procedury skalowania egzaminow}
 \usage{
-skaluj_egz_gimn_rasch(daneWzorcowe, daneWszyscy, processors = 2)
+skaluj_egz_gimn_rasch(rok, processors = 2,
+  opis = "skalowanie do Kalkulatora EWD",
+  katalogSurowe = "../../dane surowe",
+  katalogWyskalowane = "../../dane wyskalowane", zapisz = TRUE,
+  skala = NULL, proba = -1)
 }
 \arguments{
-\item{daneWzorcowe}{lista data frame'ów zawierających dane do skalowania wzorcowego}
-
-\item{daneWszyscy}{lista data frame'ów zawierających zawierający dane wszystkich
-zdających (do wyliczenia oszacowań umiejętności na podstawe parametrów ze skalowania
-wzorcowego)}
+\item{rok}{rok przeprowadzenie egzaminu}
 
 \item{processors}{liczba rdzeni do wykorzystania przy estymacji}
+
+\item{opis}{opcjonalnie ciąg znaków - opis skalowania}
+
+\item{katalogSurowe}{opcjonalnie ścieżka do katalogu, w którym znajdują się
+pliki z zapisanymi (przy pomocy funkcji
+\code{\link[EWDdane]{pobierz_wyniki_surowe}} z pakietu EWDdane) surowymi
+wynikami egzaminu}
+
+\item{katalogWyskalowane}{opcjonalnie ścieżka do katalogu, w którym znajdują
+się pliki z zapisanymi (przy pomocy funkcji
+\code{\link[EWDdane]{pobierz_wyniki_wyskalowane}} z pakietu EWDdane)
+wyskalowanymi wynikami egzaminu}
+
+\item{zapisz}{wartość logiczna - czy zapisać wyniki do pliku .RData?}
+
+\item{skala}{id_skali (liczba naturalna) lub ciąg znaków z wyrażeniem
+regularnym, do którego ma pasować opis skali}
+
+\item{proba}{opcjonalnie liczba natrualna - wielkość próby, jaka ma być
+wylosowana z danych przed estymacją modelu; przydatne (tylko) do testów
+działania funkcji}
 }
 \value{
-lista z elementami:
+lista klasy \code{listaWynikowSkalowania}, której elementy są listami
+klasy \code{wynikiSkalowania} i składają się z elementów:
 \itemize{
-  \item{\code{usunieteKryteria} lista wektorów tekstowych z nazwami (pseudo)kryteriów,
-   które zostały usunięte podczas skalowania wzorcowego.}
-  \item{\code{parametry} lista data frame'ów z wyestymowanymi parametrami modeli w ich
-        ostatecznej postaci (tj. takiej, jak w ostatnim kroku skalowania wzorcowego
-        i w jedynym kroku skalowania na wszystkich zdających).}
-  \item{\code{oszacowania} lista data frame'ów zawierających id_obserwacji i wyliczone
-        oszacowania umiejętności dla wszystkich zdających.}
-  \item{\code{rzetelnoscEmpiryczna} rzetelność wyliczona na podstawie oszacowań ze
-        skalowania wzorcowego (jako wariancja oszacowań EAP).}
-  \item{\code{mapowanie} data frame zawierający wzorzec przekodowania
-        wyników surowych na wyniki wyskalowane.}
-  \item{\code{odsUtraconejWariancji} odsetek wariancji przewidywania mierzonej cechy
-        utracony w wyniku uśrednienia oszacowań w funkcji sumy punktów.}
+  \item{\code{skalowania} data frame o kolumnach:
+        \itemize{
+          \item{\code{skalowanie,}}
+          \item{\code{opis,}}
+          \item{\code{estymacja,}}
+          \item{\code{id_skali,}}
+          \item{\code{do_prezentacji,}}
+          \item{\code{data;}}
+        }}
+  \item{\code{skalowania_grupy} data frame o kolumnach:
+        \itemize{
+          \item{\code{id_skali,}}
+          \item{\code{skalowanie,}}
+          \item{\code{grupa;}}
+        }}
+  \item{\code{skalowania_elementy} data frame o kolumnach:
+        \itemize{
+          \item{\code{id_skali,}}
+          \item{\code{kolejnosc,}}
+          \item{\code{skalowanie,}}
+          \item{\code{parametr,}}
+          \item{\code{model,}}
+          \item{\code{wartosc,}}
+          \item{\code{uwagi,}}
+          \item{\code{bs,}}
+          \item{\code{grupowy,}}
+          \item{\code{grupa;}}
+        }}
+  \item{\code{skalowania_obserwacje} data frame o kolumnach:
+        \itemize{
+          \item{\code{id_skali,}}
+          \item{\code{skalowanie,}}
+          \item{\code{id_obserwacji,}}
+          \item{\code{id_testu,}}
+          \item{\code{estymacja,}}
+          \item{\code{nr_pv,}}
+          \item{\code{wynik,}}
+          \item{\code{bs,}}
+          \item{\code{grupa;}}
+        }}
+  \item{\code{skalowania} data frame o kolumnach:
+        \itemize{
+          \item{\code{skalowanie,}}
+          \item{\code{opis,}}
+          \item{\code{estymacja,}}
+          \item{\code{id_skali,}}
+          \item{\code{do_prezentacji,}}
+          \item{\code{data;}}
+        }}
+  \item{\code{normy} data frame o kolumnach:
+        \itemize{
+          \item{\code{id_skali,}}
+          \item{\code{skalowanie,}}
+          \item{\code{wartosc,}}
+          \item{\code{wartosc_zr;}}
+       }}
+  \item{\code{usunieteKryteria} wektor tekstowy z nazwami (pseudo)kryteriów, które
+        zostały usunięte podczas skalowania wzorcowego;}
 }
 }
 \description{
-Funkcja przeprowadza skalowanie części mat.-przyr. egzaminu gimnazjalnego z użyciem
-modelu Rascha (na potrzeby maturalnego Kalkulatora EWD).
-}
-\details{
-Argumenty (poza ostatnim) muszą być listami (mogą być jednoelementowe), których
-elementy mają nazwy ze zbioru: \code{"gm", "gm_p", "gm_m"} i są data frame'ami
-zawierającymi dane z wynikami odpowiednich części egzaminu gimnazjalnego.
-
-W przypadku nowej struktury egzaminu gimnazjalnego wystarczy podać wyniki testów,
-dane do wyskalowania części jako całości zostaną połączone automatycznie, wewnątrz
-funkcji.
-
-Schemat przekodowania sum punktów na oszacowania umiejętności wyliczany jest na
-podstawie danych wzorcowych, przy pomocy funkcji \code{\link{przewidywanie_rasch}},
-a następnie na jego podstawie przypisywane są wartości przewidywane wszystkim zdającym.
+Funkcja przeprowadza skalowanie części mat.-przyr. egzaminu gimnazjalnego
+z użyciem modelu Rascha (na potrzeby maturalnego Kalkulatora EWD).
 }
 \seealso{
-\code{\link{skaluj}}, \code{\link{procedura_1k_1w}}, \code{\link{przewidywanie_rasch}}
+\code{\link[EWDskalowanie]{skaluj}},
+\code{\link[EWDskalowanie]{procedura_1k_1w}},
+\code{\link{sprawdz_wyniki_skalowania}}
 }
 
