@@ -103,6 +103,9 @@ lacz_kryteria_z_korelacji_w_ramach_czesci_egz = function(x, katalogDane, prog,
                               x$kryterium)
   dane = filter_(dane, ~populacja_wy & !pomin_szkole)
   dane = dane[, grep("^[kp]_", names(dane))]
+  # radzenie sobie z syfem, jaki przytrafia się w danych
+  maska = ncol(dane) == rowSums(is.na(dane))
+  dane = subset(dane, !get("maska"))
   message("  Wczytano dane z wynikami egzaminu.")
 
   # przygotowanie obiektu tylko z interesującymi nas parami zmiennych
@@ -167,6 +170,10 @@ lacz_kryteria_z_korelacji_w_ramach_czesci_egz = function(x, katalogDane, prog,
     dane[, pary$kryterium[wierszMax]] = rowSums(dane[, c(pary$kryterium[wierszMax],
                                                          pary$kryterium2[wierszMax])])
     pary$korelacja[pary$kryterium %in% k2 | pary$kryterium2 %in% k2] = NA
+    # radzenie sobie z syfem, jaki przytrafia się w danych
+    maska = ncol(dane) == rowSums(is.na(dane))
+    dane = subset(dane, !get("maska"))
+    # przeliczanie korelacji
     maska = which(pary$kryterium %in% k1 & !is.na(pary$korelacja))
     maska = maska[maska != wierszMax]
     for (i in maska) {
