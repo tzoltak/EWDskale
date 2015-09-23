@@ -93,6 +93,7 @@ klasy \code{wynikiSkalowania} i składają się z elementów:
         \itemize{
           \item{\code{id_skali,}}
           \item{\code{skalowanie,}}
+          \item{\code{grupa,}}
           \item{\code{wartosc,}}
           \item{\code{wartosc_zr;}}
        }}

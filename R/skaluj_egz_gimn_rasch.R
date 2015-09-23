@@ -76,6 +76,7 @@
 #'         \itemize{
 #'           \item{\code{id_skali,}}
 #'           \item{\code{skalowanie,}}
+#'           \item{\code{grupa,}}
 #'           \item{\code{wartosc,}}
 #'           \item{\code{wartosc_zr;}}
 #'        }}
@@ -136,7 +137,7 @@ skaluj_egz_gimn_rasch = function(rok, processors = 2,
 
   normy = suppressMessages(
     pobierz_normy(polacz()) %>%
-      semi_join(parametry, copy = TRUE) %>%
+      semi_join(select_(parametry, ~-parametry), copy = TRUE) %>%
       collect()
   )
   if (ncol(normy) == 0) {  # semi_join() brzydko zwraca, jak mu się nic nie łączy
@@ -182,6 +183,11 @@ skaluj_egz_gimn_rasch = function(rok, processors = 2,
     tytulWszyscy = paste0(names(wyniki)[i], rok, " wszyscy")
     # jeśli nic w bazie nie znaleźliśmy, to robimy skalowanie wzorcowe
     if (!is.data.frame(parametrySkala) | nrow(normySkala) == 0) {
+      if (is.data.frame(parametrySkala)) {
+        wartosciZakotwiczone = as.data.frame(parametrySkala)  # pozbywamy się "tbl_df-owatości"
+      } else {
+        wartosciZakotwiczone = NULL
+      }
       zmLaur = sub("R$", "", paste0("laur_", names(wyniki)[i]))
       # trochę baroku, żeby móc wyskalować egzamin z 2005 r., który mamy tylko w danych z CKE
       if (all(c(zmLaur, "populacja_wy", "pomin_szkole") %in% names(dane))) {
@@ -200,7 +206,8 @@ skaluj_egz_gimn_rasch = function(rok, processors = 2,
       # skalowanie wzorcowe
       message("\n### Skalowanie wzorcowe ###\n")
       opisWzorcowe = procedura_1k_1w(zmienneKryteria, names(wyniki)[i],
-                                     rasch = TRUE, processors = processors)
+                                     wartosciZakotwiczone, rasch = TRUE,
+                                     processors = processors)
       egWzorcowe = skaluj(daneWzorcowe, opisWzorcowe, "id_obserwacji",
                           tytul = tytulWzorcowe, zmienneDolaczaneDoOszacowan = "id_testu")
       daneWzorcowe = cbind(daneWzorcowe[, "id_obserwacji", drop = FALSE],
@@ -214,6 +221,8 @@ skaluj_egz_gimn_rasch = function(rok, processors = 2,
       rzetelnoscEmpiryczna = oszacowania[, names(wyniki)[i]]
       rzetelnoscEmpiryczna = var(rzetelnoscEmpiryczna)
       # uśrednianie oszacowań, aby były funkcją sum punktów (i przynależności do grup)
+      oszacowania[, names(wyniki)[i]] =
+        oszacowania[, names(wyniki)[i]] / sqrt(rzetelnoscEmpiryczna)
       if (rok < 2012) {
         maksSuma = setNames(50, "sumaG")
       } else {
@@ -239,6 +248,25 @@ skaluj_egz_gimn_rasch = function(rok, processors = 2,
                                                          names(oszacowania))])
       )
       rm(egWzorcowe, daneWzorcowe, temp)
+      message("\n### Przypisywanie oszacowań wszystkim zdającym ###\n")
+    } else {
+      # w przeciwnym wypadku podstawiamy zapisane w bazie parametry
+      # i sprawdzamy, czy ktoś już ma zapisane oszacowania
+      daneWyskalowane = wczytaj_wyniki_wyskalowane(katalogWyskalowane,
+                                                   rodzajEgzaminu, idSkali)
+      lPrzed = nrow(dane)
+      dane = suppressMessages(anti_join(dane, daneWyskalowane))
+      rm(daneWyskalowane)
+      lPo = nrow(dane)
+      if (lPo == 0) {
+        message("\n### Brak zdających, dla których trzeba by wyliczyć oszacowania. ###\n")
+        next
+      } else if (lPo < lPrzed) {
+        message("\n### Przypisywanie oszacowań ", format(lPo, big.mark = "'"),
+                " zdającym, ###\n    którzy ich jeszcze nie mają.")
+      } else {
+        message("\n### Przypisywanie oszacowań wszystkim zdającym ###\n")
+      }
     }
     # zamiast skalowania dla oszacowań
     dane = cbind(dane[, c("id_obserwacji", "id_testu")],
@@ -253,6 +281,7 @@ skaluj_egz_gimn_rasch = function(rok, processors = 2,
       skalowania_grupy = data.frame(id_skali = idSkali, skalowanie = skalowanie,
                                     grupa = "", stringsAsFactors = FALSE),
       skalowania_elementy = NULL,
+      normy = normySkala,
       skalowania_obserwacje =
         data.frame(id_skali = idSkali, skalowanie = skalowanie,
                    dane[, c("id_obserwacji", "id_testu")],

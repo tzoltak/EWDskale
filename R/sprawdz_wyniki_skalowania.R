@@ -94,7 +94,7 @@ sprawdz_wyniki_skalowania_konstruktu = function(model) {
     maskaSpecjalne = with(parametry, {is.na(kryterium) & !is.na(uwagi)})
     parametry$kryterium[maskaSpecjalne] = parametry$uwagi[maskaSpecjalne]
     # podział na typy parametrów, przekształcanie i łączenie
-    dyskryminacje = filter_(parametry, ~parametr == "dyskryminacja") %>%
+    dyskryminacje = filter_(parametry, ~parametr %in% c("a", "dyskryminacja")) %>%
       select_(~kryterium, ~wartosc)
     names(dyskryminacje) = sub("wartosc", "dyskryminacja", names(dyskryminacje))
     trudnosciKryteriow = suppressMessages(
