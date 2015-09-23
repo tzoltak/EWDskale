@@ -253,7 +253,7 @@ skaluj_egz_gimn_rasch = function(rok, processors = 2,
       # w przeciwnym wypadku podstawiamy zapisane w bazie parametry
       # i sprawdzamy, czy ktoś już ma zapisane oszacowania
       daneWyskalowane = wczytaj_wyniki_wyskalowane(katalogWyskalowane,
-                                                   rodzajEgzaminu, idSkali)
+                                                   rodzajEgzaminu, rok, idSkali)
       lPrzed = nrow(dane)
       dane = suppressMessages(anti_join(dane, daneWyskalowane))
       rm(daneWyskalowane)

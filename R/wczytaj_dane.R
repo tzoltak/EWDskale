@@ -117,18 +117,20 @@ wczytaj_wyniki_surowe = function(katalogDane, rodzajEgzaminu, czescEgzaminu,
 #' się dane z wyskalowanymi wynikami egzaminów, pobranymi przy pomocy funkcji
 #' \code{\link[EWDdane]{pobierz_wyniki_wyskalowane}}
 #' @param rodzajEgzaminu ciąg znaków
+#' @param rok liczba naturalna
 #' @param idSkali liczba naturalna
 #' @return data frame (data table)
 #' @import dplyr
-wczytaj_wyniki_wyskalowane = function(katalogDane, rodzajEgzaminu, idSkali) {
+wczytaj_wyniki_wyskalowane = function(katalogDane, rodzajEgzaminu, rok, idSkali) {
   stopifnot(is.character(katalogDane), length(katalogDane) == 1,
             is.character(rodzajEgzaminu), length(rodzajEgzaminu) == 1,
+            is.numeric(rok), length(rok) == 1,
             is.numeric(idSkali), length(idSkali) == 1)
   stopifnot(dir.exists(katalogDane),
             rodzajEgzaminu %in% c("sprawdzian", "egzamin gimnazjalny", "matura"))
 
   katalogDane = paste0(sub("/$", "", katalogDane), "/")
-  plikDane = paste0(katalogDane, rodzajEgzaminu, ".RData")
+  plikDane = paste0(katalogDane, rodzajEgzaminu, " ", rok, ".RData")
   if (!file.exists(plikDane)) {
     stop("Nie można wczytać danych z pliku '", plikDane, "'. Plik nie istnieje.")
   }

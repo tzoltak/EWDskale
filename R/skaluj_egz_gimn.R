@@ -222,7 +222,7 @@ skaluj_egz_gimn = function(rok, processors = 2, opis = "skalowanie do EWD",
         zmienneKryteria[zmienneKryteria %in% unique(wartosciZakotwiczone$zmienna2)]
 
       daneWyskalowane = wczytaj_wyniki_wyskalowane(katalogWyskalowane,
-                                                   rodzajEgzaminu, idSkali)
+                                                   rodzajEgzaminu, rok, idSkali)
       lPrzed = nrow(dane)
       dane = suppressMessages(anti_join(dane, daneWyskalowane))
       rm(daneWyskalowane)
