@@ -105,7 +105,15 @@ lacz_kryteria_z_korelacji_w_ramach_czesci_egz = function(x, katalogDane, prog,
   dane = dane[, grep("^[kp]_", names(dane))]
   # radzenie sobie z syfem, jaki przytrafia się w danych
   dane = subset(dane, ncol(dane) > rowSums(is.na(dane)))
+  dane = dane[, unlist(lapply(dane, function(x) {return(!all(is.na(x)))}))]
+  x = filter_(x, ~kryterium %in% names(dane))
   message("  Wczytano dane z wynikami egzaminu.")
+
+  # wyliczanie dyskryminacji
+  message("  Wyliczanie dyskryminacji w modelu jednowymiarowym ",
+          "(może trochę potrwać...).")
+  model = suppressMessages(mirt(dane, 1, TOL = 0.01, verbose = FALSE))
+  dyskryminacjeTemp = unlist(lapply(coef(model), function(x) {return(x[1, 1])}))
 
   # przygotowanie obiektu tylko z interesującymi nas parami zmiennych
   pary = setNames(data.frame(t(combn(x$kryterium, 2)), stringsAsFactors = FALSE),
@@ -120,6 +128,21 @@ lacz_kryteria_z_korelacji_w_ramach_czesci_egz = function(x, katalogDane, prog,
       warning("Nie zdefiniowano żadnych wiązek.", immediate. = TRUE)
       return(list(laczenia = NULL, dyskryminacje = NULL))
     }
+  } else {  # usuwanie par, dla których jest zbyt wiele braków w danych
+    message("  Sprawdzanie liczby obserwacji dla poszczególnych par, ",
+            "(może trochę potrwać...)")
+    pary = cbind(pary, odsWD = NA)
+    lObs = lapply(dane, function(x) {return(sum(!is.na(x)))})
+    pb = txtProgressBar(0, nrow(pary), style = 3)
+    for (i in 1:nrow(pary)) {
+      lObs1 = lObs[[pary$kryterium[i]]]
+      lObs2 = lObs[[pary$kryterium2[i]]]
+      lObsP = sum(!is.na(dane[[pary$kryterium[i]]] + dane[[pary$kryterium2[i]]]))
+      pary$odsWD[i] = all((lObsP / c(lObs1, lObs2)) > 0.8)
+      setTxtProgressBar(pb, i)
+    }
+    close(pb)
+    pary = filter_(pary, ~odsWD) %>% select_(~-odsWD)
   }
   pary = cbind(pary, korelacja = NA)
   laczenia = matrix(NA, ncol = ncol(pary), nrow = nrow(pary)) %>%
@@ -128,13 +151,8 @@ lacz_kryteria_z_korelacji_w_ramach_czesci_egz = function(x, katalogDane, prog,
   dyskryminacje = matrix(NA, ncol = ncol(dane), nrow = nrow(pary))
   colnames(dyskryminacje) = names(dane)
   rownames(dyskryminacje) = 0:(nrow(dyskryminacje) - 1)
-
-  # wyliczanie dyskryminacji
-  message("  Wyliczanie dyskryminacji w modelu jednowymiarowym ",
-          "(może trochę potrwać...).")
-  model = suppressMessages(mirt(dane, 1, TOL = 0.01, verbose = FALSE))
-  dyskryminacjeTemp = unlist(lapply(coef(model), function(x) {return(x[1, 1])}))
   dyskryminacje[1, ] = dyskryminacjeTemp[grep("^[kp]_", names(dyskryminacjeTemp))]
+
   # wyliczanie korelacji
   message("  Wyliczanie ", nrow(pary), " korelacji polichorycznych ",
           "(może trochę potrwać...)")

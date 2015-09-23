@@ -4,7 +4,7 @@
 \alias{wczytaj_wyniki_wyskalowane}
 \title{Wczytywanie wynikow egzaminow zapisanych na dysku}
 \usage{
-wczytaj_wyniki_wyskalowane(katalogDane, rodzajEgzaminu, idSkali)
+wczytaj_wyniki_wyskalowane(katalogDane, rodzajEgzaminu, rok, idSkali)
 }
 \arguments{
 \item{katalogDane}{ciąg znaków - ścieżka do katalogu, w którym znajdują
@@ -12,6 +12,8 @@ się dane z wyskalowanymi wynikami egzaminów, pobranymi przy pomocy funkcji
 \code{\link[EWDdane]{pobierz_wyniki_wyskalowane}}}
 
 \item{rodzajEgzaminu}{ciąg znaków}
+
+\item{rok}{liczba naturalna}
 
 \item{idSkali}{liczba naturalna}
 }
