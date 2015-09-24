@@ -106,6 +106,8 @@ lacz_kryteria_z_korelacji_w_ramach_czesci_egz = function(x, katalogDane, prog,
   # radzenie sobie z syfem, jaki przytrafia się w danych
   dane = subset(dane, ncol(dane) > rowSums(is.na(dane)))
   dane = dane[, unlist(lapply(dane, function(x) {return(!all(is.na(x)))}))]
+  dane = dane[, unlist(lapply(dane,
+                              function(x) {return(length(unique(na.omit(x))) > 1)}))]
   x = filter_(x, ~kryterium %in% names(dane))
   message("  Wczytano dane z wynikami egzaminu.")
 
