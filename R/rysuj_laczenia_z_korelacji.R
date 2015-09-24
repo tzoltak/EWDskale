@@ -11,11 +11,14 @@ rysuj_laczenia_z_korelacji = function(x, wielkoscTekstu = 1) {
   stopifnot("wynikLaczKryteriaZKorelacji" %in% class(x),
             is.numeric(wielkoscTekstu), length(wielkoscTekstu) == 1)
   stopifnot(is.finite(wielkoscTekstu), wielkoscTekstu > 0)
-  x = do_(x, .dots = list(~rysuj_laczenia_z_korelacji_w_ramach_skali(., wielkoscTekstu)))
+  x = ungroup(x) %>%
+    group_by_(~id_skali, ~czesc_egzaminu) %>%
+    do_(.dots = list(~rysuj_laczenia_z_korelacji_w_ramach_czesci(., wielkoscTekstu)))
   class(x) = sub("wynikLaczKryteriaZKorelacji",
                  "wynikRysujLaczeniaZKorelacji", class(x))
   return(x)
 }
+
 #' @title Laczenie kryteriow na podstawie korelacji polichorycznych
 #' @description
 #' Koń roboczy dla \code{\link{rysuj_laczenia_z_korelacji}}.
@@ -24,7 +27,7 @@ rysuj_laczenia_z_korelacji = function(x, wielkoscTekstu = 1) {
 #' @return data frame
 #' @import dplyr
 #' @import ggplot2
-rysuj_laczenia_z_korelacji_w_ramach_skali = function(x, wielkoscTekstu = 12) {
+rysuj_laczenia_z_korelacji_w_ramach_czesci = function(x, wielkoscTekstu = 12) {
   stopifnot(is.numeric(wielkoscTekstu), length(wielkoscTekstu) == 1)
   stopifnot(is.finite(wielkoscTekstu), wielkoscTekstu > 0)
 
