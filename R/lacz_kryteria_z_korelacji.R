@@ -158,9 +158,13 @@ lacz_kryteria_z_korelacji_w_ramach_czesci_egz = function(x, katalogDane, prog,
           "(może trochę potrwać...)")
   pb = txtProgressBar(0, nrow(pary), style = 3)
   for (i in 1:nrow(pary)) {
-    pary$korelacja[i] = suppressWarnings(
-      polychor(ftable(dane[, c(pary$kryterium[i], pary$kryterium2[i])]),
-               ML = FALSE, std.err = FALSE))  # użycie ftable pozwala uniknąć konwersji danych na factory
+    tab = ftable(dane[, c(pary$kryterium[i], pary$kryterium2[i])])
+    # brutalny hack na małe liczebności, mogące skutkować 0 w rozkładzie,
+    # co może skutkować nagłemu podlatywaniu korelacji pod 1
+    if (sum(tab) < 1000) {
+      tab[tab == 0] = 0.005 * sum(tab)
+    }
+    pary$korelacja[i] = suppressWarnings(polychor(tab, ML = FALSE, std.err = FALSE))
     setTxtProgressBar(pb, i)
   }
   close(pb)
