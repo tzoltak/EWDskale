@@ -231,7 +231,8 @@ skaluj_matura_rasch = function(rok, processors = 2,
       dane = cbind(dane, czy_sf = rowSums(!is.na(temp)) > 0)
       rm(temp)
     } else {
-      dane = cbind(dane, czy_sf = czyStaraFormula)
+      zmienneGrupujace = setdiff(zmienneGrupujace, "czy_sf")
+      maskaZmienne = setdiff(maskaZmienne, "czy_sf")
     }
     grupy = distinct(dane[, zmienneGrupujace])
     for (i in ncol(grupy):1) {
@@ -239,14 +240,16 @@ skaluj_matura_rasch = function(rok, processors = 2,
     }
     # usuwanie grup, których nie jesteśmy w stanie sensownie obsłużyć:
     # uczniów LO piszących starą formułę
-    grupy = filter_(grupy, ~!(typ_szkoly == "LO" & czy_sf))
+    if ("czy_sf" %in% zmienneGrupujace) {
+      grupy = filter_(grupy, ~!(typ_szkoly == "LO" & czy_sf))
+    }
     grupy = cbind(grupy, gr_tmp1 = 1:nrow(grupy))
     # ładne nazwy grup
     grupy = within(grupy, {
       grupa = paste0(get("typ_szkoly"), " ",
                      ifelse(get("s_mat_r"), "PP i PR", "tylko PP"))
     })
-    if (length(czyStaraFormula) > 1) {
+    if ("czy_sf" %in% zmienneGrupujace) {
       grupy = within(grupy, {
         grupa = paste0(grupa, " ", ifelse(get("czy_sf"), "sf", "nf"))
       })
