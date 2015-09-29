@@ -102,8 +102,14 @@ klasy \code{wynikiSkalowania} i składają się z elementów:
 }
 }
 \description{
-Funkcja przeprowadza skalowanie części mat.-przyr. egzaminu gimnazjalnego
-z użyciem modelu Rascha (na potrzeby maturalnego Kalkulatora EWD).
+Funkcja przeprowadza skalowanie egzaminu gimnazjalnego z użyciem modelu
+Rascha (na potrzeby maturalnego Kalkulatora EWD).
+}
+\details{
+Schemat przekodowania sum punktów na oszacowania umiejętności wyliczany jest
+na podstawie danych wzorcowych, przy pomocy funkcji
+\code{\link{przewidywanie_rasch}}, a następnie na jego podstawie przypisywane
+są wartości przewidywane wszystkim zdającym.
 }
 \seealso{
 \code{\link[EWDskalowanie]{skaluj}},

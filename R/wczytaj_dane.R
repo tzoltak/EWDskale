@@ -39,7 +39,7 @@ wczytaj_wyniki_surowe = function(katalogDane, rodzajEgzaminu, czescEgzaminu,
   obiekty = load(plikDane)
   src = polacz()
   idTestu = suppressMessages(
-    pobierz_skale(src) %>%
+    pobierz_skale(src, doPrezentacji = NA) %>%
       filter_(~id_skali == idSkali) %>%
       select_(~id_testu) %>%
       semi_join(pobierz_testy(src) %>% filter_(~!czy_egzamin)) %>%

@@ -52,7 +52,7 @@ sprawdz_wyniki_skalowania_konstruktu = function(model) {
     "m_mp" = "Matura, przedm. mat.-przyr."
   )
   # tytul na wykresy
-  tytul = pobierz_skale(polacz(), doPrezentacji = NA, PvEap = FALSE) %>%
+  tytul = pobierz_skale(polacz(), doPrezentacji = NA) %>%
     filter_(~id_skali == model$skalowania$id_skali) %>%
     select_(~opis_skali, ~rok) %>%
     collect() %>%

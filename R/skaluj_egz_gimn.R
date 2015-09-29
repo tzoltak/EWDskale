@@ -108,11 +108,13 @@ skaluj_egz_gimn = function(rok, processors = 2, opis = "skalowanie do EWD",
   } else if (is.character(skala)) {
     if (!grepl("^ewd;g", skala)) {
       warning("Skale, których opis ma pasować do wyrażenia '", skala,
-              "' raczej nie odnoszą się do egzaminu gimnazjalnego!", immediate. = TRUE)
+              "' raczej nie odnoszą się do egzaminu gimnazjalnego!",
+              immediate. = TRUE)
     }
   }
-  parametry = suppressMessages(pobierz_parametry_skalowania(skala, doPrezentacji = TRUE,
-                                                            parametryzacja = "mplus"))
+  parametry = suppressMessages(
+    pobierz_parametry_skalowania(skala, doPrezentacji = TRUE,
+                                 parametryzacja = "mplus"))
   if (nrow(parametry) == 0) {
     if (is.character(skala)) {
       stop("Nie znaleziono skal o opisie pasującym do wyrażenia '", skala,
@@ -153,8 +155,8 @@ skaluj_egz_gimn = function(rok, processors = 2, opis = "skalowanie do EWD",
     # wczytywanie danych z dysku i sprawdzanie, czy jest dla kogo skalować
     dane = wczytaj_wyniki_surowe(katalogSurowe, rodzajEgzaminu, "", rok, idSkali)
     # będziemy wyrzucać wszystko, co niepotrzebne do skalowania (rypanie po dysku zajmuje potem cenny czas)
-    maskaZmienne = grep("^(id_obserwacji|id_testu|[kpst]_[[:digit:]]+)$", names(dane))
-    zmienneKryteria = names(dane[grep("^[kpst]_[[:digit:]]+$", names(dane))])
+    zmienneKryteria = names(dane)[grep("^[kpst]_[[:digit:]]+$", names(dane))]
+    maskaZmienne = c("id_obserwacji", "id_testu", zmienneKryteria)
     tytulWzorcowe = paste0(names(wyniki)[i], rok, " wzor")
     tytulWszyscy = paste0(names(wyniki)[i], rok, " wszyscy")
     # jeśli nic w bazie nie znaleźliśmy, to robimy skalowanie wzorcowe
@@ -181,17 +183,16 @@ skaluj_egz_gimn = function(rok, processors = 2, opis = "skalowanie do EWD",
         zmUsuniete = unlist(lapply(wyniki, function(x) {return(x$usunieteKryteria)}))
         zmUsuniete = intersect(zmUsuniete, zmienneKryteria)
         zmienneKryteria = setdiff(zmienneKryteria, zmUsuniete)
-        wartosciZakotwiczone = data.frame(typ = c("mean", "variance"),
-                                          zmienna1 = names(daneWzorcowe)[i],
-                                          zmienna2 = "", wartosc = c(0, 1),
-                                          stringsAsFactors = FALSE)
+        nigdyNieUsuwaj = "^[kp]_"
       } else {
         wartosciZakotwiczone = NULL
+        nigdyNieUsuwaj = NULL
       }
       # skalowanie wzorcowe
       message("\n### Skalowanie wzorcowe ###\n")
       opisWzorcowe = procedura_1k_1w(zmienneKryteria, names(wyniki)[i],
-                                     wartosciZakotwiczone, processors = processors)
+                                     nigdyNieUsuwaj = nigdyNieUsuwaj,
+                                     processors = processors)
       egWzorcowe = skaluj(daneWzorcowe, opisWzorcowe, "id_obserwacji",
                           tytul = tytulWzorcowe, zmienneDolaczaneDoOszacowan = "id_testu")
       # wyliczanie rzetelności empirycznej

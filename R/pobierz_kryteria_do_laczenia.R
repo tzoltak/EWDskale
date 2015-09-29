@@ -15,7 +15,7 @@ pobierz_kryteria_do_laczenia = function(skale) {
   src = polacz()
   on.exit(rozlacz(src))
   if (is.character(skale)) {
-    skale = pobierz_skale(src, doPrezentacji = NA, PvEap = FALSE) %>%
+    skale = pobierz_skale(src, doPrezentacji = NA) %>%
       collect() %>%
       filter_(~grepl(skale, opis_skali)) %>%
       select_(~id_skali) %>%
@@ -28,7 +28,7 @@ pobierz_kryteria_do_laczenia = function(skale) {
     skale = rep(skale, 2) # głupie, ale pozwala użyć %in% w filter()
   }
   kryteria = suppressMessages(
-    pobierz_skale(src, doPrezentacji = NA, PvEap = FALSE) %>%
+    pobierz_skale(src, doPrezentacji = NA) %>%
       filter_(~id_skali %in% skale) %>%
       select_(~id_skali, ~opis_skali, ~id_testu, ~rodzaj_egzaminu,
               ~czesc_egzaminu, ~rok) %>%
