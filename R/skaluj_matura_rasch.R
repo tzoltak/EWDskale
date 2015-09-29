@@ -429,7 +429,7 @@ skaluj_matura_rasch = function(rok, processors = 2,
         data.frame(id_skali = idSkali, skalowanie = skalowanie,
                    dane[, c("id_obserwacji", "id_testu")],
                    estymacja = "EAP", nr_pv = -1,
-                   wynik = dane$wartosc_zr / sqrt(rzetelnoscEmpiryczna),
+                   wynik = dane$wartosc_zr,
                    bs = NA,
                    grupa = dane$grupa, stringsAsFactors = FALSE),
       usunieteKryteria = vector(mode = "character", length = 0),
@@ -446,7 +446,7 @@ skaluj_matura_rasch = function(rok, processors = 2,
   # koniec
   class(wyniki) = c(class(wyniki), "listaWynikowSkalowania")
   if (zapisz) {
-    nazwaObiektu = paste0("gRasch", rok, "Skalowanie")
+    nazwaObiektu = paste0("mRasch", rok, "Skalowanie")
     assign(nazwaObiektu, wyniki)
     save(list = nazwaObiektu, file = paste0(nazwaObiektu, ".RData"))
   }
