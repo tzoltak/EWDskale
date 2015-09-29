@@ -175,7 +175,7 @@ skaluj_egz_gimn_rasch = function(rok, processors = 2,
     opis = parametry$opis_skali[i]
     skalowanie = parametry$skalowanie[i]
     parametrySkala = parametry$parametry[[i]]
-    rzetelnoscEmpiryczna = attributes(parametrySkala)$"r EAP"
+    rzetelnoscEmpiryczna = attributes(parametrySkala)$"r EAP"$wartosc
     normySkala = filter_(normy, ~id_skali == idSkali)
     odsUtraconejWariancji = NULL
 

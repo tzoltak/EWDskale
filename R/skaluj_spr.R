@@ -131,7 +131,7 @@ skaluj_spr = function(rok, processors = 2, opis = "skalowanie do EWD",
   opis = parametry$opis_skali
   skalowanie = parametry$skalowanie
   parametry = parametry$parametry[[1]]
-  rzetelnoscEmpiryczna = attributes(parametry)$"r EAP"
+  rzetelnoscEmpiryczna = attributes(parametry)$"r EAP"$wartosc
 
   message(rodzajEgzaminu, " ", rok, " (id_skali: ", idSkali, ", '", opis,
           "'; skalowanie ", skalowanie, ".):")

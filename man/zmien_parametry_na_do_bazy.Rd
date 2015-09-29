@@ -15,7 +15,8 @@ funkcję \code{\link[EWDskalowanie]{skaluj}}}
 
 \item{skalowanie}{liczba naturalna - nr skalowania w bazie}
 
-\item{rzetelnoscEmpiryczna}{opcjonalnie liczba - rzetelność empiryczna testu}
+\item{rzetelnoscEmpiryczna}{opcjonalnie liczba lub data frame - rzetelność
+empiryczna testu (w przypadku data frame'a - w poszczególnych grupach)}
 }
 \value{
 ramka danych w formacie odpowiadającym strukturze tablicy

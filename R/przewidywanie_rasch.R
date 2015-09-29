@@ -113,7 +113,9 @@ przewidywanie_rasch = function(sumy, oszacowania, maks = NULL, span = 0.2) {
   oszacowania = suppressMessages(inner_join(sumy, oszacowania))
   names(oszacowania) = sub(paste0("^", zmOszacowania, "$"), "oszacowania",
                            names(oszacowania))
-  temp = group_by_(oszacowania, zmSumy, "suma") %>%
+  temp = group_by_(oszacowania,
+                   .dots = lapply(as.list(paste0("~", c(zmSumy, "suma"))),
+                                  formula)) %>%
     summarize_(.dots = setNames(list(~mean(oszacowania)), "oszacowania"))
   # dopisywanie maksów, żeby można z nich było potem skorzystać
   # zawikłane: dla każdej z grup zdających, wyróżnionych ze względu na zestaw
@@ -177,7 +179,7 @@ przewidywanie_rasch = function(sumy, oszacowania, maks = NULL, span = 0.2) {
   }
   mapowanie = bind_rows(mapowanie)
   rm(temp, x)
-  #
+  # zastępowanie oszacowań wartościami zmapowanymi
   oszacowania = suppressMessages(
     inner_join(oszacowania[, setdiff(names(oszacowania), "oszacowania")],
                mapowanie))

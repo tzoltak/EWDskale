@@ -148,7 +148,7 @@ skaluj_egz_gimn = function(rok, processors = 2, opis = "skalowanie do EWD",
     opis = parametry$opis_skali[i]
     skalowanie = parametry$skalowanie[i]
     parametrySkala = parametry$parametry[[i]]
-    rzetelnoscEmpiryczna = attributes(parametrySkala)$"r EAP"
+    rzetelnoscEmpiryczna = attributes(parametrySkala)$"r EAP"$wartosc
 
     message(rodzajEgzaminu, " ", rok, " (id_skali: ", idSkali, ", '", opis,
             "'; skalowanie ", skalowanie, ".):")

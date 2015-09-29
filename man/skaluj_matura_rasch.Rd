@@ -2,65 +2,123 @@
 % Please edit documentation in R/skaluj_matura_rasch.R
 \name{skaluj_matura_rasch}
 \alias{skaluj_matura_rasch}
-\title{Procedury skalowania egzaminow.}
+\title{Procedury skalowania egzaminow}
 \usage{
-skaluj_matura_rasch(daneWzorcowe, daneWszyscy, processors = 2)
+skaluj_matura_rasch(rok, processors = 2,
+  opis = "skalowanie do Kalkulatora EWD",
+  katalogSurowe = "../../dane surowe",
+  katalogWyskalowane = "../../dane wyskalowane", zapisz = TRUE,
+  skala = NULL, proba = -1)
 }
 \arguments{
-\item{daneWzorcowe}{lista data frame'ów zawierających dane do skalowania wzorcowego}
-
-\item{daneWszyscy}{lista data frame'ów zawierających zawierający dane wszystkich
-zdających (do wyliczenia oszacowań umiejętności na podstawe parametrów ze skalowania
-wzorcowego)}
+\item{rok}{rok przeprowadzenie egzaminu}
 
 \item{processors}{liczba rdzeni do wykorzystania przy estymacji}
+
+\item{opis}{opcjonalnie ciąg znaków - opis skalowania}
+
+\item{katalogSurowe}{opcjonalnie ścieżka do katalogu, w którym znajdują się
+pliki z zapisanymi (przy pomocy funkcji
+\code{\link[EWDdane]{pobierz_wyniki_surowe}} z pakietu EWDdane) surowymi
+wynikami egzaminu}
+
+\item{katalogWyskalowane}{opcjonalnie ścieżka do katalogu, w którym znajdują
+się pliki z zapisanymi (przy pomocy funkcji
+\code{\link[EWDdane]{pobierz_wyniki_wyskalowane}} z pakietu EWDdane)
+wyskalowanymi wynikami egzaminu}
+
+\item{zapisz}{wartość logiczna - czy zapisać wyniki do pliku .RData?}
+
+\item{skala}{id_skali (liczba naturalna) lub ciąg znaków z wyrażeniem
+regularnym, do którego ma pasować opis skali}
+
+\item{proba}{opcjonalnie liczba natrualna - wielkość próby, jaka ma być
+wylosowana z danych przed estymacją modelu; przydatne (tylko) do testów
+działania funkcji}
 }
 \value{
-lista, której każdy element opisuje wyniki dla innego typu szkół (spośród występujących
-w danych) i składa się z elementów:
+lista klasy \code{listaWynikowSkalowania}, której elementy są listami
+klasy \code{wynikiSkalowania} i składają się z elementów:
 \itemize{
-  \item{\code{usunieteKryteria} lista wektorów tekstowych z nazwami (pseudo)kryteriów,
-   które zostały usunięte podczas skalowania wzorcowego.}
-  \item{\code{parametry} lista data frame'ów z wyestymowanymi parametrami modeli w ich
-        ostatecznej postaci (tj. takiej, jak w ostatnim kroku skalowania wzorcowego
-        i w jedynym kroku skalowania na wszystkich zdających).}
-  \item{\code{oszacowania} lista data frame'ów zawierających id_obserwacji i wyliczone
-        oszacowania umiejętności dla wszystkich zdających. \bold{Wyniki zwracane są
-        w formie wystandaryzowanej do (0, 1) na danych wzorocwych.}}
-  \item{\code{mapowanie} data frame zawierający wzorzec przekodowania
-        wyników surowych na wyniki wyskalowane.}
-  \item{\code{odsUtraconejWariancji} odsetek wariancji przewidywania mierzonej cechy
-        utracony w wyniku uśrednienia oszacowań w funkcji sumy punktów.}
-  \item{\code{grupy} data frame zawierający mapowanie wartości zmiennych definiujących
-        podział na grupy (\code{typ_szkoly} i \code{pr}) na wartości technicznej
-        zmiennej grupującej (\code{gr_tmp1}), wykorzystywanej w estymacji przez funkcję
-        \code{\link{skaluj}}.}
+  \item{\code{skalowania} data frame o kolumnach:
+        \itemize{
+          \item{\code{skalowanie,}}
+          \item{\code{opis,}}
+          \item{\code{estymacja,}}
+          \item{\code{id_skali,}}
+          \item{\code{do_prezentacji,}}
+          \item{\code{data;}}
+        }}
+  \item{\code{skalowania_grupy} data frame o kolumnach:
+        \itemize{
+          \item{\code{id_skali,}}
+          \item{\code{skalowanie,}}
+          \item{\code{grupa;}}
+        }}
+  \item{\code{skalowania_elementy} data frame o kolumnach:
+        \itemize{
+          \item{\code{id_skali,}}
+          \item{\code{kolejnosc,}}
+          \item{\code{skalowanie,}}
+          \item{\code{parametr,}}
+          \item{\code{model,}}
+          \item{\code{wartosc,}}
+          \item{\code{uwagi,}}
+          \item{\code{bs,}}
+          \item{\code{grupowy,}}
+          \item{\code{grupa;}}
+        }}
+  \item{\code{skalowania_obserwacje} data frame o kolumnach:
+        \itemize{
+          \item{\code{id_skali,}}
+          \item{\code{skalowanie,}}
+          \item{\code{id_obserwacji,}}
+          \item{\code{id_testu,}}
+          \item{\code{estymacja,}}
+          \item{\code{nr_pv,}}
+          \item{\code{wynik,}}
+          \item{\code{bs,}}
+          \item{\code{grupa;}}
+        }}
+  \item{\code{skalowania} data frame o kolumnach:
+        \itemize{
+          \item{\code{skalowanie,}}
+          \item{\code{opis,}}
+          \item{\code{estymacja,}}
+          \item{\code{id_skali,}}
+          \item{\code{do_prezentacji,}}
+          \item{\code{data;}}
+        }}
+  \item{\code{normy} data frame o kolumnach:
+        \itemize{
+          \item{\code{id_skali,}}
+          \item{\code{skalowanie,}}
+          \item{\code{grupa,}}
+          \item{\code{wartosc,}}
+          \item{\code{wartosc_zr;}}
+       }}
+  \item{\code{usunieteKryteria} wektor tekstowy z nazwami (pseudo)kryteriów, które
+        zostały usunięte podczas skalowania wzorcowego;}
 }
 }
 \description{
-Funkcja przeprowadza skalowanie matury z matematyki łącznie na poziomach podstawowym
-i rozszerzonym, z wykorzystaniem wielogrupowego modelu Rascha (na potrzeby maturalnego
-Kalkulatora EWD). Grupy definiowane są przez wybór poziomu rozszerzonego i typ szkoły
-(LO/T).
+Funkcja przeprowadza skalowanie skalowanie matury z matematyki łącznie na
+poziomach podstawowym i rozszerzonym, z wykorzystaniem wielogrupowego modelu
+Rascha (na potrzeby maturalnego Kalkulatora EWD). Grupy definiowane są przez
+wybór poziomu rozszerzonego i typ szkoły (LO/T).
 }
 \details{
-Argumenty (poza ostatnim) muszą być listami (mogą być jednoelementowe), których
-elementy mają nazwy ze zbioru: \code{"matematyka podstawowa", "matematyka rozszerzona"}
-i są data frame'ami zawierającymi dane z wynikami odpowiednich części matury.
+Schemat przekodowania sum punktów na oszacowania umiejętności wyliczany jest
+na podstawie danych wzorcowych, przy pomocy funkcji
+\code{\link{przewidywanie_rasch}}, a następnie na jego podstawie przypisywane
+są wartości przewidywane wszystkim zdającym.
 
-Schemat przekodowania sum punktów na oszacowania umiejętności wyliczany jest na
-podstawie danych wzorcowych, przy pomocy funkcji \code{\link{przewidywanie_rasch}},
-a następnie na jego podstawie przypisywane są wartości przewidywane wszystkim zdającym.
-
-Ponieważ różni zdający rozwiązywali różne zestawy zadań, a do tego model jest
-wielogrupowy, funkcja nie wylicza (i nie zwraca) wartości rzetleności empirycznej.
-
-\bold{Model skalowania:} jednowymiarowy, wielogrupowy model Rascha (Rasch/Rasch Graded
-Response), z grupami zdefiniowanymi przez typ szkoły (LO/T) i pisanie lub nie poziomu
-rozszerzonego.
+\bold{Uwaga}, oszacowania i normy zwracane przez funkcję \bold{nie są
+porównywalne pomiędzy LO a T!}
 }
 \seealso{
-\code{\link{skaluj}}, \code{\link{procedura_1k_1w}},
-\code{\link{przewidywanie_rasch}}, \code{\link{sprawdz_wyniki_skalowania}}
+\code{\link[EWDskalowanie]{skaluj}},
+\code{\link[EWDskalowanie]{procedura_1k_1w}},
+\code{\link{sprawdz_wyniki_skalowania}}
 }
 

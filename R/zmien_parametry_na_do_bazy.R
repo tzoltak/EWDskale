@@ -8,7 +8,8 @@
 #' funkcję \code{\link[EWDskalowanie]{skaluj}}
 #' @param idSkali liczba naturalna - id_skali w bazie
 #' @param skalowanie liczba naturalna - nr skalowania w bazie
-#' @param rzetelnoscEmpiryczna opcjonalnie liczba - rzetelność empiryczna testu
+#' @param rzetelnoscEmpiryczna opcjonalnie liczba lub data frame - rzetelność
+#' empiryczna testu (w przypadku data frame'a - w poszczególnych grupach)
 #' @return
 #' ramka danych w formacie odpowiadającym strukturze tablicy
 #' \code{skalowania_elementy} w bazie
@@ -18,9 +19,16 @@ zmien_parametry_na_do_bazy = function(x, idSkali, skalowanie,
   stopifnot(is.data.frame(x),
             is.numeric(idSkali), length(idSkali) == 1,
             is.numeric(skalowanie), length(skalowanie) == 1,
-            is.numeric(rzetelnoscEmpiryczna) | is.null(rzetelnoscEmpiryczna))
-  if (!is.null(rzetelnoscEmpiryczna)) {
+            is.numeric(rzetelnoscEmpiryczna) |
+              is.data.frame(rzetelnoscEmpiryczna) |
+              is.null(rzetelnoscEmpiryczna))
+  if (is.numeric(rzetelnoscEmpiryczna)) {
     stopifnot(length(rzetelnoscEmpiryczna) == 1)
+    rzetelnoscEmpiryczna =
+      data.frame(grupa = "", rzetelnoscEmpiryczna = rzetelnoscEmpiryczna,
+                 stingsAsFactors = FALSE)
+  } else if (is.data.frame(rzetelnoscEmpiryczna)) {
+    stopifnot(all(c("grupa", "wartosc") %in% names(rzetelnoscEmpiryczna)))
   }
 
   dyskryminacje = subset(x, get("typ") %in% "by")
@@ -99,8 +107,9 @@ zmien_parametry_na_do_bazy = function(x, idSkali, skalowanie,
     x = bind_rows(x,
                   data.frame(id_skali = idSkali, skalowanie = skalowanie,
                              parametr = "r EAP", model = "n.d.",
-                             wartosc = rzetelnoscEmpiryczna, grupowy = TRUE,
-                             grupa = "", stringsAsFactors = FALSE))
+                             wartosc = rzetelnoscEmpiryczna$wartosc,
+                             grupowy = TRUE, grupa = rzetelnoscEmpiryczna$grupa,
+                             stringsAsFactors = FALSE))
   }
   x = arrange_(x, ~kryterium, ~parametr)
   maskaSpecjalne = !(grepl("^[kp]_", x$kryterium) | is.na(x$kryterium))
