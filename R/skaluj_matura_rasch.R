@@ -426,7 +426,7 @@ skaluj_matura_rasch = function(rok, processors = 2,
                               do_prezentacji = FALSE, data = Sys.Date(),
                               stringsAsFactors = FALSE),
       skalowania_grupy = data.frame(id_skali = idSkali, skalowanie = skalowanie,
-                                    grupy = grupy$grupa, stringsAsFactors = FALSE),
+                                    grupa = grupy$grupa, stringsAsFactors = FALSE),
       skalowania_elementy = NULL,
       normy = normySkala,
       skalowania_obserwacje =
