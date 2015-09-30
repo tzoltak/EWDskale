@@ -64,6 +64,8 @@ sprawdz_wyniki_skalowania_konstruktu = function(model) {
                    ifelse(grepl("R$", "", tytul), " - model Rascha", ""))
   }
   tytul = paste0(tytul, " ", rok)
+  cat(tytul, ", id_skali: ", model$skalowania$id_skali, ", skalowanie: ",
+      model$skalowania$skalowanie, ":\n", sep = "")
 
   # przygotowywanie oszacowań
   lBD = sum(is.na(model$skalowania_obserwacj$wynik))
@@ -167,8 +169,7 @@ sprawdz_wyniki_skalowania_konstruktu = function(model) {
              cex = 0.6)
     }
   } else {
-    cat(tytul, ", id_skali: ", model$idSkali, ", skalowanie: ",
-        model$skalowanie, ":\nBrak informacji o Wartościach parametrów zadań. ",
+    cat("Brak informacji o Wartościach parametrów zadań. ",
         "Do skalowania były one (zapewne) pobrane z bazy.", sep = "")
     zakresX = c(-1, 1) * max(c(abs(range(oszacowania)), 3))
   }
