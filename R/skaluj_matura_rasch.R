@@ -257,6 +257,7 @@ skaluj_matura_rasch = function(rok, processors = 2,
     # usuwanie z danych zdających spoza obsługiwanych grup
     lPrzed = nrow(dane)
     dane = suppressMessages(semi_join(dane, grupy))
+    dane = filter_(dane, ~!(s_mat_r & !s_mat_p))
     lPo = nrow(dane)
     if (lPo != lPrzed) {
       message(" Usunięto ", format(lPrzed - lPo, big.mark = "'"), " zdających, ",
