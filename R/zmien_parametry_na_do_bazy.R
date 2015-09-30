@@ -10,18 +10,23 @@
 #' @param skalowanie liczba naturalna - nr skalowania w bazie
 #' @param rzetelnoscEmpiryczna opcjonalnie liczba lub data frame - rzetelność
 #' empiryczna testu (w przypadku data frame'a - w poszczególnych grupach)
+#' @param grupy data frame zawierający mapowanie numerów grup na ich nazwy);
+#' musi składać się z dwóch zmiennych: 'grupa', zawierającej nazwy grup
+#' i drugiej, o dowolnej nazwie, zawierającej numery grup
 #' @return
 #' ramka danych w formacie odpowiadającym strukturze tablicy
 #' \code{skalowania_elementy} w bazie
 #' @import ZPD
 zmien_parametry_na_do_bazy = function(x, idSkali, skalowanie,
-                                      rzetelnoscEmpiryczna = NULL) {
+                                      rzetelnoscEmpiryczna = NULL,
+                                      grupy = NULL) {
   stopifnot(is.data.frame(x),
             is.numeric(idSkali), length(idSkali) == 1,
             is.numeric(skalowanie), length(skalowanie) == 1,
             is.numeric(rzetelnoscEmpiryczna) |
               is.data.frame(rzetelnoscEmpiryczna) |
-              is.null(rzetelnoscEmpiryczna))
+              is.null(rzetelnoscEmpiryczna),
+            is.data.frame(grupy) | is.null(grupy))
   if (is.numeric(rzetelnoscEmpiryczna)) {
     stopifnot(length(rzetelnoscEmpiryczna) == 1)
     rzetelnoscEmpiryczna =
@@ -29,6 +34,10 @@ zmien_parametry_na_do_bazy = function(x, idSkali, skalowanie,
                  stingsAsFactors = FALSE)
   } else if (is.data.frame(rzetelnoscEmpiryczna)) {
     stopifnot(all(c("grupa", "wartosc") %in% names(rzetelnoscEmpiryczna)))
+  }
+  if (is.data.frame(grupy)) {
+    stopifnot("grupa" %in% names(grupy), ncol(grupy) == 2)
+    names(grupy)[names(grupy) != "grupa"] = "nrGrupy"
   }
 
   dyskryminacje = subset(x, get("typ") %in% "by")
@@ -39,7 +48,7 @@ zmien_parametry_na_do_bazy = function(x, idSkali, skalowanie,
   dyskryminacje = with(dyskryminacje, data.frame(
     id_skali = idSkali, skalowanie = skalowanie, kryterium = get("zmienna2"),
     parametr = "a", model = NA, wartosc = get("wartosc"), uwagi = NA,
-    bs = get("S.E."), id_elementu = NA, grupowy = FALSE, grupa = NA,
+    bs = get("S.E."), id_elementu = NA, grupowy = FALSE, nrGrupy = NA,
     stringsAsFactors = FALSE
   ))
   # trudności
@@ -48,7 +57,7 @@ zmien_parametry_na_do_bazy = function(x, idSkali, skalowanie,
       id_skali = idSkali, skalowanie = skalowanie, kryterium = get("zmienna1"),
       parametr = paste0("b", get("zmienna2")), model = NA,
       wartosc = get("wartosc"), uwagi = NA, bs = get("S.E."), id_elementu = NA,
-      grupowy = FALSE, grupa = NA, stringsAsFactors = FALSE
+      grupowy = FALSE, nrGrupy = NA, stringsAsFactors = FALSE
     )) %>%
       inner_join(setNames(select_(dyskryminacje, ~kryterium, ~wartosc),
                           c("kryterium", "a"))) %>%
@@ -75,7 +84,7 @@ zmien_parametry_na_do_bazy = function(x, idSkali, skalowanie,
     trudnosciZadanGrm = with(trudnosciZadanGrm, data.frame(
       id_skali = idSkali, skalowanie = skalowanie, kryterium = get("kryterium"),
       parametr = "trudność", model = "GRM", wartosc = get("b"), uwagi = NA,
-      bs = NA, id_elementu = NA, grupowy = FALSE, grupa = NA,
+      bs = NA, id_elementu = NA, grupowy = FALSE, nrGrupy = NA,
       stringsAsFactors = FALSE
     ))
   }
@@ -88,7 +97,7 @@ zmien_parametry_na_do_bazy = function(x, idSkali, skalowanie,
       id_skali = idSkali, skalowanie = skalowanie, kryterium = NA,
       parametr = get("typ"), model = "n.d.", wartosc = get("wartosc"), uwagi = NA,
       bs = get("S.E."), id_elementu = NA, grupowy = TRUE,
-      grupa = sub("^(mean|variance)(|[.]gr)(|.+)$", "\\3", get("typ")),
+      nrGrupy = sub("^(mean|variance)(|[.]gr)(|.+)$", "\\3", get("typ")),
       stringsAsFactors = FALSE
     ))
     grupowe$bs = ifelse(grupowe$bs == 0, NA, grupowe$bs)
@@ -103,6 +112,10 @@ zmien_parametry_na_do_bazy = function(x, idSkali, skalowanie,
   # łączenie, obsługa parametrów specjalnych i przypisywanie kolejnosci
   x = bind_rows(dyskryminacje, trudnosciBinarne, trudnosciZadanGrm,
                 trudnosciGrm, grupowe)
+  x$nrGrupy = as.numeric(x$nrGrupy)
+  x = suppressMessages(
+    left_join(x, grupy) %>% select_(~-nrGrupy)
+  )
   if (!is.null(rzetelnoscEmpiryczna)) {
     x = bind_rows(x,
                   data.frame(id_skali = idSkali, skalowanie = skalowanie,

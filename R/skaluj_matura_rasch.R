@@ -442,7 +442,8 @@ skaluj_matura_rasch = function(rok, processors = 2,
     if (!is.data.frame(parametrySkala)) {
       wyniki[[i]][["skalowania_elementy"]] =
         zmien_parametry_na_do_bazy(wartosciZakotwiczone, idSkali, skalowanie,
-                                   rzetelnoscEmpiryczna)
+                                   rzetelnoscEmpiryczna,
+                                   select_(grupy, ~grupa, ~gr_tmp1))
     }
     class(wyniki[[i]]) = c(class(wyniki), "wynikiSkalowania")
     attributes(wyniki[[i]])$dataSkalowania = Sys.time()
