@@ -243,6 +243,7 @@ skaluj_egz_gimn_rasch = function(rok, processors = 2,
       names(temp$mapowanie) = sub(paste0("^", names(wyniki)[i], "$"),
                                   "wartosc_zr", names(temp$mapowanie))
       temp$mapowanie = temp$mapowanie[, c("wartosc", "wartosc_zr")]
+      temp$mapowanie$wartosz_zr = temp$mapowanie$wartosz_zr / sqrt(rzetelnoscEmpiryczna)
       normySkala = data.frame(id_skali = idSkali, skalowanie = skalowanie,
                               grupa = "", temp$mapowanie,
                               stringsAsFactors = FALSE)
@@ -293,7 +294,7 @@ skaluj_egz_gimn_rasch = function(rok, processors = 2,
         data.frame(id_skali = idSkali, skalowanie = skalowanie,
                    dane[, c("id_obserwacji", "id_testu")],
                    estymacja = "EAP", nr_pv = -1,
-                   wynik = dane$wartosc_zr / sqrt(rzetelnoscEmpiryczna),
+                   wynik = dane$wartosc_zr,
                    bs = NA,
                    grupa = "", stringsAsFactors = FALSE),
       usunieteKryteria = vector(mode = "character", length = 0),
