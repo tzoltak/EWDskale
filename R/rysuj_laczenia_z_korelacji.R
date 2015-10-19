@@ -4,13 +4,35 @@
 #' funkcji \code{\link{lacz_kryteria_z_korelacji}} dla dyskryminacji zadań.
 #' @param x obiekt klasy \code{wynikLaczKryteriaZKorelacji}
 #' @param wielkoscTekstu bazowa wielkość tekstu w \code{pts}
+#' @param prog opcjonalnie liczba z przedziału (0;1), wskazująca, że narysowane
+#' mają być łączenia od pierwszego do tego, które poprzedza pierwsze łączenie
+#' wykonane przy wartości korelacji poniżej zadanego progu
 #' @return data frame
 #' @import dplyr
 #' @export
-rysuj_laczenia_z_korelacji = function(x, wielkoscTekstu = 1) {
+rysuj_laczenia_z_korelacji = function(x, wielkoscTekstu = 1, prog = NULL) {
   stopifnot("wynikLaczKryteriaZKorelacji" %in% class(x),
-            is.numeric(wielkoscTekstu), length(wielkoscTekstu) == 1)
+            is.numeric(wielkoscTekstu), length(wielkoscTekstu) == 1,
+            is.numeric(prog) | is.null(prog))
   stopifnot(is.finite(wielkoscTekstu), wielkoscTekstu > 0)
+  if (!is.null(prog)) {
+    stopifnot(length(prog) == 1)
+    stopifnot(prog > 0, prog < 1)
+    x$laczenia = lapply(x$laczenia, function(x, prog) {
+      prog = which(x$laczenia$korelacja < prog)
+      if (length(prog) == 0) {
+        return(x)
+      } else {
+        prog = prog[1]
+        if (prog > 1) {
+          prog = prog = prog - 1
+        }
+      }
+      x$laczenia = x$laczenia[1:prog, ]
+      x$dyskryminacje = x$dyskryminacje[1:(prog + 1), ]
+      return(x)
+    }, prog = prog)
+  }
   x = ungroup(x) %>%
     group_by_(~id_skali, ~czesc_egzaminu) %>%
     do_(.dots = list(~rysuj_laczenia_z_korelacji_w_ramach_czesci(., wielkoscTekstu)))

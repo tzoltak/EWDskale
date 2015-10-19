@@ -4,12 +4,16 @@
 \alias{rysuj_laczenia_z_korelacji}
 \title{Laczenie kryteriow na podstawie korelacji polichorycznych}
 \usage{
-rysuj_laczenia_z_korelacji(x, wielkoscTekstu = 1)
+rysuj_laczenia_z_korelacji(x, wielkoscTekstu = 1, prog = NULL)
 }
 \arguments{
 \item{x}{obiekt klasy \code{wynikLaczKryteriaZKorelacji}}
 
 \item{wielkoscTekstu}{bazowa wielkość tekstu w \code{pts}}
+
+\item{prog}{opcjonalnie liczba z przedziału (0;1), wskazująca, że narysowane
+mają być łączenia od pierwszego do tego, które poprzedza pierwsze łączenie
+wykonane przy wartości korelacji poniżej zadanego progu}
 }
 \value{
 data frame
