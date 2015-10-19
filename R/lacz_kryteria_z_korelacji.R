@@ -165,6 +165,8 @@ lacz_kryteria_z_korelacji_w_ramach_czesci_egz = function(x, katalogDane, prog,
     # co może skutkować nagłemu podlatywaniu korelacji pod 1
     if (sum(tab) < 1000) {
       tab[tab == 0] = 0.005 * sum(tab)
+    } else {
+      tab[tab == 0] = 5
     }
     pary$korelacja[i] = suppressWarnings(polychor(tab, ML = FALSE, std.err = FALSE))
     setTxtProgressBar(pb, i)
