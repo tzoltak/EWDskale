@@ -227,7 +227,9 @@ skaluj_matura_rasch = function(rok, processors = 2,
     rm(wyborCzesci)
     czyStaraFormula = unique(czesciEgzaminow$czy_sf)
     if (length(czyStaraFormula) > 1) {
-      temp = dane[, filter_(czesciEgzaminow, ~czy_sf)$kryterium]
+      maskaZmienneTemp = setdiff(filter_(czesciEgzaminow, ~czy_sf)$kryterium,
+                                 filter_(czesciEgzaminow, ~!czy_sf)$kryterium)
+      temp = dane[, maskaZmienneTemp]
       dane = cbind(dane, czy_sf = rowSums(!is.na(temp)) > 0)
       rm(temp)
     } else {
@@ -278,8 +280,9 @@ skaluj_matura_rasch = function(rok, processors = 2,
       # czyszczenie wyników laureatów
       for (p in unique(czesciEgzaminow$prefiks)) {
         maskaObserwacje = daneWzorcowe[[paste0("laur_", p)]] %in% TRUE
-        daneWzorcowe[maskaObserwacje,
-                     filter_(czesciEgzaminow, ~prefiks == p)$kryterium] = NA
+        maskaZmienneTemp = filter_(czesciEgzaminow, ~prefiks == p)$kryterium %>%
+          unique()
+        daneWzorcowe[maskaObserwacje, maskaZmienneTemp] = NA
       }
       daneWzorcowe = daneWzorcowe[, maskaZmienne]
       maskaObserwacje =
@@ -321,9 +324,9 @@ skaluj_matura_rasch = function(rok, processors = 2,
                                   ncol = length(czesci),
                                   dimnames = list(NULL, czesci)))
       for (j in czesci) {
-        temp[[j]] = rowSums(daneWzorcowe[, filter_(czesciEgzaminow,
-                                                   ~prefiks == j)$kryterium],
-                            na.rm = TRUE)
+        maskaZmienneTemp =
+          filter_(czesciEgzaminow, ~prefiks == j)$kryterium %>% unique()
+        temp[[j]] = rowSums(daneWzorcowe[, maskaZmienneTemp], na.rm = TRUE)
         maskaNA =
           rowSums(!is.na(daneWzorcowe[, filter_(czesciEgzaminow,
                                                 ~prefiks == j)$kryterium]))
