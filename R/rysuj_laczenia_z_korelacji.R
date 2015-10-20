@@ -8,6 +8,10 @@
 #' mają być łączenia od pierwszego do tego, które poprzedza pierwsze łączenie
 #' wykonane przy wartości korelacji poniżej zadanego progu
 #' @return data frame
+#' Kolumna \code{elementy} zawiera listy data frame'ów, które mogą zostać użyte
+#' jako argument funkcji \code{\link[ZPDzapis]{edytuj_skale}}. Pierwszy element
+#' opisuje sytuację bez łączenia (a więc de facto brak zmian w skali -
+#' w zakresie danej części egzaminu), a kolejne odpowiednio kolejne łączenia.
 #' @import dplyr
 #' @export
 rysuj_laczenia_z_korelacji = function(x, wielkoscTekstu = 1, prog = NULL) {
@@ -60,6 +64,12 @@ rysuj_laczenia_z_korelacji_w_ramach_czesci = function(x, wielkoscTekstu = 12) {
   with(x, cat(tytul, "\n", "zbadano ", nrow(laczenia[[1]]$laczenia),
                   " łączeń/nia/nie\n\n", sep = ""))
   if (nrow(x$laczenia[[1]]$laczenia) == 0) {
+    egzamin$elementy = vector(mode = "list", length = 1)
+    egzamin$elementy[[1]] =
+      list(data.frame(id_kryterium =
+                        as.numeric(sub("^[kp]_", "",
+                                       names(x$laczenia[[1]]$dyskryminacje))),
+                      id_pseudokryterium = NA, opis = NA, id_skrotu = NA))
     return(egzamin)
   }
   x = x$laczenia[[1]]
@@ -112,7 +122,7 @@ rysuj_laczenia_z_korelacji_w_ramach_czesci = function(x, wielkoscTekstu = 12) {
       elementy[[i]] = bind_rows(elementy[[i]], polaczone)
     }
   }
-  elementy = lapply(elementy[-1], function(x, czescEgzaminu) {
+  elementy[-1] = lapply(elementy[-1], function(x, czescEgzaminu) {
     maska = unlist(lapply(x$polaczone, is.null))
     polaczone = bind_rows(lapply(x$polaczone[!maska], function(x) {
       return(data.frame(matrix(x, nrow = 1)))
