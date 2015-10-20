@@ -138,6 +138,7 @@ rysuj_laczenia_z_korelacji_w_ramach_czesci = function(x, wielkoscTekstu = 12) {
     x = x[, c(names(x)[maska], names(x)[!maska])]
     return(x)
   }, czescEgzaminu = egzamin$czesc_egzaminu)
+  elementy[[1]] = select_(elementy[[1]], ~-polaczone)
   # zwracanie
   x = egzamin
   x$wykres[1] = list(wykres)
