@@ -17,6 +17,10 @@ wykonane przy wartości korelacji poniżej zadanego progu}
 }
 \value{
 data frame
+Kolumna \code{elementy} zawiera listy data frame'ów, które mogą zostać użyte
+jako argument funkcji \code{\link[ZPDzapis]{edytuj_skale}}. Pierwszy element
+opisuje sytuację bez łączenia (a więc de facto brak zmian w skali -
+w zakresie danej części egzaminu), a kolejne odpowiednio kolejne łączenia.
 }
 \description{
 Funkcja wizualizuje skutki łączeń kryteriów oceny, będących efektem użycia

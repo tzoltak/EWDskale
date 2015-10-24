@@ -9,6 +9,7 @@ przepisane):
 - skaluj_egz_gimn_rasch();
 - skaluj_matura();
 - skaluj_matura_rasch();
+- skroc_skale_oceny(), okresl_wzor_skracania();
 - sprawdz_wyniki_skalowania().
 
 Nowe funkcje:
