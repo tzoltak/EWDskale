@@ -71,8 +71,8 @@
 #'           \item{\code{do_prezentacji,}}
 #'           \item{\code{data;}}
 #'         }}
-#'   \item{\code{usunieteKryteria} wektor tekstowy z nazwami (pseudo)kryteriów, które
-#'         zostały usunięte podczas skalowania wzorcowego;}
+#'   \item{\code{usunieteKryteria} wektor tekstowy z nazwami (pseudo)kryteriów,
+#'         które zostały usunięte podczas skalowania wzorcowego;}
 #' }
 #' @seealso \code{\link[EWDskalowanie]{skaluj}},
 #' \code{\link[EWDskalowanie]{procedura_1k_1w}},
@@ -84,6 +84,7 @@ skaluj_egz_gimn = function(rok, processors = 2, opis = "skalowanie do EWD",
                            katalogSurowe = "../../dane surowe",
                            katalogWyskalowane = "../../dane wyskalowane",
                            zapisz = TRUE, skala = NULL, proba = -1) {
+  doPrezentacji = TRUE
   stopifnot(is.numeric(rok), length(rok) == 1,
             is.numeric(processors), length(processors) == 1,
             is.character(opis), length(opis) == 1,
@@ -100,6 +101,7 @@ skaluj_egz_gimn = function(rok, processors = 2, opis = "skalowanie do EWD",
             as.integer(proba) == proba, proba == -1 | proba > 0)
   if (!is.null(skala)) {
     stopifnot(length(skala) == 1)
+    doPrezentacji = NA
   }
 
   # sprawdzanie, czy w bazie są zapisane skala i jakieś skalowanie z parametrami
@@ -113,7 +115,7 @@ skaluj_egz_gimn = function(rok, processors = 2, opis = "skalowanie do EWD",
     }
   }
   parametry = suppressMessages(
-    pobierz_parametry_skalowania(skala, doPrezentacji = TRUE,
+    pobierz_parametry_skalowania(skala, doPrezentacji = doPrezentacji,
                                  parametryzacja = "mplus"))
   if (nrow(parametry) == 0) {
     if (is.character(skala)) {
@@ -266,8 +268,7 @@ skaluj_egz_gimn = function(rok, processors = 2, opis = "skalowanie do EWD",
                    wynik = oszacowania[, names(wyniki)[i]] / sqrt(rzetelnoscEmpiryczna),
                    bs = oszacowania[, names(wyniki)[i]] / sqrt(rzetelnoscEmpiryczna),
                    grupa = "", stringsAsFactors = FALSE),
-      usunieteKryteria =
-        zmienneKryteria[!(zmienneKryteria %in% zmienneKryteriaPoUsuwaniu)]
+      usunieteKryteria = setdiff(zmienneKryteria, zmienneKryteriaPoUsuwaniu)
     )
     if (!is.data.frame(parametrySkala)) {
       wyniki[[i]][["skalowania_elementy"]] =

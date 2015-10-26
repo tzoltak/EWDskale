@@ -2,67 +2,113 @@
 % Please edit documentation in R/skaluj_matura.R
 \name{skaluj_matura}
 \alias{skaluj_matura}
-\title{Procedury skalowania egzaminow.}
+\title{Procedury skalowania egzaminow}
 \usage{
-skaluj_matura(daneWzorcowe, daneWszyscy, czesciEgzaminu = NULL,
-  sufiksy = NULL, processors = 2)
+skaluj_matura(rok, processors = 2, opis = "skalowanie do EWD",
+  katalogSurowe = "../../dane surowe",
+  katalogWyskalowane = "../../dane wyskalowane", zapisz = TRUE,
+  skala = NULL, proba = -1)
 }
 \arguments{
-\item{daneWzorcowe}{lista data frame'ów zawierających dane do skalowania wzorcowego}
-
-\item{daneWszyscy}{lista data frame'ów zawierających zawierający dane wszystkich
-zdających (do wyliczenia oszacowań umiejętności na podstawe parametrów ze skalowania
-wzorcowego)}
-
-\item{czesciEgzaminu}{opcjonalnie lista wektorów tekstowych zawierających nazwy
-elementów argumnetów \code{daneWzorcowe} i \code{daneWszyscy}, które mają być
-uwzględnione przy wyliczaniu poszczególnych wskaźników wyników matury (każdy element
-listy opisuje jeden wskaźnik); jeśli \code{NULL}, wyliczone zostaną cztery domyślne
-wskaźniki}
-
-\item{sufiksy}{opcjonalnie lista ciągów znaków definiująca sufiksy odpowiadające
-poszczególnym częściom egzaminu (elementom argumentów \code{daneWzorcowe}
-i \code{daneWszyscy}); nazwa elementu listy definiuje część egzaminu, wartość
-elementu to sufiks}
+\item{rok}{rok przeprowadzenie egzaminu}
 
 \item{processors}{liczba rdzeni do wykorzystania przy estymacji}
+
+\item{opis}{opcjonalnie ciąg znaków - opis skalowania}
+
+\item{katalogSurowe}{opcjonalnie ścieżka do katalogu, w którym znajdują się
+pliki z zapisanymi (przy pomocy funkcji
+\code{\link[EWDdane]{pobierz_wyniki_surowe}} z pakietu EWDdane) surowymi
+wynikami egzaminu}
+
+\item{katalogWyskalowane}{opcjonalnie ścieżka do katalogu, w którym znajdują
+się pliki z zapisanymi (przy pomocy funkcji
+\code{\link[EWDdane]{pobierz_wyniki_wyskalowane}} z pakietu EWDdane)
+wyskalowanymi wynikami egzaminu}
+
+\item{zapisz}{wartość logiczna - czy zapisać wyniki do pliku .RData?}
+
+\item{skala}{id_skali (liczba naturalna) lub ciąg znaków z wyrażeniem
+regularnym, do którego ma pasować opis skali}
+
+\item{proba}{opcjonalnie liczba natrualna - wielkość próby, jaka ma być
+wylosowana z danych przed estymacją modelu; przydatne (tylko) do testów
+działania funkcji}
 }
 \value{
-lista z elementami:
+lista klasy \code{listaWynikowSkalowania}, której elementy są listami
+klasy \code{wynikiSkalowania} i składają się z elementów:
 \itemize{
-  \item{\code{usunieteKryteria} lista wektorów tekstowych z nazwami (pseudo)kryteriów,
-   które zostały usunięte podczas skalowania wzorcowego.}
-  \item{\code{parametry} lista data frame'ów z wyestymowanymi parametrami modeli w ich
-        ostatecznej postaci (tj. takiej, jak w ostatnim kroku skalowania wzorcowego
-        i w jedynym kroku skalowania na wszystkich zdających).}
-  \item{\code{oszacowania} lista data frame'ów zawierających id_obserwacji i wyliczone
-        oszacowania umiejętności dla wszystkich zdających.}
-  \item{\code{grupy} data frame zawierający mapowanie wartości zmiennych definiujących
-        podział na grupy na wartości technicznej zmiennej grupującej (\code{gr_tmp1}),
-        wykorzystywanej w estymacji przez funkcję \code{\link{skaluj}}.}
+  \item{\code{skalowania} data frame o kolumnach:
+        \itemize{
+          \item{\code{skalowanie,}}
+          \item{\code{opis,}}
+          \item{\code{estymacja,}}
+          \item{\code{id_skali,}}
+          \item{\code{do_prezentacji,}}
+          \item{\code{data;}}
+        }}
+  \item{\code{skalowania_grupy} data frame o kolumnach:
+        \itemize{
+          \item{\code{id_skali,}}
+          \item{\code{skalowanie,}}
+          \item{\code{grupa;}}
+        }}
+  \item{\code{skalowania_elementy} data frame o kolumnach:
+        \itemize{
+          \item{\code{id_skali,}}
+          \item{\code{kolejnosc,}}
+          \item{\code{skalowanie,}}
+          \item{\code{parametr,}}
+          \item{\code{model,}}
+          \item{\code{wartosc,}}
+          \item{\code{uwagi,}}
+          \item{\code{bs,}}
+          \item{\code{grupowy,}}
+          \item{\code{grupa;}}
+        }}
+  \item{\code{skalowania_obserwacje} data frame o kolumnach:
+        \itemize{
+          \item{\code{id_skali,}}
+          \item{\code{skalowanie,}}
+          \item{\code{id_obserwacji,}}
+          \item{\code{id_testu,}}
+          \item{\code{estymacja,}}
+          \item{\code{nr_pv,}}
+          \item{\code{wynik,}}
+          \item{\code{bs,}}
+          \item{\code{grupa;}}
+        }}
+  \item{\code{skalowania} data frame o kolumnach:
+        \itemize{
+          \item{\code{skalowanie,}}
+          \item{\code{opis,}}
+          \item{\code{estymacja,}}
+          \item{\code{id_skali,}}
+          \item{\code{do_prezentacji,}}
+          \item{\code{data;}}
+        }}
+  \item{\code{usunieteKryteria} wektor tekstowy z nazwami (pseudo)kryteriów,
+        które zostały usunięte podczas skalowania wzorcowego;}
 }
 }
 \description{
-Funkcja przeprowadza skalowanie matury na potrzeby trzyletnich wskaźników maturalnych.
-Domyślnie wyliczne są cztery wskaźniki: 1) humanistyczny (j. polski, historia, WOS),
-2) matematyczno-przyrodniczy (matematyka, biologia, chemia, fizyka, geografia,
-informatyka), 3) polonistyczny (j. polski), 4) matematyczny (matematyka).
+Funkcja przeprowadza skalowanie czterech wskaźników osiągnięć maturalnych:
+1) humanistycznego (j. polski, historia, WOS), 2) matematyczno-przyrodniczego
+(matematyka, biologia, chemia, fizyka, geografia, informatyka),
+3) polonistycznego (j. polski), 4) matematycznego (matematyka), na potrzeby
+wyliczania trzyletnich wskaźników dla LO i techników. Wykorzystywane są
+wielogrupowe modele 2PL/SGRM. Grupy definiowane są albo przez wybór poziomu
+rozszerzonego i typ szkoły (LO/T) - dla wskaźników 1), i 4), albo przez
+typ szkoły (LO/T) - dla wskaźników 2), i 3).
 }
 \details{
-Argumenty (poza ostatnim) muszą być listami (mogą być jednoelementowe), których
-elementy są data frame'ami zawierającymi dane z wynikami odpowiednich części matury.
-
-\bold{Model skalowania:} jednowymiarowe, wielogrupowe modele 2PL/SGR, z grupami
-zdefiniowanymi przez: 1) w przypadku modeli dla j. polskiego i matematyki: typ szkoły
-(LO/T) i pisanie lub nie poziomu rozszerzonego lub 2) w przypadku modeli obejmujących
-wiele przedmiotów: typ szkoły (LO/T).
-
-\bold{Uwaga:} dopisywanie parametrów selekcji związanych z wyborem tematu wypracowania
-(polski PP i PR, historia PR, WOS PR) jest naklepane ostrym brutem i jest raczej
-nieodporne na zmiany w formule matury w zakresie możliwości wyboru tematu wypracowań.
+\bold{Uwaga}, oszacowania zwracane przez funkcję \bold{nie są porównywalne
+pomiędzy LO a T!}
 }
 \seealso{
-\code{\link{skaluj}}, \code{\link{procedura_1k_1w}},
+\code{\link[EWDskalowanie]{skaluj}},
+\code{\link[EWDskalowanie]{procedura_1k_1w}},
 \code{\link{sprawdz_wyniki_skalowania}}
 }
 

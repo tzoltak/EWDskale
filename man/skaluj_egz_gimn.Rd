@@ -88,8 +88,8 @@ klasy \code{wynikiSkalowania} i składają się z elementów:
           \item{\code{do_prezentacji,}}
           \item{\code{data;}}
         }}
-  \item{\code{usunieteKryteria} wektor tekstowy z nazwami (pseudo)kryteriów, które
-        zostały usunięte podczas skalowania wzorcowego;}
+  \item{\code{usunieteKryteria} wektor tekstowy z nazwami (pseudo)kryteriów,
+        które zostały usunięte podczas skalowania wzorcowego;}
 }
 }
 \description{

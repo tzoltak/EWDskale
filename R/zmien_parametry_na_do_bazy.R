@@ -10,6 +10,9 @@
 #' @param skalowanie liczba naturalna - nr skalowania w bazie
 #' @param rzetelnoscEmpiryczna opcjonalnie liczba lub data frame - rzetelność
 #' empiryczna testu (w przypadku data frame'a - w poszczególnych grupach)
+#' @param standaryzacja opcjonalnie data frame o kolumnach \code{grupa},
+#' \code{sr}, \code{os}, zawierający parametry standaryzacji oszacowań
+#' w poszczególnych grupach
 #' @param grupy data frame zawierający mapowanie numerów grup na ich nazwy);
 #' musi składać się z dwóch zmiennych: 'grupa', zawierającej nazwy grup
 #' i drugiej, o dowolnej nazwie, zawierającej numery grup
@@ -19,13 +22,15 @@
 #' @import ZPD
 zmien_parametry_na_do_bazy = function(x, idSkali, skalowanie,
                                       rzetelnoscEmpiryczna = NULL,
-                                      grupy = NULL) {
+                                      standaryzacja = NULL, grupy = NULL) {
   stopifnot(is.data.frame(x),
             is.numeric(idSkali), length(idSkali) == 1,
             is.numeric(skalowanie), length(skalowanie) == 1,
             is.numeric(rzetelnoscEmpiryczna) |
               is.data.frame(rzetelnoscEmpiryczna) |
               is.null(rzetelnoscEmpiryczna),
+            is.data.frame(standaryzacja) |
+              is.null(standaryzacja),
             is.data.frame(grupy) | is.null(grupy))
   if (is.numeric(rzetelnoscEmpiryczna)) {
     stopifnot(length(rzetelnoscEmpiryczna) == 1)
@@ -34,6 +39,9 @@ zmien_parametry_na_do_bazy = function(x, idSkali, skalowanie,
                  stingsAsFactors = FALSE)
   } else if (is.data.frame(rzetelnoscEmpiryczna)) {
     stopifnot(all(c("grupa", "wartosc") %in% names(rzetelnoscEmpiryczna)))
+  }
+  if (is.data.frame(standaryzacja)) {
+    stopifnot(all(c("grupa", "sr", "os") %in% names(standaryzacja)))
   }
   if (is.data.frame(grupy)) {
     stopifnot("grupa" %in% names(grupy), ncol(grupy) == 2)
@@ -122,6 +130,19 @@ zmien_parametry_na_do_bazy = function(x, idSkali, skalowanie,
                              parametr = "r EAP", model = "n.d.",
                              wartosc = rzetelnoscEmpiryczna$wartosc,
                              grupowy = TRUE, grupa = rzetelnoscEmpiryczna$grupa,
+                             stringsAsFactors = FALSE))
+  }
+  if (!is.null(standaryzacja)) {
+    x = bind_rows(x,
+                  data.frame(id_skali = idSkali, skalowanie = skalowanie,
+                             parametr = "std_mean", model = "n.d.",
+                             wartosc = standaryzacja$sr,
+                             grupowy = TRUE, grupa = standaryzacja$grupa,
+                             stringsAsFactors = FALSE),
+                  data.frame(id_skali = idSkali, skalowanie = skalowanie,
+                             parametr = "std_sd", model = "n.d.",
+                             wartosc = standaryzacja$os,
+                             grupowy = TRUE, grupa = standaryzacja$grupa,
                              stringsAsFactors = FALSE))
   }
   x = arrange_(x, ~kryterium, ~parametr)

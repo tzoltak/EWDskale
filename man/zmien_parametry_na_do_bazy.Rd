@@ -5,7 +5,7 @@
 \title{Konwersja tabeli parametrow na format bazy}
 \usage{
 zmien_parametry_na_do_bazy(x, idSkali, skalowanie,
-  rzetelnoscEmpiryczna = NULL, grupy = NULL)
+  rzetelnoscEmpiryczna = NULL, standaryzacja = NULL, grupy = NULL)
 }
 \arguments{
 \item{x}{data frame z wartościami parametrów w formacie zwracanym przez
@@ -17,6 +17,10 @@ funkcję \code{\link[EWDskalowanie]{skaluj}}}
 
 \item{rzetelnoscEmpiryczna}{opcjonalnie liczba lub data frame - rzetelność
 empiryczna testu (w przypadku data frame'a - w poszczególnych grupach)}
+
+\item{standaryzacja}{opcjonalnie data frame o kolumnach \code{grupa},
+\code{sr}, \code{os}, zawierający parametry standaryzacji oszacowań
+w poszczególnych grupach}
 
 \item{grupy}{data frame zawierający mapowanie numerów grup na ich nazwy);
 musi składać się z dwóch zmiennych: 'grupa', zawierającej nazwy grup

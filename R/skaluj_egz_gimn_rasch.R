@@ -85,8 +85,8 @@
 #'           \item{\code{wartosc,}}
 #'           \item{\code{wartosc_zr;}}
 #'        }}
-#'   \item{\code{usunieteKryteria} wektor tekstowy z nazwami (pseudo)kryteriów, które
-#'         zostały usunięte podczas skalowania wzorcowego;}
+#'   \item{\code{usunieteKryteria} wektor tekstowy z nazwami (pseudo)kryteriów,
+#'         które zostały usunięte podczas skalowania wzorcowego;}
 #' }
 #' @seealso \code{\link[EWDskalowanie]{skaluj}},
 #' \code{\link[EWDskalowanie]{procedura_1k_1w}},
@@ -99,6 +99,7 @@ skaluj_egz_gimn_rasch = function(rok, processors = 2,
                                  katalogSurowe = "../../dane surowe",
                                  katalogWyskalowane = "../../dane wyskalowane",
                                  zapisz = TRUE, skala = NULL, proba = -1) {
+  doPrezentacji = TRUE
   stopifnot(is.numeric(rok), length(rok) == 1,
             is.numeric(processors), length(processors) == 1,
             is.character(opis), length(opis) == 1,
@@ -115,6 +116,7 @@ skaluj_egz_gimn_rasch = function(rok, processors = 2,
             as.integer(proba) == proba, proba == -1 | proba > 0)
   if (!is.null(skala)) {
     stopifnot(length(skala) == 1)
+    doPrezentacji = NA
   }
 
   # sprawdzanie, czy w bazie są zapisane skala i jakieś skalowanie z parametrami
@@ -128,7 +130,7 @@ skaluj_egz_gimn_rasch = function(rok, processors = 2,
     }
   }
   parametry = suppressMessages(
-    pobierz_parametry_skalowania(skala, doPrezentacji = TRUE,
+    pobierz_parametry_skalowania(skala, doPrezentacji = doPrezentacji,
                                  parametryzacja = "mplus"))
   if (nrow(parametry) == 0) {
     if (is.character(skala)) {
