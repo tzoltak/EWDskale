@@ -335,7 +335,9 @@ skaluj_matura = function(rok, processors = 2, opis = "skalowanie do EWD",
       }
       # skalowanie wzorcowe
       message("\n### Skalowanie wzorcowe ###\n")
-      opisWzorcowe = procedura_1k_1w(zmienneKryteria, names(wyniki)[i],
+      zmienneKonstrukt = setdiff(c(zmienneKryteria, zmienneTematy,
+                                   zmienneSelekcja), zmienneGrupujace)
+      opisWzorcowe = procedura_1k_1w(zmienneKonstrukt, names(wyniki)[i],
                                      wieleGrup = zmienneGrupujace,
                                      nigdyNieUsuwaj = "^(s|t[[:digit:]]+)(nf|)_",
                                      processors = processors)
@@ -429,7 +431,9 @@ skaluj_matura = function(rok, processors = 2, opis = "skalowanie do EWD",
       dane = dane[sample(nrow(dane), proba), ]
     }
     # skalowanie dla oszacowań
-    opisWszyscy = procedura_1k_1w(zmienneKryteriaPoUsuwaniu, names(wyniki)[i],
+    zmienneKonstrukt = setdiff(c(zmienneKryteriaPoUsuwaniu, zmienneTematy,
+                                 zmienneSelekcja), zmienneGrupujace)
+    opisWszyscy = procedura_1k_1w(zmienneKonstrukt, names(wyniki)[i],
                                   wieleGrup = zmienneGrupujace,
                                   wartosciZakotwiczone, processors = processors)
     mWszyscy = skaluj(dane, opisWszyscy, "id_obserwacji", tytul = tytulWszyscy,
@@ -444,7 +448,7 @@ skaluj_matura = function(rok, processors = 2, opis = "skalowanie do EWD",
       assign(names(wyniki)[i], (get(names(wyniki)[i]) - sr ) / os)
     })
 
-    rm(mWszyscy, dane)
+    rm(mWszyscy)
     # przypisywanie wyników
     wyniki[[i]] = list(
       skalowania = data.frame(skalowanie = skalowanie, opis = opis,
