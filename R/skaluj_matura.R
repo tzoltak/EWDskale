@@ -260,7 +260,7 @@ skaluj_matura = function(rok, processors = 2, opis = "skalowanie do EWD",
                                        dimnames = list(NULL, czesci)))
     for (j in czesci) {
       temp = dane[, filter_(czesciEgzaminow, ~prefiks == j)$kryterium]
-      wyborCzesci[[j]] = rowSums(!is.na(temp)) > 0
+      wyborCzesci[[j]] = as.numeric(rowSums(!is.na(temp)) > 0)
     }
     rm(temp)
     names(wyborCzesci) = sub("m_", "s_", names(wyborCzesci))
