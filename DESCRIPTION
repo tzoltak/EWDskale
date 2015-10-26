@@ -17,7 +17,7 @@ Imports:
   ZPD,
   dplyr,
   reshape2,
-  EWDskalowanie (>= 0.9.1)
+  EWDskalowanie (>= 0.9.4)
 Suggests:
   testthat,
   knitr
