@@ -25,6 +25,9 @@
 #' @param proba opcjonalnie liczba natrualna - wielkość próby, jaka ma być
 #' wylosowana z danych przed estymacją modelu; przydatne (tylko) do testów
 #' działania funkcji
+#' @param usunWieleNaraz opcjonalnie wartość logiczna - jeśli wiele
+#' (pseudo)kryteriów oceny ma dyskryminację poniżej 0,2, to czy usuwać je
+#' wszystkie w jednym kroku?
 #' @details
 #' \bold{Uwaga}, oszacowania zwracane przez funkcję \bold{nie są porównywalne
 #' pomiędzy LO a T!}
@@ -91,9 +94,10 @@
 #' @importFrom EWDskalowanie procedura_1k_1w skaluj
 #' @export
 skaluj_matura = function(rok, processors = 2, opis = "skalowanie do EWD",
-                               katalogSurowe = "../../dane surowe",
-                               katalogWyskalowane = "../../dane wyskalowane",
-                               zapisz = TRUE, skala = NULL, proba = -1) {
+                         katalogSurowe = "../../dane surowe",
+                         katalogWyskalowane = "../../dane wyskalowane",
+                         zapisz = TRUE, skala = NULL, proba = -1,
+                         usunWieleNaraz = FALSE) {
   doPrezentacji = TRUE
   stopifnot(is.numeric(rok), length(rok) == 1,
             is.numeric(processors), length(processors) == 1,
@@ -102,13 +106,15 @@ skaluj_matura = function(rok, processors = 2, opis = "skalowanie do EWD",
             is.character(katalogWyskalowane), length(katalogWyskalowane) == 1,
             is.logical(zapisz), length(zapisz) == 1,
             is.null(skala) | is.numeric(skala) | is.character(skala),
-            is.numeric(proba), length(proba) == 1)
+            is.numeric(proba), length(proba) == 1,
+            is.logical(usunWieleNaraz), length(usunWieleNaraz) == 1)
   stopifnot(as.integer(rok) == rok, rok >= 2010,
             processors %in% (1:32),
             dir.exists(katalogSurowe),
             dir.exists(katalogWyskalowane),
             zapisz %in% c(TRUE, FALSE),
-            as.integer(proba) == proba, proba == -1 | proba > 0)
+            as.integer(proba) == proba, proba == -1 | proba > 0,
+            usunWieleNaraz %in% c(TRUE, FALSE))
   if (!is.null(skala)) {
     stopifnot(length(skala) == 1)
     doPrezentacji = NA
@@ -342,7 +348,8 @@ skaluj_matura = function(rok, processors = 2, opis = "skalowanie do EWD",
       opisWzorcowe = procedura_1k_1w(zmienneKonstrukt, names(wyniki)[i],
                                      wieleGrup = zmienneGrupujace,
                                      nigdyNieUsuwaj = "^(s|t[[:digit:]]+)(nf|)_",
-                                     processors = processors)
+                                     processors = processors,
+                                     usunWieleNaraz = usunWieleNaraz)
       mWzorcowe = skaluj(daneWzorcowe, opisWzorcowe, "id_obserwacji",
                          tytul = tytulWzorcowe, zmienneDolaczaneDoOszacowan = "id_testu")
       # kontrola grupowania

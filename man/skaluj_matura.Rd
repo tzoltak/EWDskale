@@ -7,7 +7,7 @@
 skaluj_matura(rok, processors = 2, opis = "skalowanie do EWD",
   katalogSurowe = "../../dane surowe",
   katalogWyskalowane = "../../dane wyskalowane", zapisz = TRUE,
-  skala = NULL, proba = -1)
+  skala = NULL, proba = -1, usunWieleNaraz = FALSE)
 }
 \arguments{
 \item{rok}{rok przeprowadzenie egzaminu}
@@ -34,6 +34,10 @@ regularnym, do którego ma pasować opis skali}
 \item{proba}{opcjonalnie liczba natrualna - wielkość próby, jaka ma być
 wylosowana z danych przed estymacją modelu; przydatne (tylko) do testów
 działania funkcji}
+
+\item{usunWieleNaraz}{opcjonalnie wartość logiczna - jeśli wiele
+(pseudo)kryteriów oceny ma dyskryminację poniżej 0,2, to czy usuwać je
+wszystkie w jednym kroku?}
 }
 \value{
 lista klasy \code{listaWynikowSkalowania}, której elementy są listami
