@@ -200,6 +200,8 @@ skaluj_matura = function(rok, processors = 2, opis = "skalowanie do EWD",
         select_(~czesc_egzaminu, ~kryterium, ~numer_pytania, ~numer_kryterium) %>%
         collect() %>%
         left_join(czesciEgzaminow) %>%
+        mutate_(.dots = setNames(list(~sub("^_", "0_", numer_pytania)),
+                                   "numer_pytania")) %>%
         mutate_(.dots = setNames(list(~gsub("^(0|I|II|III|IV|V)_.*$", "\\1",
                                             numer_pytania),
                                       ~gsub("^(0|I|II|III|IV|V)(_|)(.*)$", "\\3",
@@ -279,9 +281,9 @@ skaluj_matura = function(rok, processors = 2, opis = "skalowanie do EWD",
     } else {
       zmienneGrupujace = setdiff(zmienneGrupujace, "czy_sf")
     }
-    grupy = distinct(dane[, zmienneGrupujace])
+    grupy = distinct(dane[, zmienneGrupujace, drop = FALSE])
     for (i in ncol(grupy):1) {
-      grupy = grupy[order(grupy[[i]]), ]
+      grupy = grupy[order(grupy[[i]]), 1:ncol(grupy), drop = FALSE]
     }
     # usuwanie grup, których nie jesteśmy w stanie sensownie obsłużyć:
     # uczniów LO piszących starą formułę
@@ -426,6 +428,8 @@ skaluj_matura = function(rok, processors = 2, opis = "skalowanie do EWD",
         message("\n### Wyliczanie oszacowań dla wszystkich zdających ###\n")
       }
     }
+    maskaZmienne = unique(c("id_obserwacji", "id_testu", zmienneGrupujace,
+                            zmienneKryteria, zmienneTematy, zmienneSelekcja))
     dane = dane[, maskaZmienne]
     if (proba > 0) {
       dane = dane[sample(nrow(dane), proba), ]
