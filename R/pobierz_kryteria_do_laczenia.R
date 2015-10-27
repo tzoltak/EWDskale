@@ -76,10 +76,10 @@ pobierz_kryteria_do_laczenia = function(skale, nf = FALSE) {
                                  "czesc_egzaminu")) %>%
         select_(~-czy_nf)
     }
-    czesciEgzaminu = select_(czesciEgzaminu, ~-rodzaj_egzaminu, ~-arkusz)
-    kryteria = suppressMessages(left_join(select_(kryteria, ~-czesc_egzaminu),
-                                          czesciEgzaminu)) %>%
+    czesciEgzaminu = select_(czesciEgzaminu, ~-rodzaj_egzaminu, ~-arkusz) %>%
       distinct()
+    kryteria = suppressMessages(left_join(select_(kryteria, ~-czesc_egzaminu),
+                                          czesciEgzaminu))
   }
   return(kryteria)
 }

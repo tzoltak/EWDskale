@@ -46,7 +46,7 @@ lacz_kryteria_z_nr_zadan_w_ramach_skali = function(x) {
   x = mutate_(x,
               .dots = setNames(list(~sub("^(.*,.*)$", "pseudo", numer_pytania)),
                                "numer_pytania")) %>%  # zaczynamy od wyłączenia pseudokryteriów
-    mutate_(.dots = setNames(list(~sub("^([[:digit:]]+).*$", "\\1", numer_pytania)),
+    mutate_(.dots = setNames(list(~sub("^([[:digit:]]+)(|_.*)$", "\\1", numer_pytania)),
                              "numer_pytania")) %>%
     mutate_(.dots = setNames(list(~suppressWarnings(as.numeric(numer_pytania))),
                              "numer_pytania")) %>%
