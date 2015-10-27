@@ -4,11 +4,15 @@
 \alias{pobierz_kryteria_do_laczenia}
 \title{Laczenie kryteriow}
 \usage{
-pobierz_kryteria_do_laczenia(skale)
+pobierz_kryteria_do_laczenia(skale, nf = FALSE)
 }
 \arguments{
 \item{skale}{wektor liczbowy z id_skali lub ciąg znaków z wyrażeniem
 regularnym identyfikującymi skale po kolumnie 'opis'}
+
+\item{nf}{opcjonalnie wartość logiczna (domyślnie FALSE) - czy w przypadku
+matury (od 2015 r.) zaznaczać sufiksem dopisywanym do \code{czesc_egzaminu},
+czy kryterium pochodzi z arkusza w "starej", czy w "nowej" formule egzaminu?}
 }
 \value{
 data table

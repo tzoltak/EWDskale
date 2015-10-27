@@ -16,7 +16,7 @@ lacz_kryteria_z_nr_zadan = function(skale) {
   stopifnot((is.numeric(skale) & length(skale) > 0) |
               (is.character(skale) & length(skale) == 1))
 
-  kryteria = pobierz_kryteria_do_laczenia(skale)
+  kryteria = pobierz_kryteria_do_laczenia(skale, nf = TRUE)
   temp = group_by_(kryteria, ~id_skali) %>%
     do_(.dots = setNames(list(~lacz_kryteria_z_nr_zadan_w_ramach_skali(.)),
                          "elementy"))
@@ -58,20 +58,24 @@ lacz_kryteria_z_nr_zadan_w_ramach_skali = function(x) {
                                   ~sub("^[kp]_", "", kryterium),
                                   ~grepl("^[p]_", kryterium)),
                              c("maska", "id_kryterium", "czy_pseudo")))
-  doPolaczenia = filter_(x, ~maska) %>%
-    mutate_(.dots = setNames(list(~paste("ewd", rodzaj_egzaminu, czesc_egzaminu,
-                                         rok, numer_pytania, sep = ";")),
-                             "opis")) %>%
-    group_by_(~opis) %>%
-    select_(~opis, ~id_kryterium) %>%
-    mutate_(.dots = setNames(list(~paste0("id_kryterium_",
-                                          dense_rank(id_kryterium))),
-                             "kolejnosc")) %>%
-    dcast(... ~ kolejnosc, value.var = "id_kryterium") %>%
-    mutate_(.dots = setNames(list(~NA, ~NA, ~NA,
-                                  ~id_kryterium_1),
-                             c("id_skrotu", "id_kryterium", "id_pseudokryterium",
-                               "kolejnosc")))
+  if (any(x$maska)) {
+    doPolaczenia = filter_(x, ~maska) %>%
+      mutate_(.dots = setNames(list(~paste("ewd", rodzaj_egzaminu, czesc_egzaminu,
+                                           rok, numer_pytania, sep = ";")),
+                               "opis")) %>%
+      group_by_(~opis) %>%
+      select_(~opis, ~id_kryterium) %>%
+      mutate_(.dots = setNames(list(~paste0("id_kryterium_",
+                                            dense_rank(id_kryterium))),
+                               "kolejnosc")) %>%
+      dcast(... ~ kolejnosc, value.var = "id_kryterium") %>%
+      mutate_(.dots = setNames(list(~NA, ~NA, ~NA,
+                                    ~id_kryterium_1),
+                               c("id_skrotu", "id_kryterium", "id_pseudokryterium",
+                                 "kolejnosc")))
+  } else {
+    doPolaczenia = NULL
+  }
   kryteriaNieLacz = filter_(x, ~!czy_pseudo, ~!maska) %>%
     ungroup() %>%
     select_(~id_kryterium) %>%

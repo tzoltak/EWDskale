@@ -6,11 +6,15 @@
 #' \code{\link{lacz_kryteria_z_korelacji}}.
 #' @param skale wektor liczbowy z id_skali lub ciąg znaków z wyrażeniem
 #' regularnym identyfikującymi skale po kolumnie 'opis'
+#' @param nf opcjonalnie wartość logiczna (domyślnie FALSE) - czy w przypadku
+#' matury (od 2015 r.) zaznaczać sufiksem dopisywanym do \code{czesc_egzaminu},
+#' czy kryterium pochodzi z arkusza w "starej", czy w "nowej" formule egzaminu?
 #' @return data table
 #' @import ZPD
-pobierz_kryteria_do_laczenia = function(skale) {
+pobierz_kryteria_do_laczenia = function(skale, nf = FALSE) {
   stopifnot((is.numeric(skale) & length(skale) > 0) |
-              (is.character(skale) & length(skale) == 1))
+              (is.character(skale) & length(skale) == 1),
+            is.logical(nf), length(nf) == 1)
   # pobieranie danych o kryteriach
   src = polacz()
   on.exit(rozlacz(src))
@@ -58,10 +62,21 @@ pobierz_kryteria_do_laczenia = function(skale) {
       pobierz_kryteria_oceny(src, testy = TRUE, skale = FALSE) %>%
         inner_join(pobierz_testy(src)) %>%
         filter_(~kryterium %in% kryteria$kryterium, ~czy_egzamin == TRUE) %>%
-        select_(~kryterium, ~czesc_egzaminu) %>%
+        select_(~kryterium, ~rodzaj_egzaminu, ~czesc_egzaminu, ~arkusz) %>%
         distinct() %>%
         collect()
     )
+    if (any(czesciEgzaminu$rodzaj_egzaminu == "matura" & nf)) {
+      czesciEgzaminu =
+        mutate_(czesciEgzaminu,
+                .dots = setNames(list(~substr(arkusz, 7, 7) %in% c("X", "Y", "Z")),
+                                 "czy_nf")) %>%
+        mutate_(.dots = setNames(list(~paste0(czesc_egzaminu,
+                                              ifelse(czy_nf, " nf", ""))),
+                                 "czesc_egzaminu")) %>%
+        select_(~-czy_nf)
+    }
+    czesciEgzaminu = select_(czesciEgzaminu, ~-rodzaj_egzaminu, ~-arkusz)
     kryteria = suppressMessages(left_join(select_(kryteria, ~-czesc_egzaminu),
                                           czesciEgzaminu)) %>%
       distinct()
