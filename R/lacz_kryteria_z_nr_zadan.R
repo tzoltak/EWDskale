@@ -89,6 +89,7 @@ lacz_kryteria_z_nr_zadan_w_ramach_skali = function(x) {
     mutate_(.dots = setNames(list(~NA), "id_kryterium"))
   elementy = bind_rows(kryteriaNieLacz, pseudokryteriaNieLacz, doPolaczenia) %>%
     arrange_(~kolejnosc) %>%
-    select_(~-kolejnosc)
+    select_(~-kolejnosc) %>%
+    distinct()  # to ostatnie na okoliczność wspólnych zadań starej i nowej formuły matury
   return(elementy)
 }
