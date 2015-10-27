@@ -126,6 +126,12 @@ skroc_skale_oceny_w_ramach_skali = function(x, katalogDane = "../dane surowe/",
   }
   # dopiero teraz zawężamy zakres danych do "populacji wzorcowej"
   dane = subset(dane, maskaObserwacje)
+  # na wszelki wypadek
+  maska = lapply(kryteria$schemat_pkt, function(x) {return(!(0 %in% x))}) %>%
+    unlist() %>% which()
+  for (i in maska) {
+    kryteria$schemat_pkt[[i]] = c(0, kryteria$schemat_pkt[[i]])
+  }
 
   # samo skracanie skal
   message("  Skracanie skal oceny.")
