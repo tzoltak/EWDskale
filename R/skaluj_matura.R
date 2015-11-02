@@ -288,8 +288,8 @@ skaluj_matura = function(rok, processors = 2, opis = "skalowanie do EWD",
       zmienneGrupujace = setdiff(zmienneGrupujace, "czy_sf")
     }
     grupy = distinct(dane[, zmienneGrupujace, drop = FALSE])
-    for (i in ncol(grupy):1) {
-      grupy = grupy[order(grupy[[i]]), 1:ncol(grupy), drop = FALSE]
+    for (j in ncol(grupy):1) {
+      grupy = grupy[order(grupy[[j]]), 1:ncol(grupy), drop = FALSE]
     }
     # usuwanie grup, których nie jesteśmy w stanie sensownie obsłużyć:
     # uczniów LO piszących starą formułę
