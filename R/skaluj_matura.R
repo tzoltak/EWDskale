@@ -341,12 +341,27 @@ skaluj_matura = function(rok, processors = 2, opis = "skalowanie do EWD",
       if (proba > 0) {
         daneWzorcowe = daneWzorcowe[sample(nrow(daneWzorcowe), proba), ]
       }
+      # jeszcze obsługa braku kotwicy między starą a nową formułą
+      if ("czy_sf" %in% zmienneGrupujace &
+          !any(duplicated(czesciEgzaminow$kryterium))) {
+        wartosciZakotwiczone = data.frame(
+          typ = rep(c("mean", "variance"), each = 2),
+          zmienna1 = names(wyniki)[i],
+          zmienna2 = vector(mode = "character", length = 4),
+          wartosc = rep(c(0, 1), each = 2),
+          stringsAsFactors = FALSE)
+        wartosciZakotwiczone$typ = paste0(wartosciZakotwiczone$typ, ".gr",
+                                          grupy$gr_tmp1[!duplicated(grupy$czy_sf)])
+      } else {
+        wartosciZakotwiczone = NULL
+      }
       # skalowanie wzorcowe
       message("\n### Skalowanie wzorcowe ###\n")
       zmienneKonstrukt = setdiff(c(zmienneKryteria, zmienneTematy,
                                    zmienneSelekcja), zmienneGrupujace)
       opisWzorcowe = procedura_1k_1w(zmienneKonstrukt, names(wyniki)[i],
                                      wieleGrup = zmienneGrupujace,
+                                     wartosciZakotwiczone,
                                      nigdyNieUsuwaj = "^(s|t[[:digit:]]+)(nf|)_",
                                      processors = processors,
                                      usunWieleNaraz = usunWieleNaraz)
@@ -490,7 +505,7 @@ skaluj_matura = function(rok, processors = 2, opis = "skalowanie do EWD",
   # koniec
   class(wyniki) = c(class(wyniki), "listaWynikowSkalowania")
   if (zapisz) {
-    nazwaObiektu = paste0("g", rok, "Skalowanie")
+    nazwaObiektu = paste0("m", rok, "Skalowanie")
     assign(nazwaObiektu, wyniki)
     save(list = nazwaObiektu, file = paste0(nazwaObiektu, ".RData"))
   }
