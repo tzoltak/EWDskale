@@ -161,6 +161,7 @@ skaluj_matura = function(rok, processors = 2, opis = "skalowanie do EWD",
 
   wyniki = vector(mode = "list", length = nrow(skale))
   names(wyniki) = gsub("^.*ewd;([^;]+);.*$", "\\1", parametry$opis_skali)
+  class(wyniki) = c(class(wyniki), "listaWynikowSkalowania")
   for (i in 1:nrow(parametry)) {
     idSkali = parametry$id_skali[i]
     opis = parametry$opis_skali[i]
@@ -364,7 +365,8 @@ skaluj_matura = function(rok, processors = 2, opis = "skalowanie do EWD",
                                      wartosciZakotwiczone,
                                      nigdyNieUsuwaj = "^(s|t[[:digit:]]+)(nf|)_",
                                      processors = processors,
-                                     usunWieleNaraz = usunWieleNaraz)
+                                     usunWieleNaraz = usunWieleNaraz,
+                                     usunMimoKotwicy = TRUE)
       mWzorcowe = skaluj(daneWzorcowe, opisWzorcowe, "id_obserwacji",
                          tytul = tytulWzorcowe, zmienneDolaczaneDoOszacowan = "id_testu")
       # kontrola grupowania
@@ -501,13 +503,14 @@ skaluj_matura = function(rok, processors = 2, opis = "skalowanie do EWD",
     }
     class(wyniki[[i]]) = c(class(wyniki), "wynikiSkalowania")
     attributes(wyniki[[i]])$dataSkalowania = Sys.time()
-  }
-  # koniec
-  class(wyniki) = c(class(wyniki), "listaWynikowSkalowania")
-  if (zapisz) {
-    nazwaObiektu = paste0("m", rok, "Skalowanie")
-    assign(nazwaObiektu, wyniki)
-    save(list = nazwaObiektu, file = paste0(nazwaObiektu, ".RData"))
+
+    # ew. zapis
+    if (zapisz) {
+      nazwaObiektu = paste0("m", rok, "Skalowanie")
+      assign(nazwaObiektu, wyniki)
+      save(list = nazwaObiektu, file = paste0(nazwaObiektu, ".RData"))
+      rm(list = nazwaObiektu)
+    }
   }
   return(wyniki)
 }
