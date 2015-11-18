@@ -26,4 +26,4 @@ Language: pl
 VignetteBuilder: knitr
 NeedsCompilation: no
 LazyData: true
-RoxygenNote: 5.0.0
+RoxygenNote: 5.0.1

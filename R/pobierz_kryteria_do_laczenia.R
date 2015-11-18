@@ -78,8 +78,11 @@ pobierz_kryteria_do_laczenia = function(skale, nf = FALSE) {
     }
     czesciEgzaminu = select_(czesciEgzaminu, ~-rodzaj_egzaminu, ~-arkusz) %>%
       distinct()
-    kryteria = suppressMessages(left_join(select_(kryteria, ~-czesc_egzaminu),
-                                          czesciEgzaminu))
+    kryteria = suppressMessages(
+      select_(kryteria, ~-czesc_egzaminu) %>%
+        distinct() %>%
+      left_join(czesciEgzaminu)
+    )
   }
   return(kryteria)
 }

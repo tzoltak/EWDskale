@@ -37,7 +37,7 @@ skroc_skale_oceny = function(skale, katalogDane = "dane surowe/",
   if (is.character(skale)) {
     skale = pobierz_skale(polacz(), doPrezentacji = NA) %>%
       collect() %>%
-      filter_(~grepl(skale, opis_skali)) %>%
+      filter_(~grepl(skale, opis_skali), ~is.na(czesc_egzaminu)) %>%
       select_(~id_skali, ~opis_skali, ~rodzaj_egzaminu, ~czesc_egzaminu, ~rok) %>%
       distinct()
   }
@@ -45,7 +45,7 @@ skroc_skale_oceny = function(skale, katalogDane = "dane surowe/",
     stop("Nie znaleziono żadnych skal, których opis pasowałby do podanego wyrażenia regularnego.")
   }
 
-  skale = group_by_(skale, ~id_skali) %>%
+  skale = group_by_(skale, ~id_skali, ~czesc_egzaminu) %>%
     do_(.dots = setNames(list(~skroc_skale_oceny_w_ramach_skali(., katalogDane,
                                                                 maxLPozWyk,
                                                                 minLiczebnPozWyk,
@@ -86,7 +86,7 @@ skroc_skale_oceny_w_ramach_skali = function(x, katalogDane = "../dane surowe/",
   }
 
   message("Skala '", x$opis_skali, "', id_skali = ", x$id_skali, ": ",
-          x$rodzaj_egzaminu, " ", x$rok)
+          x$rodzaj_egzaminu, " ", x$rok, ": ", x$czesc_egzaminu)
   # wczytywanie danych z wynikami egzaminu
   message("  Wczytywanie danych.")
   dane = wczytaj_wyniki_surowe(katalogDane, x$rodzaj_egzaminu,
