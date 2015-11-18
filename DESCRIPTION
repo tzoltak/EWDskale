@@ -11,7 +11,7 @@ Depends:
     R (>= 2.15.0),
     polycor,
     mirt,
-    EWDdane (>= 0.6.3),
+    EWDdane (>= 0.7.2),
     ggplot2
 Imports:
     ZPD,
