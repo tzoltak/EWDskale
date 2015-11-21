@@ -200,20 +200,50 @@ skaluj_matura = function(rok, processors = 2, opis = "skalowanie do EWD",
     # ew. tworzenie zmiennych opisujących wybór tematów
     if (grepl(";m_(jp|h);", opis)) {
       src = polacz()
+      # zawikłane (można pomyśleć, czy nie dałoby się łatwiej):
+      # najpierw tworzymy sobie listę wszystkich kryteriów skali, podmieniając
+      # (rozmnażając) pseudokryteria na ich kryteria składowe
+      kryteriaRozprawki = suppressMessages(
+        pobierz_kryteria_oceny(src, krytSkladowe = TRUE) %>%
+          inner_join(pobierz_testy(src) %>% filter_(~czy_egzamin == TRUE)) %>%
+          filter_(~id_skali == idSkali) %>%
+          select_(~kryterium, ~typ_pytania, ~kryt_skladowe) %>%
+          distinct() %>%
+          collect() %>%
+          mutate_(.dots = setNames(list(~kryterium,
+                                        ~ifelse(typ_pytania == "pseudokryterium",
+                                                kryt_skladowe, kryterium)),
+                                   c("kryterium_temp", "kryterium"))) %>%
+          select_(~kryterium, ~kryterium_temp)
+      )
+      # następnie odfiltorowujemy tylko rozprawki, i wracamy z tą informacją
+      # na poziom elemntów skali (a więc pseudokryteriów, jeśli takie były)
       kryteriaRozprawki = suppressMessages(
         pobierz_kryteria_oceny(src) %>%
-        inner_join(pobierz_testy(src) %>% filter_(~czy_egzamin == TRUE)) %>%
-        filter_(~id_skali == idSkali, ~typ_pytania == "rozprawka") %>%
-        select_(~czesc_egzaminu, ~kryterium, ~numer_pytania, ~numer_kryterium) %>%
-        collect() %>%
-        left_join(czesciEgzaminow) %>%
-        mutate_(.dots = setNames(list(~sub("^_", "0_", numer_pytania)),
+          inner_join(kryteriaRozprawki, copy = TRUE) %>%
+          filter_(~typ_pytania == "rozprawka") %>%
+          select_(~kryterium_temp) %>%
+          distinct() %>%
+          collect()
+      )
+      names(kryteriaRozprawki) = "kryterium"
+      # i używamy tej informacji do odfiltrowania elementów skali, do których
+      # mamy przyłączone sporo innych, potrzebnych informacji
+      kryteriaRozprawki = suppressMessages(
+        pobierz_kryteria_oceny(src) %>%
+          inner_join(pobierz_testy(src) %>% filter_(~czy_egzamin == TRUE)) %>%
+          semi_join(kryteriaRozprawki, copy = TRUE) %>%
+          select_(~czesc_egzaminu, ~kryterium, ~numer_pytania, ~numer_kryterium) %>%
+          collect() %>%
+          left_join(czesciEgzaminow) %>%
+          mutate_(.dots = setNames(list(~sub("^0+_", "0_", numer_pytania)),
                                    "numer_pytania")) %>%
-        mutate_(.dots = setNames(list(~gsub("^(0|I|II|III|IV|V)_.*$", "\\1",
-                                            numer_pytania),
-                                      ~gsub("^(0|I|II|III|IV|V)(_|)(.*)$", "\\3",
-                                            numer_pytania)),
-                                 c("temat", "zadanie")))
+          mutate_(.dots = setNames(list(~gsub("^(0|I|II|III|IV|V)_.*$", "\\1",
+                                              numer_pytania),
+                                        ~gsub("^(0|I|II|III|IV|V)(_|)(.*)$", "\\3",
+                                              numer_pytania)),
+                                   c("temat", "zadanie"))) %>%
+          distinct()
       )
       rozlacz(src)
       zadaniaTematy =
@@ -368,7 +398,8 @@ skaluj_matura = function(rok, processors = 2, opis = "skalowanie do EWD",
                                      usunWieleNaraz = usunWieleNaraz,
                                      usunMimoKotwicy = TRUE)
       mWzorcowe = skaluj(daneWzorcowe, opisWzorcowe, "id_obserwacji",
-                         tytul = tytulWzorcowe, zmienneDolaczaneDoOszacowan = "id_testu")
+                         tytul = tytulWzorcowe, zmienneDolaczaneDoOszacowan = "id_testu",
+                         bezWartosciStartowychParametrowTypu = "threshold")
       # kontrola grupowania
       mapowanieGrup =
         mWzorcowe[[1]][[length(mWzorcowe[[1]])]]$parametry$grupyMapowanie
@@ -386,6 +417,8 @@ skaluj_matura = function(rok, processors = 2, opis = "skalowanie do EWD",
         mWzorcowe[[1]][[length(mWzorcowe[[1]])]]$parametry$surowe
       zmienneKryteriaPoUsuwaniu =
         wartosciZakotwiczone$zmienna2[wartosciZakotwiczone$typ == "by"]
+      zmienneKryteriaPoUsuwaniu = setdiff(zmienneKryteriaPoUsuwaniu,
+                                          c(zmienneTematy, zmienneSelekcja))
       # wyliczanie rzetelności empirycznych
       oszacowania = suppressMessages(
         mWzorcowe[[1]][[length(mWzorcowe[[1]])]]$zapis %>%

@@ -86,7 +86,7 @@ skroc_skale_oceny_w_ramach_skali = function(x, katalogDane = "../dane surowe/",
   }
 
   message("Skala '", x$opis_skali, "', id_skali = ", x$id_skali, ": ",
-          x$rodzaj_egzaminu, " ", x$rok, ": ", x$czesc_egzaminu)
+          x$rodzaj_egzaminu, " ", x$rok)
   # wczytywanie danych z wynikami egzaminu
   message("  Wczytywanie danych.")
   dane = wczytaj_wyniki_surowe(katalogDane, x$rodzaj_egzaminu,
