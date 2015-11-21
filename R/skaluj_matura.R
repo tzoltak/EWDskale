@@ -236,7 +236,7 @@ skaluj_matura = function(rok, processors = 2, opis = "skalowanie do EWD",
           select_(~czesc_egzaminu, ~kryterium, ~numer_pytania, ~numer_kryterium) %>%
           collect() %>%
           left_join(czesciEgzaminow) %>%
-          mutate_(.dots = setNames(list(~sub("^0+_", "0_", numer_pytania)),
+          mutate_(.dots = setNames(list(~sub("^0*_", "0_", numer_pytania)),
                                    "numer_pytania")) %>%
           mutate_(.dots = setNames(list(~gsub("^(0|I|II|III|IV|V)_.*$", "\\1",
                                               numer_pytania),
