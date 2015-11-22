@@ -399,7 +399,7 @@ skaluj_matura = function(rok, processors = 2, opis = "skalowanie do EWD",
                                      usunMimoKotwicy = TRUE)
       mWzorcowe = skaluj(daneWzorcowe, opisWzorcowe, "id_obserwacji",
                          tytul = tytulWzorcowe, zmienneDolaczaneDoOszacowan = "id_testu",
-                         bezWartosciStartowychParametrowTypu = "threshold")
+                         bezWartosciStartowychParametrowTypu = "threshold", nieEstymuj = TRUE)
       # kontrola grupowania
       mapowanieGrup =
         mWzorcowe[[1]][[length(mWzorcowe[[1]])]]$parametry$grupyMapowanie
@@ -420,10 +420,10 @@ skaluj_matura = function(rok, processors = 2, opis = "skalowanie do EWD",
       zmienneKryteriaPoUsuwaniu = setdiff(zmienneKryteriaPoUsuwaniu,
                                           c(zmienneTematy, zmienneSelekcja))
       # wyliczanie rzetelności empirycznych
-      oszacowania = suppressMessages(
+      oszacowania = suppressWarnings(suppressMessages(
         mWzorcowe[[1]][[length(mWzorcowe[[1]])]]$zapis %>%
           left_join(grupy)
-      )
+      ))
       names(oszacowania) = sub(tolower( names(wyniki)[i]), names(wyniki)[i],
                                names(oszacowania))
       oszacowania = oszacowania[, c("id_obserwacji", "grupa", names(wyniki)[i],
@@ -450,8 +450,8 @@ skaluj_matura = function(rok, processors = 2, opis = "skalowanie do EWD",
           select_(~grupa, ~wartosc)
       )
       # parametry do wyprowadzanie oszacowań na 0;1 w ramach LO i w ramach T
-      maskaLO = grep("^LO ", oszacowania$grupa)
-      maskaT = grep("^T ", oszacowania$grupa)
+      maskaLO = grep("^LO", oszacowania$grupa)
+      maskaT = grep("^T", oszacowania$grupa)
       standaryzacja = cbind(select_(grupy, ~grupa), sr = NA, os = NA)
       standaryzacja = within(standaryzacja, {
         sr[grepl("^LO", grupa)] =  mean(oszacowania[[names(wyniki)[i]]][maskaLO])
