@@ -399,7 +399,7 @@ skaluj_matura = function(rok, processors = 2, opis = "skalowanie do EWD",
                                      usunMimoKotwicy = TRUE)
       mWzorcowe = skaluj(daneWzorcowe, opisWzorcowe, "id_obserwacji",
                          tytul = tytulWzorcowe, zmienneDolaczaneDoOszacowan = "id_testu",
-                         bezWartosciStartowychParametrowTypu = "threshold", nieEstymuj = TRUE)
+                         bezWartosciStartowychParametrowTypu = "threshold")
       # kontrola grupowania
       mapowanieGrup =
         mWzorcowe[[1]][[length(mWzorcowe[[1]])]]$parametry$grupyMapowanie
