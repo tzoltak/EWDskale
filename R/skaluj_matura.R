@@ -530,9 +530,15 @@ skaluj_matura = function(rok, processors = 2, opis = "skalowanie do EWD",
     )
     if (!is.data.frame(parametrySkala)) {
       wyniki[[i]][["skalowania_elementy"]] =
-        zmien_parametry_na_do_bazy(wartosciZakotwiczone, idSkali, skalowanie,
-                                   rzetelnoscEmpiryczna, standaryzacja,
-                                   select_(grupy, ~grupa, ~gr_tmp1))
+        try(zmien_parametry_na_do_bazy(wartosciZakotwiczone, idSkali, skalowanie,
+                                       rzetelnoscEmpiryczna, standaryzacja,
+                                       select_(grupy, ~grupa, ~gr_tmp1)))
+      if ("try-error" %in% class(wyniki[[i]][["skalowania_elementy"]])) {
+        wyniki[[i]][["skalowania_elementy"]] = list(
+          wartosciZakotwiczone, idSkali, skalowanie, rzetelnoscEmpiryczna,
+          standaryzacja, select_(grupy, ~grupa, ~gr_tmp1)
+        )
+      }
     }
     class(wyniki[[i]]) = c(class(wyniki), "wynikiSkalowania")
     attributes(wyniki[[i]])$dataSkalowania = Sys.time()
