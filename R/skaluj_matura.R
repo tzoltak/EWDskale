@@ -28,6 +28,10 @@
 #' @param usunWieleNaraz opcjonalnie wartość logiczna - jeśli wiele
 #' (pseudo)kryteriów oceny ma dyskryminację poniżej 0,2, to czy usuwać je
 #' wszystkie w jednym kroku?
+#' @param nieEstymuj opcjonalnie wartość logiczna - jeśli istnieją już zapisane
+#' pliki \code{.out}, których nazwy odpowiadają tym, jakie powstałyby przy
+#' estymacji modeli dla danych "wzorcowych", to czy wczytać je, zamiast
+#' przeprowadzania estymacji w Mplusie?
 #' @details
 #' \bold{Uwaga}, oszacowania zwracane przez funkcję \bold{nie są porównywalne
 #' pomiędzy LO a T!}
@@ -97,7 +101,7 @@ skaluj_matura = function(rok, processors = 2, opis = "skalowanie do EWD",
                          katalogSurowe = "../../dane surowe",
                          katalogWyskalowane = "../../dane wyskalowane",
                          zapisz = TRUE, skala = NULL, proba = -1,
-                         usunWieleNaraz = FALSE) {
+                         usunWieleNaraz = FALSE, nieEstymuj = FALSE) {
   doPrezentacji = TRUE
   stopifnot(is.numeric(rok), length(rok) == 1,
             is.numeric(processors), length(processors) == 1,
@@ -107,14 +111,16 @@ skaluj_matura = function(rok, processors = 2, opis = "skalowanie do EWD",
             is.logical(zapisz), length(zapisz) == 1,
             is.null(skala) | is.numeric(skala) | is.character(skala),
             is.numeric(proba), length(proba) == 1,
-            is.logical(usunWieleNaraz), length(usunWieleNaraz) == 1)
+            is.logical(usunWieleNaraz), length(usunWieleNaraz) == 1,
+            is.logical(nieEstymuj), length(nieEstymuj) == 1)
   stopifnot(as.integer(rok) == rok, rok >= 2010,
             processors %in% (1:32),
             dir.exists(katalogSurowe),
             dir.exists(katalogWyskalowane),
             zapisz %in% c(TRUE, FALSE),
             as.integer(proba) == proba, proba == -1 | proba > 0,
-            usunWieleNaraz %in% c(TRUE, FALSE))
+            usunWieleNaraz %in% c(TRUE, FALSE),
+            nieEstymuj %in% c(TRUE, FALSE))
   if (!is.null(skala)) {
     stopifnot(length(skala) == 1)
     doPrezentacji = NA
@@ -399,7 +405,8 @@ skaluj_matura = function(rok, processors = 2, opis = "skalowanie do EWD",
                                      usunMimoKotwicy = TRUE)
       mWzorcowe = skaluj(daneWzorcowe, opisWzorcowe, "id_obserwacji",
                          tytul = tytulWzorcowe, zmienneDolaczaneDoOszacowan = "id_testu",
-                         bezWartosciStartowychParametrowTypu = "threshold")
+                         bezWartosciStartowychParametrowTypu = "threshold",
+                         nieEstymuj = nieEstymuj)
       # kontrola grupowania
       mapowanieGrup =
         mWzorcowe[[1]][[length(mWzorcowe[[1]])]]$parametry$grupyMapowanie

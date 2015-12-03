@@ -7,7 +7,7 @@
 skaluj_matura(rok, processors = 2, opis = "skalowanie do EWD",
   katalogSurowe = "../../dane surowe",
   katalogWyskalowane = "../../dane wyskalowane", zapisz = TRUE,
-  skala = NULL, proba = -1, usunWieleNaraz = FALSE)
+  skala = NULL, proba = -1, usunWieleNaraz = FALSE, nieEstymuj = FALSE)
 }
 \arguments{
 \item{rok}{rok przeprowadzenie egzaminu}
@@ -38,6 +38,11 @@ działania funkcji}
 \item{usunWieleNaraz}{opcjonalnie wartość logiczna - jeśli wiele
 (pseudo)kryteriów oceny ma dyskryminację poniżej 0,2, to czy usuwać je
 wszystkie w jednym kroku?}
+
+\item{nieEstymuj}{opcjonalnie wartość logiczna - jeśli istnieją już zapisane
+pliki \code{.out}, których nazwy odpowiadają tym, jakie powstałyby przy
+estymacji modeli dla danych "wzorcowych", to czy wczytać je, zamiast
+przeprowadzania estymacji w Mplusie?}
 }
 \value{
 lista klasy \code{listaWynikowSkalowania}, której elementy są listami
