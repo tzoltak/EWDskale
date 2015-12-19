@@ -1,0 +1,29 @@
+--------------------
+EWDskale 0.2 (2015-12-19)
+
+Funkcje przeniesione z pakietu EWDskalowanie (i, co do zasady, gruntownie
+przepisane):
+- przewidywanie_rasch();
+- skaluj_sprawdzian();
+- skaluj_egz_gimn();
+- skaluj_egz_gimn_rasch();
+- skaluj_matura();
+- skaluj_matura_rasch();
+- skroc_skale_oceny(), okresl_wzor_skracania();
+- sprawdz_wyniki_skalowania().
+
+Nowe funkcje:
+- wczytaj_wyniki_surowe() - z dysku;
+- wczytaj_wyniki_wyskalowane() - z dysku;
+- wylicz_normy_ekwikwantylowe();
+- zmien_parametry_na_do_bazy();
+
+--------------------
+Publikacja EWDskale 0.1 (2015-08-30)
+
+Nowe funkcje:
+- wylicz_normy_ekwikwantylowe();
+- lacz_kryteria_z_korelacji();
+- rysuj_laczenia_z_korelacji;
+- lacz_kryteria_z_nr_zadan();
+- skroc_skale_oceny();
