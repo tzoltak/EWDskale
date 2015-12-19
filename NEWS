@@ -1,5 +1,5 @@
 --------------------
-EWDskale 0.2 (2015-09-0?)
+EWDskale 0.2 (2015-12-19)
 
 Funkcje przeniesione z pakietu EWDskalowanie (i, co do zasady, gruntownie
 przepisane):
@@ -15,6 +15,8 @@ przepisane):
 Nowe funkcje:
 - wczytaj_wyniki_surowe() - z dysku;
 - wczytaj_wyniki_wyskalowane() - z dysku;
+- wylicz_normy_ekwikwantylowe();
+- zmien_parametry_na_do_bazy();
 
 --------------------
 Publikacja EWDskale 0.1 (2015-08-30)
@@ -24,4 +26,4 @@ Nowe funkcje:
 - lacz_kryteria_z_korelacji();
 - rysuj_laczenia_z_korelacji;
 - lacz_kryteria_z_nr_zadan();
-- skroc_skale();
+- skroc_skale_oceny();

@@ -11,13 +11,13 @@ Depends:
     R (>= 2.15.0),
     polycor,
     mirt,
-    EWDdane (>= 0.7.2),
+    EWDdane (>= 0.8.0),
     ggplot2
 Imports:
     ZPD,
     dplyr,
     reshape2,
-    EWDskalowanie (>= 0.9.8)
+    EWDskalowanie (>= 0.9.9)
 Suggests:
     testthat,
     knitr

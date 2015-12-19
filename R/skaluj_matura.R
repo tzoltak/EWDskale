@@ -174,7 +174,7 @@ skaluj_matura = function(rok, processors = 2, opis = "skalowanie do EWD",
     skalowanie = parametry$skalowanie[i]
     parametrySkala = parametry$parametry[[i]]
     rzetelnoscEmpiryczna = attributes(parametrySkala)$"r EAP"
-    standaryzacja = NULL
+    standaryzacja = attributes(parametrySkala)$"paramStd"
 
     message(rodzajEgzaminu, " ", rok, " (id_skali: ", idSkali, ", '", opis,
             "'; skalowanie ", skalowanie, ".):")
@@ -351,6 +351,14 @@ skaluj_matura = function(rok, processors = 2, opis = "skalowanie do EWD",
         grupa = paste0(grupa, " ", ifelse(get("czy_sf"), "sf", "nf"))
       })
     }
+    # zamienianie nazw grup na numery w parametrySkala
+    if (!is.null(parametrySkala)) {
+      for (j in 1:nrow(grupy)) {
+        parametrySkala$typ = sub(paste0("[.]gr[.]", grupy$grupa[j], "$"),
+                                 paste0(".gr", grupy$gr_tmp1[j]),
+                                 parametrySkala$typ)
+      }
+    }
     # usuwanie z danych zdających spoza obsługiwanych grup
     lPrzed = nrow(dane)
     dane = suppressMessages(semi_join(dane, grupy))
@@ -505,7 +513,7 @@ skaluj_matura = function(rok, processors = 2, opis = "skalowanie do EWD",
                                   wieleGrup = zmienneGrupujace,
                                   wartosciZakotwiczone, processors = processors)
     mWszyscy = skaluj(dane, opisWszyscy, "id_obserwacji", tytul = tytulWszyscy,
-                       zmienneDolaczaneDoOszacowan = "id_testu")
+                      zmienneDolaczaneDoOszacowan = "id_testu")
 
     oszacowania = suppressMessages(
       mWszyscy[[1]][[length(mWszyscy[[1]])]]$zapis %>%
@@ -528,7 +536,7 @@ skaluj_matura = function(rok, processors = 2, opis = "skalowanie do EWD",
       skalowania_elementy = NULL,
       skalowania_obserwacje =
         data.frame(id_skali = idSkali, skalowanie = skalowanie,
-                   dane[, c("id_obserwacji", "id_testu")],
+                   oszacowania[, c("id_obserwacji", "id_testu")],
                    estymacja = "EAP", nr_pv = -1,
                    wynik = oszacowania[[names(wyniki)[i]]],
                    bs = NA,
