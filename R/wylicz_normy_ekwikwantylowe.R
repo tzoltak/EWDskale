@@ -1,6 +1,6 @@
-#' @title Wyliczanie norm ekwikwantylowych
+#' @title Obliczanie norm ekwikwantylowych
 #' @description
-#' Funkcja służy do wyliczenia norm ekwikwantylowych na podstawie wyników
+#' Funkcja służy do obliczenia norm ekwikwantylowych na podstawie wyników
 #' egzaminów pobranych wcześniej przy pomocy funkcji
 #' \code{\link[EWDdane]{pobierz_wyniki_surowe}}.
 #' @details
@@ -13,7 +13,7 @@
 #' \code{skalowanie} jest zawsze wypełniona wartością \code{1}, co w ogólności
 #' nie zawsze musi być słuszne.
 #' @param egzamin ciąg znaków: "sprawdzian" | "egzamin gimnazjalny" | "matura"
-#' @param rok liczba całkowita - rok, dla którego mają zostać wyliczone normy
+#' @param rok liczba całkowita - rok, dla którego mają zostać obliczone normy
 #' @param katalogZDanymi ciąg znaków - ścieżka do katalogu, w którym znajdują
 #' się pliki .RData z wynikami surowymi egzaminów i danymi kontekstowymi
 #' o uczniach i szkołach ściągnięte wcześniej przy pomocy funkcji
@@ -21,6 +21,7 @@
 #' @param ... ew. parametry przekazywane do funkcji
 #' \code{\link[ZPD]{normy_ekwikwantylowe}}
 #' @return data table
+#' @importFrom stats setNames na.omit
 #' @import EWDdane
 #' @import ZPD
 #' @export
@@ -63,6 +64,10 @@ wylicz_normy_ekwikwantylowe = function(egzamin, rok, katalogZDanymi, ...) {
     maska = lapply(skaleTesty, function(x, idTestow) {return(all(idTestow %in% x))},
                    idTestow = idTestow)
     idSkali = as.numeric(names(skaleTesty))[unlist(maska)]
+    if (length(idSkali) == 0) {
+      stop("Musisz najpierw utworzyć skalowania o opisie 'normalizacja",
+           "ekwikwantylowa EWD' w tablicy 'skalowania'.")
+    }
     normy[names(normy) == i][[1]] =
       data.frame(id_skali = idSkali, skalowanie = 1, grupa = '',
                  wartosc = as.numeric(names(normalizacja)),

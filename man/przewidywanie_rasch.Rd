@@ -7,7 +7,7 @@
 przewidywanie_rasch(sumy, oszacowania, maks = NULL, span = 0.2)
 }
 \arguments{
-\item{sumy}{data frame zawierający id_obserwacji i wyliczone sumy punktów
+\item{sumy}{data frame zawierający id_obserwacji i obliczone sumy punktów
 (może to być kilka kolumn z sumami z kilku różnych części egzaminu)}
 
 \item{oszacowania}{data frame zawierający id_obserwacji i oszacowania
@@ -57,13 +57,13 @@ przypisującą jednoznacznie oszacowanie sumie punktów, musimy w związku z tym
 dokonać jakiegoś przybliżenia. Możliwe są dwa podejścia:
 \itemize{
   \item{Wygenerować wszystkie możliwe wektory odpowiedzi, na podstawie
-        wyestymowanych parametrów modelu wyliczyć odpowiadające im
+        wyestymowanych parametrów modelu obliczyć odpowiadające im
         oszacowania oraz ich wiarygodność, a następnie agregować w ramach
         grup wyróżnionych ze względu na sumę punktów, z użyciem średniej
         ważonej wiarygodnością profilu (a więc wartością proporcjonalną do
         teoretycznej częśtości jego występowania).}
-  \item{Użyć oszacowań wyliczonych na bardzo dużym zbiorze danych
-        (rzeczywistym lub wygenerowanym metodą Monte-Carlo) i wyliczyć
+  \item{Użyć oszacowań obliczonych na bardzo dużym zbiorze danych
+        (rzeczywistym lub wygenerowanym metodą Monte-Carlo) i obliczyć
         średnie (już nieważone) oszacowań w ramach grup o tej samej wartości
         sumy.}
 }

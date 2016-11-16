@@ -30,6 +30,9 @@ sprawdz_wyniki_skalowania = function(nazwaPliku) {
 #' się wynikom uzyskanym z modelu skalowania.
 #' @param model obiekt klasy \code{wynikiSkalowania}
 #' @return funkcja nie zwraca żadnych wartości
+#' @importFrom stats na.omit setNames runif median sd
+#' @importFrom graphics hist grid abline legend par
+#' @importFrom grDevices grey
 #' @import ZPD
 sprawdz_wyniki_skalowania_konstruktu = function(model) {
   stopifnot(is.list(model), "wynikiSkalowania" %in% class(model))
@@ -64,12 +67,36 @@ sprawdz_wyniki_skalowania_konstruktu = function(model) {
                    ifelse(grepl("R$", "", tytul), " - model Rascha", ""))
   }
   tytul = paste0(tytul, " ", rok)
-  cat(tytul, ", id_skali: ", model$skalowania$id_skali, ", skalowanie: ",
+  cat("########################################\n",
+      tytul, ", id_skali: ", model$skalowania$id_skali, ", skalowanie: ",
       model$skalowania$skalowanie, ":\n", sep = "")
 
   # przygotowywanie oszacowań
   lBD = sum(is.na(model$skalowania_obserwacj$wynik))
-  oszacowania = na.omit(model$skalowania_obserwacj$wynik)
+  oszacowania = na.omit(model$skalowania_obserwacje$wynik)
+  if (grepl("^Matura", tytul)) {
+    pliki = c("../../dane surowe/matura-kontekstowe.RData",
+              "../../../dane surowe/matura-kontekstowe.RData",
+              "../matura-kontekstowe.RData", "matura-kontekstowe.RData")
+    if (any(file.exists(pliki))) {
+      obiekty = load(pliki[file.exists(pliki)][1])
+      if ("mKontekstowe" %in% obiekty) {
+        mKontekstowe = get("mKontekstowe")
+        oszacowaniaGrupy = suppressMessages(
+          mutate_(model$skalowania_obserwacje, .dots = list(~rok)) %>%
+            left_join(mKontekstowe) %>%
+            filter_(~populacja_wy == TRUE, ~!pomin_szkole) %>%
+            mutate_(.dots = setNames(list(~c("T", "LO")[1 + as.numeric(grepl("LO", grupa))]),
+                                     "grupa")) %>%
+            select_(~wynik, ~grupa) %>%
+            group_by_(~grupa)
+        )
+      }
+    }
+
+  }
+
+  # obsługa parametrów okna wykresu
   parGraf = par(no.readonly = TRUE)
   par(mar = c(4, 4, 3, 0), cex.main = 0.8, cex.lab = 0.8, cex.axis = 0.8)
   on.exit(par(parGraf))
@@ -119,7 +146,7 @@ sprawdz_wyniki_skalowania_konstruktu = function(model) {
     rm(dyskryminacje, parametry)
 
     # samo rysowanie
-    cat("\n\n")
+    cat("\n")
     if (length(unique(trudnosciKryteriow$dyskryminacja)) > 1) {# nie-Rasch
       pos = c(1, 3)[1 + as.numeric(trudnosciKryteriow$dyskryminacja > 1)]
       ylim = c(0, max(c(2, max(trudnosciKryteriow$dyskryminacja) * 1.1)))
@@ -134,8 +161,23 @@ sprawdz_wyniki_skalowania_konstruktu = function(model) {
       ylab = paste0("dyskryminacja = ", round(dyskrTemp, 2))
       yaxt = "n"
     }
-    zakresTrudnosci = range(trudnosciKryteriow$trudnosc,
-                            trudnosciPoziomow$trudnosc)
+    zakresTrudnosci =
+      range(trudnosciKryteriow$trudnosc[abs(trudnosciKryteriow$trudnosc) < 6],
+            trudnosciPoziomow$trudnosc[abs(trudnosciPoziomow$trudnosc) < 6])
+    if (any(abs(trudnosciKryteriow$trudnosc) > 6)) {
+      cat("(Pseudo)kryteria o ekstremalnych wartościach trudności\n",
+          "     (nie przedstawione na wykresie)\n", sep = "")
+      print(as.data.frame(filter_(trudnosciKryteriow, ~abs(trudnosc) > 6)),
+            row.names = FALSE)
+      cat("\n")
+    }
+    if (any(abs(trudnosciPoziomow$trudnosc) > 6)) {
+      cat("Poziomy wykonania (pseudo) kryteriów o ekstremalnych wartościach trudności\n",
+          "     (nie przedstawione na wykresie)\n", sep = "")
+      print(as.data.frame(filter_(trudnosciPoziomow, ~abs(trudnosc) > 6)),
+            row.names = FALSE)
+      cat("\n")
+    }
     zakresUmiejetnosci = range(oszacowania)
     zakresX = c(-1, 1) * max(abs(range(c(zakresTrudnosci,
                                          zakresUmiejetnosci, 3))))
@@ -165,7 +207,7 @@ sprawdz_wyniki_skalowania_konstruktu = function(model) {
     }
     if (length(model$usunieteKryteria) > 0 ) {
       legend("bottomright", legend = model$usunieteKryteria,
-             title = "usunięte (pseudo)ktryteria:", ncol = 2, bg = "white",
+             title = "usunięte (pseudo)kryteria:", ncol = 2, bg = "white",
              cex = 0.6)
     }
   } else {
@@ -258,6 +300,17 @@ sprawdz_wyniki_skalowania_konstruktu = function(model) {
   #         legend("bottomright", lwd=2, col=1:length(grupy), legend = legend,
   #                title = "grupy", bg = "white", cex = 0.7)
   #       }
+  if (exists("oszacowaniaGrupy")) {
+    cat("\nŚrednie i odchylenia standardowe oszacowań umiejętności:\n",
+        "(grupa objęta skalowaniem wzorcowym)\n", sep = "")
+    summarise_(oszacowaniaGrupy,
+               .dots = setNames(list(~format(round(mean(wynik), 3), nsmall = 3),
+                                     ~format(round(sd(wynik), 3), nsmall = 3)),
+                                c("średnia", "odch. std."))) %>%
+      as.data.frame() %>%
+      print(row.names = FALSE)
+    cat("\n")
+  }
 
   # koniec
   invisible(NULL)

@@ -19,6 +19,7 @@
 #' @return
 #' ramka danych w formacie odpowiadającym strukturze tablicy
 #' \code{skalowania_elementy} w bazie
+#' @importFrom stats setNames
 #' @import ZPD
 zmien_parametry_na_do_bazy = function(x, idSkali, skalowanie,
                                       rzetelnoscEmpiryczna = NULL,
@@ -35,8 +36,8 @@ zmien_parametry_na_do_bazy = function(x, idSkali, skalowanie,
   if (is.numeric(rzetelnoscEmpiryczna)) {
     stopifnot(length(rzetelnoscEmpiryczna) == 1)
     rzetelnoscEmpiryczna =
-      data.frame(grupa = "", rzetelnoscEmpiryczna = rzetelnoscEmpiryczna,
-                 stingsAsFactors = FALSE)
+      data.frame(grupa = "", wartosc = rzetelnoscEmpiryczna,
+                 stringsAsFactors = FALSE)
   } else if (is.data.frame(rzetelnoscEmpiryczna)) {
     stopifnot(all(c("grupa", "wartosc") %in% names(rzetelnoscEmpiryczna)))
   }
@@ -46,6 +47,9 @@ zmien_parametry_na_do_bazy = function(x, idSkali, skalowanie,
   if (is.data.frame(grupy)) {
     stopifnot("grupa" %in% names(grupy), ncol(grupy) == 2)
     names(grupy)[names(grupy) != "grupa"] = "nrGrupy"
+  } else {
+    grupy = data.frame(id_skali = idSkali, nrGrupy = NA, grupa = "",
+                       stringsAsFactors = FALSE)
   }
 
   dyskryminacje = subset(x, get("typ") %in% "by")

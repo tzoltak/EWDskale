@@ -10,6 +10,7 @@
 #' matury (od 2015 r.) zaznaczać sufiksem dopisywanym do \code{czesc_egzaminu},
 #' czy kryterium pochodzi z arkusza w "starej", czy w "nowej" formule egzaminu?
 #' @return data table
+#' @importFrom stats setNames
 #' @import ZPD
 pobierz_kryteria_do_laczenia = function(skale, nf = FALSE) {
   stopifnot((is.numeric(skale) & length(skale) > 0) |

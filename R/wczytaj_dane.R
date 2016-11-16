@@ -21,6 +21,7 @@
 #' 2006 r., gdyż są to dane CKE i dane pobierane funkcją
 #' \code{\link[EWDdane]{pobierz_dane_kontekstowe}} ich nie obejmują.
 #' @return data frame (data table)
+#' @importFrom stats setNames
 #' @import ZPD
 wczytaj_wyniki_surowe = function(katalogDane, rodzajEgzaminu, czescEgzaminu,
                                  rok, idSkali, kryteria = NULL) {

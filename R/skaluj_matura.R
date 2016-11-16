@@ -4,7 +4,7 @@
 #' 1) humanistycznego (j. polski, historia, WOS), 2) matematyczno-przyrodniczego
 #' (matematyka, biologia, chemia, fizyka, geografia, informatyka),
 #' 3) polonistycznego (j. polski), 4) matematycznego (matematyka), na potrzeby
-#' wyliczania trzyletnich wskaźników dla LO i techników. Wykorzystywane są
+#' obliczania trzyletnich wskaźników dla LO i techników. Wykorzystywane są
 #' wielogrupowe modele 2PL/SGRM. Grupy definiowane są albo przez wybór poziomu
 #' rozszerzonego i typ szkoły (LO/T) - dla wskaźników 1), i 4), albo przez
 #' typ szkoły (LO/T) - dla wskaźników 2), i 3).
@@ -94,6 +94,7 @@
 #' @seealso \code{\link[EWDskalowanie]{skaluj}},
 #' \code{\link[EWDskalowanie]{procedura_1k_1w}},
 #' \code{\link{sprawdz_wyniki_skalowania}}
+#' @importFrom stats setNames sd
 #' @import EWDdane
 #' @importFrom EWDskalowanie procedura_1k_1w skaluj
 #' @export
@@ -125,8 +126,8 @@ skaluj_matura = function(rok, processors = 2, opis = "skalowanie do EWD",
     stopifnot(length(skala) == 1)
     doPrezentacji = NA
   }
-  if (rok > 2015) {
-    stop("Funkcja nie obsługuje skalowania dla egzaminów po 2015 r.")
+  if (rok > 2016) {
+    stop("Funkcja nie obsługuje skalowania dla egzaminów po 2016 r.")
   }
 
   # sprawdzanie, czy w bazie są zapisane skala i jakieś skalowanie z parametrami
@@ -173,6 +174,9 @@ skaluj_matura = function(rok, processors = 2, opis = "skalowanie do EWD",
     opis = parametry$opis_skali[i]
     skalowanie = parametry$skalowanie[i]
     parametrySkala = parametry$parametry[[i]]
+    if (!is.data.frame(parametrySkala)) {
+      parametrySkala = NULL
+    }
     rzetelnoscEmpiryczna = attributes(parametrySkala)$"r EAP"
     standaryzacja = attributes(parametrySkala)$"paramStd"
 
@@ -203,6 +207,14 @@ skaluj_matura = function(rok, processors = 2, opis = "skalowanie do EWD",
         distinct()
     )
     rozlacz(src)
+    # sufiks służący do wyróżniania param. w grupie zdających w nowej formule
+    #   ale tylko, jeśli jednocześnie są też tacy, co zdają w starej
+    czyDwieFormuly = all(c(FALSE, TRUE) %in% czesciEgzaminow$czy_sf)
+    if (czyDwieFormuly) {
+      sufiksNF = "nf"
+    } else {
+      sufiksNF = ""
+    }
     # ew. tworzenie zmiennych opisujących wybór tematów
     if (grepl(";m_(jp|h);", opis)) {
       src = polacz()
@@ -222,7 +234,7 @@ skaluj_matura = function(rok, processors = 2, opis = "skalowanie do EWD",
                                    c("kryterium_temp", "kryterium"))) %>%
           select_(~kryterium, ~kryterium_temp)
       )
-      # następnie odfiltorowujemy tylko rozprawki, i wracamy z tą informacją
+      # następnie odfiltrowujemy tylko rozprawki, i wracamy z tą informacją
       # na poziom elemntów skali (a więc pseudokryteriów, jeśli takie były)
       kryteriaRozprawki = suppressMessages(
         pobierz_kryteria_oceny(src) %>%
@@ -266,7 +278,7 @@ skaluj_matura = function(rok, processors = 2, opis = "skalowanie do EWD",
         )
         maskaTematy = vector(mode = "list", length = nrow(tematy))
         names(maskaTematy) = paste0("t", mapowanieNr[tematy$temat],
-                                    ifelse(zadaniaTematy$czy_sf[j], "", "nf"),
+                                    ifelse(zadaniaTematy$czy_sf[j], "", sufiksNF),
                                     "_", sub("^m_", "", tematy$prefiks))
         for (k in 1:nrow(tematy)) {
           maskaZmienne =
@@ -292,37 +304,36 @@ skaluj_matura = function(rok, processors = 2, opis = "skalowanie do EWD",
       rm(maskaTematy, kryteriaRozprawki, zadaniaTematy, tematy)
     }
     zmienneTematy = names(dane)[grep("^[t][[:digit:]](nf|)_.+$", names(dane))]
-    # dołączanie zmiennych opisujących grupowanie i przystępowanie do przedmiotów
-    if (grepl(";m_jp;", opis)) {
-      zmienneGrupujace = c("typ_szkoly", "s_pol_r", "czy_sf")
-    } else if (grepl(";m_m;", opis)) {
-      zmienneGrupujace = c("typ_szkoly", "s_mat_r", "czy_sf")
-    } else {
-      zmienneGrupujace = c("typ_szkoly", "czy_sf")
-    }
-    czesci = unique(czesciEgzaminow$prefiks)
-    wyborCzesci = as.data.frame(matrix(nrow = nrow(dane), ncol = length(czesci),
-                                       dimnames = list(NULL, czesci)))
-    for (j in czesci) {
-      temp = dane[, filter_(czesciEgzaminow, ~prefiks == j)$kryterium]
-      wyborCzesci[[j]] = as.numeric(rowSums(!is.na(temp)) > 0)
+    # dołączanie zmiennych opisujących przystępowanie do przedmiotów
+    czesci = select_(czesciEgzaminow, ~prefiks, ~czy_sf) %>% distinct()
+    wyborCzesci = as.data.frame(matrix(nrow = nrow(dane), ncol = nrow(czesci)))
+    colnames(wyborCzesci) = paste0("s", ifelse(czesci$czy_sf, "", sufiksNF),
+                                   "_", sub("^m_", "", czesci$prefiks))
+    for (j in 1:nrow(czesci)) {
+      temp = dane[, suppressMessages(semi_join(czesciEgzaminow, czesci[j, ]))$kryterium]
+      wyborCzesci[, j] = as.numeric(rowSums(!is.na(temp)) > 0)
     }
     rm(temp)
-    names(wyborCzesci) = sub("m_", "s_", names(wyborCzesci))
-    wyborCzesci = wyborCzesci[, !(names(wyborCzesci) %in% c("s_pol_p", "s_mat_p")),
+    wyborCzesci = wyborCzesci[, -grep("^s(nf|)_(pol|mat)_p$", names(wyborCzesci)),
                               drop = FALSE]
     zmienneSelekcja = names(wyborCzesci)
     dane = cbind(dane, wyborCzesci)
     rm(wyborCzesci)
-    czyStaraFormula = unique(czesciEgzaminow$czy_sf)
-    if (length(czyStaraFormula) > 1) {
+    # ew. dołączenia zmiennej opisującej, w jakiej uczeń zdawał formule (2015 r.)
+    if (czyDwieFormuly) {
       maskaZmienne = setdiff(filter_(czesciEgzaminow, ~czy_sf)$kryterium,
                              filter_(czesciEgzaminow, ~!czy_sf)$kryterium)
       temp = dane[, maskaZmienne]
       dane = cbind(dane, czy_sf = rowSums(!is.na(temp)) > 0)
       rm(temp)
+    }
+    # dołączanie zmiennych opisujących grupowanie
+    if (grepl(";m_(jp|m);", opis)) {
+      zmienneGrupujace = intersect(c("typ_szkoly", "s_pol_r", "snf_pol_r",
+                                     "s_mat_r", "snf_mat_r", "czy_sf"),
+                                   names(dane))
     } else {
-      zmienneGrupujace = setdiff(zmienneGrupujace, "czy_sf")
+      zmienneGrupujace = intersect(c("typ_szkoly", "czy_sf"), names(dane))
     }
     grupy = distinct(dane[, zmienneGrupujace, drop = FALSE])
     for (j in ncol(grupy):1) {
@@ -336,10 +347,11 @@ skaluj_matura = function(rok, processors = 2, opis = "skalowanie do EWD",
     grupy = cbind(grupy, gr_tmp1 = 1:nrow(grupy))
     # ładne nazwy grup
     if (grepl(";m_(jp|m);", opis)) {
-      nazwaZmPR = names(dane)[grepl("^s_(mat|pol)_r$", names(dane))]
+      nazwyZmPR = names(dane)[grepl("^s(nf|)_(mat|pol)_r$", names(dane))]
       grupy = within(grupy, {
         grupa = paste0(get("typ_szkoly"), " ",
-                       ifelse(get(nazwaZmPR), "PP i PR", "tylko PP"))
+                       ifelse(apply(grupy[, nazwyZmPR, drop = FALSE], 1, sum) > 0,
+                              "PP i PR", "tylko PP"))
       })
     } else {
       grupy = within(grupy, {
@@ -434,7 +446,7 @@ skaluj_matura = function(rok, processors = 2, opis = "skalowanie do EWD",
         wartosciZakotwiczone$zmienna2[wartosciZakotwiczone$typ == "by"]
       zmienneKryteriaPoUsuwaniu = setdiff(zmienneKryteriaPoUsuwaniu,
                                           c(zmienneTematy, zmienneSelekcja))
-      # wyliczanie rzetelności empirycznych
+      # obliczanie rzetelności empirycznych
       oszacowania = suppressWarnings(suppressMessages(
         mWzorcowe[[1]][[length(mWzorcowe[[1]])]]$zapis %>%
           left_join(grupy)
@@ -491,13 +503,13 @@ skaluj_matura = function(rok, processors = 2, opis = "skalowanie do EWD",
       rm(daneWyskalowane)
       lPo = nrow(dane)
       if (lPo == 0) {
-        message("\n### Brak zdających, dla których trzeba by wyliczyć oszacowania. ###\n")
+        message("\n### Brak zdających, dla których trzeba by obliczyć oszacowania. ###\n")
         next
       } else if (lPo < lPrzed) {
-        message("\n### Wyliczanie oszacowań dla ", format(lPo, big.mark = "'"),
+        message("\n### Obliczanie oszacowań dla ", format(lPo, big.mark = "'"),
                 " zdających, ###\n    którzy ich jeszcze nie mają.")
       } else {
-        message("\n### Wyliczanie oszacowań dla wszystkich zdających ###\n")
+        message("\n### Obliczanie oszacowań dla wszystkich zdających ###\n")
       }
     }
     maskaZmienne = unique(c("id_obserwacji", "id_testu", zmienneGrupujace,

@@ -20,7 +20,7 @@
 #' wylosowana z danych przed estymacją modelu; przydatne (tylko) do testów
 #' działania funkcji
 #' @details
-#' Schemat przekodowania sum punktów na oszacowania umiejętności wyliczany jest
+#' Schemat przekodowania sum punktów na oszacowania umiejętności obliczany jest
 #' na podstawie danych wzorcowych, przy pomocy funkcji
 #' \code{\link{przewidywanie_rasch}}, a następnie na jego podstawie przypisywane
 #' są wartości przewidywane wszystkim zdającym.
@@ -91,6 +91,7 @@
 #' @seealso \code{\link[EWDskalowanie]{skaluj}},
 #' \code{\link[EWDskalowanie]{procedura_1k_1w}},
 #' \code{\link{sprawdz_wyniki_skalowania}}
+#' @importFrom stats setNames var na.omit
 #' @import EWDdane
 #' @importFrom EWDskalowanie procedura_1k_1w skaluj
 #' @export
@@ -142,7 +143,7 @@ skaluj_egz_gimn_rasch = function(rok, processors = 2,
     }
   }
   # sortujemy tak, żeby w nowej formule gh i gm były na końcu
-  parametry = parametry[order(grepl(";g[hm];", parametry$opis)), ]
+  parametry = parametry[order(grepl(";g[hm]R;", parametry$opis_skali)), ]
 
   normy = suppressMessages(
     pobierz_normy(polacz()) %>%
@@ -226,7 +227,7 @@ skaluj_egz_gimn_rasch = function(rok, processors = 2,
         egWzorcowe[[1]][[length(egWzorcowe[[1]])]]$zapis
       names(oszacowania) = sub(tolower( names(wyniki)[i]), names(wyniki)[i],
                                names(oszacowania))
-      # wyliczanie rzetelności empirycznej
+      # obliczanie rzetelności empirycznej
       rzetelnoscEmpiryczna = oszacowania[, names(wyniki)[i]]
       rzetelnoscEmpiryczna = var(rzetelnoscEmpiryczna)
       # uśrednianie oszacowań, aby były funkcją sum punktów (i przynależności do grup)
@@ -245,7 +246,6 @@ skaluj_egz_gimn_rasch = function(rok, processors = 2,
       names(temp$mapowanie) = sub(paste0("^", names(wyniki)[i], "$"),
                                   "wartosc_zr", names(temp$mapowanie))
       temp$mapowanie = temp$mapowanie[, c("wartosc", "wartosc_zr")]
-      temp$mapowanie$wartosz_zr = temp$mapowanie$wartosz_zr / sqrt(rzetelnoscEmpiryczna)
       normySkala = data.frame(id_skali = idSkali, skalowanie = skalowanie,
                               grupa = "", temp$mapowanie,
                               stringsAsFactors = FALSE)
@@ -269,7 +269,7 @@ skaluj_egz_gimn_rasch = function(rok, processors = 2,
       rm(daneWyskalowane)
       lPo = nrow(dane)
       if (lPo == 0) {
-        message("\n### Brak zdających, dla których trzeba by wyliczyć oszacowania. ###\n")
+        message("\n### Brak zdających, dla których trzeba by obliczyć oszacowania. ###\n")
         next
       } else if (lPo < lPrzed) {
         message("\n### Przypisywanie oszacowań ", format(lPo, big.mark = "'"),

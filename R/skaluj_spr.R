@@ -77,6 +77,7 @@
 #' @seealso \code{\link[EWDskalowanie]{skaluj}},
 #' \code{\link[EWDskalowanie]{procedura_1k_1w}},
 #' \code{\link{sprawdz_wyniki_skalowania}}
+#' @importFrom stats var
 #' @import EWDdane
 #' @importFrom EWDskalowanie procedura_1k_1w skaluj
 #' @export
@@ -144,7 +145,10 @@ skaluj_spr = function(rok, processors = 2, opis = "skalowanie do EWD",
   tytulWszyscy = paste0("spr", rok, " wszyscy")
   # jeśli nic w bazie nie znaleźliśmy, to robimy skalowanie wzorcowe
   if (!is.data.frame(parametry)) {
-    daneWzorcowe = filter_(dane, ~populacja_wy & !pomin_szkole & !laur_s)
+    daneWzorcowe = filter_(dane, ~populacja_wy & !pomin_szkole)
+    if (!all(is.na(dane$laur_s))) {
+      daneWzorcowe = filter_(dane, ~!laur_s)
+    }
     daneWzorcowe = daneWzorcowe[, maskaZmienne]
     if (proba > 0) {
       daneWzorcowe = daneWzorcowe[sample(nrow(daneWzorcowe), proba), ]
@@ -155,7 +159,7 @@ skaluj_spr = function(rok, processors = 2, opis = "skalowanie do EWD",
     sprWzorcowe = skaluj(daneWzorcowe, opisWzorcowe, "id_obserwacji",
                          tytul = tytulWzorcowe,
                          zmienneDolaczaneDoOszacowan = "id_testu")
-    # wyliczanie rzetelności empirycznej
+    # obliczanie rzetelności empirycznej
     rzetelnoscEmpiryczna =
       sprWzorcowe[[1]][[length(sprWzorcowe[[1]])]]$zapis[["s"]]
     rzetelnoscEmpiryczna = var(rzetelnoscEmpiryczna)
@@ -169,7 +173,7 @@ skaluj_spr = function(rok, processors = 2, opis = "skalowanie do EWD",
     zmienneKryteriaPoUsuwaniu =
       wartosciZakotwiczone$zmienna2[wartosciZakotwiczone$typ == "by"]
     rm(sprWzorcowe, daneWzorcowe)
-    message("\n### Wyliczanie oszacowań dla wszystkich zdających ###\n")
+    message("\n### Obliczanie oszacowań dla wszystkich zdających ###\n")
   } else {
     # w przeciwnym wypadku podstawiamy zapisane w bazie parametry
     # i sprawdzamy, czy ktoś już ma zapisane oszacowania
@@ -178,20 +182,20 @@ skaluj_spr = function(rok, processors = 2, opis = "skalowanie do EWD",
       zmienneKryteria[zmienneKryteria %in% unique(wartosciZakotwiczone$zmienna2)]
 
     daneWyskalowane = wczytaj_wyniki_wyskalowane(katalogWyskalowane,
-                                                 rodzajEgzaminu, idSkali)
+                                                 rodzajEgzaminu, rok, idSkali)
     lPrzed = nrow(dane)
     dane = suppressMessages(anti_join(dane, daneWyskalowane))
     lPo = nrow(dane)
     if (lPo == 0) {
-      message("\n### Brak zdających, dla których trzeba by wyliczyć oszacowania. ###\n")
+      message("\n### Brak zdających, dla których trzeba by obliczyć oszacowania. ###\n")
       wyniki = list(s = NULL)
       class(wyniki) = c(class(wyniki), "listaWynikowSkalowania")
       return(wyniki)
     } else if (lPo < lPrzed) {
-      message("\n### Wyliczanie oszacowań dla ", format(lPo, big.mark = "'"),
-              " zdających, ###\n    którzy ich jeszcze nie mają.")
+      message("\n### Obliczanie oszacowań dla ", format(lPo, big.mark = "'"),
+              " zdających, ###\n    którzy ich jeszcze nie mają.\n")
     } else {
-      message("\n### Wyliczanie oszacowań dla wszystkich zdających ###\n")
+      message("\n### Obliczanie oszacowań dla wszystkich zdających ###\n")
     }
   }
   dane = dane[, maskaZmienne]
