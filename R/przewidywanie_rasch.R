@@ -3,7 +3,7 @@
 #' Funkcja przygotowuje przeliczenie z sumy punktów na przewidywanie poziomu
 #' umiejętności z modelu IRT (żeby miało to większy sens powinna to być jakaś
 #' odmiana modelu Rascha).
-#' @param sumy data frame zawierający id_obserwacji i wyliczone sumy punktów
+#' @param sumy data frame zawierający id_obserwacji i obliczone sumy punktów
 #' (może to być kilka kolumn z sumami z kilku różnych części egzaminu)
 #' @param oszacowania data frame zawierający id_obserwacji i oszacowania
 #' umiejętności z modelu
@@ -26,13 +26,13 @@
 #' dokonać jakiegoś przybliżenia. Możliwe są dwa podejścia:
 #' \itemize{
 #'   \item{Wygenerować wszystkie możliwe wektory odpowiedzi, na podstawie
-#'         wyestymowanych parametrów modelu wyliczyć odpowiadające im
+#'         wyestymowanych parametrów modelu obliczyć odpowiadające im
 #'         oszacowania oraz ich wiarygodność, a następnie agregować w ramach
 #'         grup wyróżnionych ze względu na sumę punktów, z użyciem średniej
 #'         ważonej wiarygodnością profilu (a więc wartością proporcjonalną do
 #'         teoretycznej częśtości jego występowania).}
-#'   \item{Użyć oszacowań wyliczonych na bardzo dużym zbiorze danych
-#'         (rzeczywistym lub wygenerowanym metodą Monte-Carlo) i wyliczyć
+#'   \item{Użyć oszacowań obliczonych na bardzo dużym zbiorze danych
+#'         (rzeczywistym lub wygenerowanym metodą Monte-Carlo) i obliczyć
 #'         średnie (już nieważone) oszacowań w ramach grup o tej samej wartości
 #'         sumy.}
 #' }
@@ -85,6 +85,7 @@
 #'   \item{\code{odsUtraconejWariancji} Odsetek wariancji oszacowań cechy
 #'         utracony w wyniku uśredniania.}
 #' }
+#' @importFrom stats setNames cov.wt formula loess predict
 #' @import dplyr
 #' @export
 przewidywanie_rasch = function(sumy, oszacowania, maks = NULL, span = 0.2) {
@@ -119,11 +120,11 @@ przewidywanie_rasch = function(sumy, oszacowania, maks = NULL, span = 0.2) {
     summarize_(.dots = setNames(list(~mean(oszacowania)), "oszacowania"))
   # dopisywanie maksów, żeby można z nich było potem skorzystać
   # zawikłane: dla każdej z grup zdających, wyróżnionych ze względu na zestaw
-  # zdawanych części egzaminu, wyliczamy, ile mogli uzyskać maksymalnie, łacznie
+  # zdawanych części egzaminu, obliczamy, ile mogli uzyskać maksymalnie, łacznie
   # ze wszystkich części, które pisali
-  grupy = cbind(distinct(temp[, zmSumy]), maks = NA)
+  grupy = cbind(distinct(ungroup(temp[, zmSumy])), maks = NA)
   for (i in 1:nrow(grupy)) {
-    grupy$maks[1] =
+    grupy$maks[i] =
       sum(maks[names(grupy)[c(unlist(grupy[i, -ncol(grupy)]), FALSE)]])
   }
   temp = suppressMessages(left_join(temp, grupy))

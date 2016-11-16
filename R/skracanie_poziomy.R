@@ -16,6 +16,7 @@
 #' @return data frame
 #' Kolumna \code{elementy} zawiera data frame'y które mogą zostać użyte
 #' jako argument funkcji \code{\link[ZPDzapis]{edytuj_skale}}.
+#' @importFrom stats setNames
 #' @export
 skroc_skale_oceny = function(skale, katalogDane = "dane surowe/",
                              maxLPozWyk = 5, minLiczebnPozWyk = 100,
@@ -68,6 +69,7 @@ skroc_skale_oceny = function(skale, katalogDane = "dane surowe/",
 #' @return Data frame, pasujący swoją strukturą jako argument \code{elementy}
 #' do funkcji \code{edytuj_skale} z pakietu \code{ZPD} lub lista takich data
 #' frame'ów.
+#' @importFrom stats setNames na.omit
 #' @import ZPD
 #' @export
 skroc_skale_oceny_w_ramach_skali = function(x, katalogDane = "../dane surowe/",

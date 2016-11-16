@@ -106,7 +106,7 @@ Funkcja przeprowadza skalowanie czterech wskaźników osiągnięć maturalnych:
 1) humanistycznego (j. polski, historia, WOS), 2) matematyczno-przyrodniczego
 (matematyka, biologia, chemia, fizyka, geografia, informatyka),
 3) polonistycznego (j. polski), 4) matematycznego (matematyka), na potrzeby
-wyliczania trzyletnich wskaźników dla LO i techników. Wykorzystywane są
+obliczania trzyletnich wskaźników dla LO i techników. Wykorzystywane są
 wielogrupowe modele 2PL/SGRM. Grupy definiowane są albo przez wybór poziomu
 rozszerzonego i typ szkoły (LO/T) - dla wskaźników 1), i 4), albo przez
 typ szkoły (LO/T) - dla wskaźników 2), i 3).

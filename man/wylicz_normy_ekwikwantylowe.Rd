@@ -2,14 +2,14 @@
 % Please edit documentation in R/wylicz_normy_ekwikwantylowe.R
 \name{wylicz_normy_ekwikwantylowe}
 \alias{wylicz_normy_ekwikwantylowe}
-\title{Wyliczanie norm ekwikwantylowych}
+\title{Obliczanie norm ekwikwantylowych}
 \usage{
 wylicz_normy_ekwikwantylowe(egzamin, rok, katalogZDanymi, ...)
 }
 \arguments{
 \item{egzamin}{ciąg znaków: "sprawdzian" | "egzamin gimnazjalny" | "matura"}
 
-\item{rok}{liczba całkowita - rok, dla którego mają zostać wyliczone normy}
+\item{rok}{liczba całkowita - rok, dla którego mają zostać obliczone normy}
 
 \item{katalogZDanymi}{ciąg znaków - ścieżka do katalogu, w którym znajdują
 się pliki .RData z wynikami surowymi egzaminów i danymi kontekstowymi
@@ -23,7 +23,7 @@ o uczniach i szkołach ściągnięte wcześniej przy pomocy funkcji
 data table
 }
 \description{
-Funkcja służy do wyliczenia norm ekwikwantylowych na podstawie wyników
+Funkcja służy do obliczenia norm ekwikwantylowych na podstawie wyników
 egzaminów pobranych wcześniej przy pomocy funkcji
 \code{\link[EWDdane]{pobierz_wyniki_surowe}}.
 }

@@ -2,7 +2,7 @@
 #' @description
 #' Funkcja łączy, w ramach podanych skal, kryteria oceny poszczególnych zadań
 #' w pseudokryteria. Łączenie odbywa się na podstawie wartości korelacji
-#' polichorycznych, wyliczanych przy pomocy funkcji
+#' polichorycznych, obliczanych przy pomocy funkcji
 #' \code{\link[polycor]{polychor}} z pakietu \code{polycor}.
 #' @param skale wektor liczbowy z id_skali lub ciąg znaków z wyrażeniem
 #' regularnym identyfikującymi skale po kolumnie 'opis'
@@ -51,6 +51,7 @@ lacz_kryteria_z_korelacji = function(skale, katalogDane = "dane surowe/",
 #' tylko w ramach wiązek pytań/kryteriów?
 #' @return data frame, której można uzyć jako argument \code{elementy}
 #' funkcji \code{\link[ZPDzapis]{edytuj_skale}}
+#' @importFrom stats setNames
 #' @import dplyr
 #' @import reshape2
 lacz_kryteria_z_korelacji_w_ramach_skali = function(x, katalogDane, prog,
@@ -82,6 +83,8 @@ lacz_kryteria_z_korelacji_w_ramach_skali = function(x, katalogDane, prog,
 #' @param tylkoWWiazkach wartość logiczna - czy dopuszczać łączenie kryteriów
 #' tylko w ramach wiązek pytań/kryteriów?
 #' @return data frame
+#' @importFrom stats setNames na.omit ftable coef
+#' @importFrom utils combn setTxtProgressBar txtProgressBar
 #' @import ZPD
 #' @import dplyr
 #' @import polycor
@@ -111,8 +114,8 @@ lacz_kryteria_z_korelacji_w_ramach_czesci_egz = function(x, katalogDane, prog,
   x = filter_(x, ~kryterium %in% names(dane))
   message("  Wczytano dane z wynikami egzaminu.")
 
-  # wyliczanie dyskryminacji
-  message("  Wyliczanie dyskryminacji w modelu jednowymiarowym ",
+  # obliczanie dyskryminacji
+  message("  Obliczanie dyskryminacji w modelu jednowymiarowym ",
           "(może trochę potrwać...).")
   model = suppressMessages(mirt(dane, 1, TOL = 0.01, verbose = FALSE))
   dyskryminacjeTemp = unlist(lapply(coef(model), function(x) {return(x[1, 1])}))
@@ -155,8 +158,8 @@ lacz_kryteria_z_korelacji_w_ramach_czesci_egz = function(x, katalogDane, prog,
   rownames(dyskryminacje) = 0:(nrow(dyskryminacje) - 1)
   dyskryminacje[1, ] = dyskryminacjeTemp[grep("^[kp]_", names(dyskryminacjeTemp))]
 
-  # wyliczanie korelacji
-  message("  Wyliczanie ", nrow(pary), " korelacji polichorycznych ",
+  # obliczanie korelacji
+  message("  Obliczanie ", nrow(pary), " korelacji polichorycznych ",
           "(może trochę potrwać...)")
   pb = txtProgressBar(0, nrow(pary), style = 3)
   for (i in 1:nrow(pary)) {
@@ -180,7 +183,7 @@ lacz_kryteria_z_korelacji_w_ramach_czesci_egz = function(x, katalogDane, prog,
               "w grupie wszystkich par zmiennych.")
     }
   }
-  message(" Spośród wyliczonych korelacji ",
+  message(" Spośród obliczonych korelacji ",
           sum(pary$korelacja > prog, na.rm = TRUE),
           " ma(ją) wartość powyżej progu równego ",
           format(prog, digits = 3, nsmall = 3),
@@ -203,7 +206,7 @@ lacz_kryteria_z_korelacji_w_ramach_czesci_egz = function(x, katalogDane, prog,
         polychor(ftable(dane[, c(pary$kryterium[i], pary$kryterium2[i])]),
                  ML = FALSE, std.err = FALSE))  # użycie ftable pozwala uniknąć konwersji danych na factory
     }
-    # wyliczanie dyskryminacji
+    # obliczanie dyskryminacji
     maska = !(names(dane) %in% laczenia$kryterium2)
     if (sum(maska) <= 1) {
       next

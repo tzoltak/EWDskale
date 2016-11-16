@@ -77,6 +77,7 @@
 #' @seealso \code{\link[EWDskalowanie]{skaluj}},
 #' \code{\link[EWDskalowanie]{procedura_1k_1w}},
 #' \code{\link{sprawdz_wyniki_skalowania}}
+#' @importFrom stats setNames var
 #' @import EWDdane
 #' @importFrom EWDskalowanie procedura_1k_1w skaluj
 #' @export
@@ -127,7 +128,7 @@ skaluj_egz_gimn = function(rok, processors = 2, opis = "skalowanie do EWD",
     }
   }
   # sortujemy tak, żeby w nowej formule gh i gm były na końcu
-  parametry = parametry[order(grepl(";g[hm];", parametry$opis)), ]
+  parametry = parametry[order(grepl(";g[hm];", parametry$opis_skali)), ]
 
   rodzajEgzaminu = unique(parametry$rodzaj_egzaminu)
   if (length(rodzajEgzaminu) > 1) {
@@ -197,7 +198,7 @@ skaluj_egz_gimn = function(rok, processors = 2, opis = "skalowanie do EWD",
                                      processors = processors)
       egWzorcowe = skaluj(daneWzorcowe, opisWzorcowe, "id_obserwacji",
                           tytul = tytulWzorcowe, zmienneDolaczaneDoOszacowan = "id_testu")
-      # wyliczanie rzetelności empirycznej
+      # obliczanie rzetelności empirycznej
       rzetelnoscEmpiryczna =
         egWzorcowe[[1]][[length(egWzorcowe[[1]])]]$zapis[[names(wyniki)[i]]]
       rzetelnoscEmpiryczna = var(rzetelnoscEmpiryczna)
@@ -216,7 +217,7 @@ skaluj_egz_gimn = function(rok, processors = 2, opis = "skalowanie do EWD",
         zmienneKryteria = c(zmienneKryteria, zmUsuniete)
       }
       rm(egWzorcowe, daneWzorcowe)
-      message("\n### Wyliczanie oszacowań dla wszystkich zdających ###\n")
+      message("\n### Obliczanie oszacowań dla wszystkich zdających ###\n")
     } else {
       # w przeciwnym wypadku podstawiamy zapisane w bazie parametry
       # i sprawdzamy, czy ktoś już ma zapisane oszacowania
@@ -231,13 +232,13 @@ skaluj_egz_gimn = function(rok, processors = 2, opis = "skalowanie do EWD",
       rm(daneWyskalowane)
       lPo = nrow(dane)
       if (lPo == 0) {
-        message("\n### Brak zdających, dla których trzeba by wyliczyć oszacowania. ###\n")
+        message("\n### Brak zdających, dla których trzeba by obliczyć oszacowania. ###\n")
         next
       } else if (lPo < lPrzed) {
-        message("\n### Wyliczanie oszacowań dla ", format(lPo, big.mark = "'"),
+        message("\n### Obliczanie oszacowań dla ", format(lPo, big.mark = "'"),
                 " zdających, ###\n    którzy ich jeszcze nie mają.")
       } else {
-        message("\n### Wyliczanie oszacowań dla wszystkich zdających ###\n")
+        message("\n### Obliczanie oszacowań dla wszystkich zdających ###\n")
       }
     }
     dane = dane[, maskaZmienne]

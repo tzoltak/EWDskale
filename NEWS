@@ -1,5 +1,29 @@
 --------------------
-EWDskale 0.2 (2015-12-19)
+EWDskale 0.3 (16.11.2016)
+
+- Poprawione błędy:
+  - zmien_parametry_na_do_bazy() znów radzi sobie z modelami jednogrupowymi;
+  - skaluj_egz_gimn(), skaluj_egz_gimn_rasch() - głupi błąd z nazwą kolumny;
+  - skaluj_egz_gimn_rasch() niepotrzebnie po raz drugi dzieliło wartości
+    zrównane (w mapowaniu suma-wartość zrównana) przez pierwiastek z rzetelności
+    empirycznej;
+  - skaluj_matura() generuje oddzielne zmienne opisujące wybór przedmiotów dla
+    zdających w "starej" i "nowej" formule w 2015 r.; dobrze obsługuje też
+    tematy wypracowań w 2015 r.
+
+- Nowe funkcjonalności:
+  - skaluj_spr() radzi sobie z danymi, w których brak danych o laureatach
+    (tj. danymi z CKE - są wykorzystywane do skalowania spr. 2013);
+  - sprawdz_wyniki_skalowania() nie uwzględnia na wykresie (pseudo)kryteriów
+    o ekstremalnych wartościach trudności (dotyczy to głównie trudności
+    "zadań" opisuących wybieralność tematóW z języka polskiego), lecz wyświetla
+    je oddzielnie w tabelce;
+  - sprawdz_wyniki_skalowania(), o ile jest w stanie znaleźć i wczytać plik
+    z danymi kontekstowymi, oblicza i wyświetla średnie i odch. std. wyników
+    wśród uczniów LO i T (w grupie "wzorcowej").
+
+--------------------
+EWDskale 0.2 (19.12.2015)
 
 Funkcje przeniesione z pakietu EWDskalowanie (i, co do zasady, gruntownie
 przepisane):
@@ -19,7 +43,7 @@ Nowe funkcje:
 - zmien_parametry_na_do_bazy();
 
 --------------------
-Publikacja EWDskale 0.1 (2015-08-30)
+Publikacja EWDskale 0.1 (30.08.2015)
 
 Nowe funkcje:
 - wylicz_normy_ekwikwantylowe();

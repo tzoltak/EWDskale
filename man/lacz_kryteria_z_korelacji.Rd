@@ -29,7 +29,7 @@ funkcji \code{\link[ZPDzapis]{edytuj_skale}}
 \description{
 Funkcja łączy, w ramach podanych skal, kryteria oceny poszczególnych zadań
 w pseudokryteria. Łączenie odbywa się na podstawie wartości korelacji
-polichorycznych, wyliczanych przy pomocy funkcji
+polichorycznych, obliczanych przy pomocy funkcji
 \code{\link[polycor]{polychor}} z pakietu \code{polycor}.
 }
 

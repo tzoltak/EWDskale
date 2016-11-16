@@ -10,6 +10,7 @@
 #' @return lista, której każdy element jest dwuelemntową listą, zawierającą id
 #' skali oraz data frame, której można użyć jako argument \code{elementy}
 #' funkcji \code{\link[ZPDzapis]{edytuj_skale}}
+#' @importFrom stats setNames
 #' @import ZPD
 #' @export
 lacz_kryteria_z_nr_zadan = function(skale) {
@@ -39,6 +40,7 @@ lacz_kryteria_z_nr_zadan = function(skale) {
 #' @param x data frame opisujący kryteria oceny w ramach skali
 #' @return data frame, której można uzyć jako argument \code{elementy}
 #' funkcji \code{\link[ZPDzapis]{edytuj_skale}}
+#' @importFrom stats setNames
 #' @import dplyr
 #' @import reshape2
 lacz_kryteria_z_nr_zadan_w_ramach_skali = function(x) {

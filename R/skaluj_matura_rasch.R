@@ -22,7 +22,7 @@
 #' wylosowana z danych przed estymacją modelu; przydatne (tylko) do testów
 #' działania funkcji
 #' @details
-#' Schemat przekodowania sum punktów na oszacowania umiejętności wyliczany jest
+#' Schemat przekodowania sum punktów na oszacowania umiejętności obliczany jest
 #' na podstawie danych wzorcowych, przy pomocy funkcji
 #' \code{\link{przewidywanie_rasch}}, a następnie na jego podstawie przypisywane
 #' są wartości przewidywane wszystkim zdającym.
@@ -96,6 +96,7 @@
 #' @seealso \code{\link[EWDskalowanie]{skaluj}},
 #' \code{\link[EWDskalowanie]{procedura_1k_1w}},
 #' \code{\link{sprawdz_wyniki_skalowania}}
+#' @importFrom stats setNames
 #' @import EWDdane
 #' @importFrom EWDskalowanie procedura_1k_1w skaluj
 #' @export
@@ -123,7 +124,7 @@ skaluj_matura_rasch = function(rok, processors = 2,
     stopifnot(length(skala) == 1)
     doPrezentacji = NA
   }
-  if (rok > 2015) {
+  if (rok > 2016) {
     stop("Funkcja nie obsługuje skalowania dla egzaminów po 2015 r.")
   }
 
@@ -345,7 +346,7 @@ skaluj_matura_rasch = function(rok, processors = 2,
                                names(oszacowania))
       oszacowania = oszacowania[, c("id_obserwacji", "grupa", names(wyniki)[i],
                                     "id_testu")]
-      # wyliczanie rzetelności empirycznych
+      # obliczanie rzetelności empirycznych
       rzetelnoscEmpiryczna = oszacowania[, c("grupa", names(wyniki)[i])]
       names(rzetelnoscEmpiryczna) = sub(names(wyniki)[i], "oszacowanie",
                                         names(rzetelnoscEmpiryczna))
@@ -410,7 +411,7 @@ skaluj_matura_rasch = function(rok, processors = 2,
       rm(daneWyskalowane)
       lPo = nrow(dane)
       if (lPo == 0) {
-        message("\n### Brak zdających, dla których trzeba by wyliczyć oszacowania. ###\n")
+        message("\n### Brak zdających, dla których trzeba by obliczyć oszacowania. ###\n")
         next
       } else if (lPo < lPrzed) {
         message("\n### Przypisywanie oszacowań ", format(lPo, big.mark = "'"),

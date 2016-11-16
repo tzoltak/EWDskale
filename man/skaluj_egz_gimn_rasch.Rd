@@ -106,7 +106,7 @@ Funkcja przeprowadza skalowanie egzaminu gimnazjalnego z użyciem modelu
 Rascha (na potrzeby maturalnego Kalkulatora EWD).
 }
 \details{
-Schemat przekodowania sum punktów na oszacowania umiejętności wyliczany jest
+Schemat przekodowania sum punktów na oszacowania umiejętności obliczany jest
 na podstawie danych wzorcowych, przy pomocy funkcji
 \code{\link{przewidywanie_rasch}}, a następnie na jego podstawie przypisywane
 są wartości przewidywane wszystkim zdającym.

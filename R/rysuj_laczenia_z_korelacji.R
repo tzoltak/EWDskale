@@ -51,6 +51,7 @@ rysuj_laczenia_z_korelacji = function(x, wielkoscTekstu = 1, prog = NULL) {
 #' @param x pojedynczy wiersz obiektu klasy \code{wynikLaczKryteriaZKorelacji}
 #' @param wielkoscTekstu bazowa wielkość tekstu w \code{pts}
 #' @return data frame
+#' @importFrom graphics plot
 #' @import dplyr
 #' @import ggplot2
 rysuj_laczenia_z_korelacji_w_ramach_czesci = function(x, wielkoscTekstu = 12) {
@@ -61,6 +62,13 @@ rysuj_laczenia_z_korelacji_w_ramach_czesci = function(x, wielkoscTekstu = 12) {
   egzamin = mutate(egzamin, wykres = NA, elementy = NA)
   tytul = with(x, paste0(rodzaj_egzaminu, " ", rok, ", część ",
                          czesc_egzaminu, "\n", "id_skali: ", id_skali))
+  if (is.null(x$laczenia[[1]]$laczenia)) {
+    cat(tytul, "\n", "Brak łączeń do zbadania.\n\n", sep = "")
+    x = egzamin
+    x$wykres[1] = list(NULL)
+    x$elementy[1] = list(NULL)
+    return(x)
+  }
   with(x, cat(tytul, "\n", "zbadano ", nrow(laczenia[[1]]$laczenia),
                   " łączeń/nia/nie\n\n", sep = ""))
   if (nrow(x$laczenia[[1]]$laczenia) == 0) {
