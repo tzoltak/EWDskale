@@ -134,7 +134,7 @@ lacz_kryteria_z_korelacji_w_ramach_czesci_egz = function(x, katalogDane, prog,
       warning("Nie zdefiniowano żadnych wiązek.", immediate. = TRUE)
       return(list(laczenia = NULL, dyskryminacje = NULL))
     }
-  } else {  # usuwanie par, dla których jest zbyt wiele braków w danych
+  } else {# usuwanie par, dla których jest zbyt wiele braków w danych
     message("  Sprawdzanie liczby obserwacji dla poszczególnych par, ",
             "(może trochę potrwać...)")
     pary = cbind(pary, odsWD = NA)

@@ -35,6 +35,13 @@ pobierz_kryteria_do_laczenia = function(skale, nf = FALSE) {
   kryteria = suppressMessages(
     pobierz_skale(src, doPrezentacji = NA) %>%
       filter_(~id_skali %in% skale) %>%
+      # jeśli ze skalą jest powiązany test "nieegzaminacyjny" - bierzemy tylko go
+      left_join(pobierz_testy(src)) %>%
+      group_by_(~id_skali) %>%
+      mutate_(.dots = list(tylko_testy_egazminu = ~all(czy_egzamin))) %>%
+      filter_(~czy_egzamin == tylko_testy_egazminu) %>%
+      # filter_(~czy_egzamin) %>%
+      # koniec j.w.
       select_(~id_skali, ~opis_skali, ~id_testu, ~rodzaj_egzaminu,
               ~czesc_egzaminu, ~rok) %>%
       inner_join(pobierz_kryteria_oceny(src)) %>%
