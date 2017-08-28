@@ -101,4 +101,3 @@ w danych (w ramach danej grupy) a nie większym od odpowiedniej wartości
 parametru \code{maks} przypisane zostaną przewidywania odpowiadające tej
 maksymalnej wartości sumy, występującej w danych (w ramach danej grupy).
 }
-

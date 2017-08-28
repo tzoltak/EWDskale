@@ -19,4 +19,3 @@ funkcja nie zwraca żadnych wartości
 Funkcja wyrysowuje zestaw wykresów diagnostycznych pozwalających przyjrzeć
 się wynikom uzyskanym z modelu skalowania.
 }
-

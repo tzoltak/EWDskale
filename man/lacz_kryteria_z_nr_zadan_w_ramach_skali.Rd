@@ -16,4 +16,3 @@ funkcji \code{\link[ZPDzapis]{edytuj_skale}}
 \description{
 Koń roboczy wywoływany przez \code{\link{lacz_kryteria_z_nr_zadan}}.
 }
-

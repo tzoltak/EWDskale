@@ -1,4 +1,13 @@
 --------------------
+EWDskale 0.3.1 (??.??.2017)
+
+- Poprawione błędy:
+  - lacz_kryteria_z_korelacji_w_ramach_czesci_egz() importuje metodę coef()
+    z pakietu mirt (w którym się pojawiła), a nie z pakietu stats;
+  - wczytaj_wyniki_surowe() rzuca ostrzeżeniem, jeśli nie uda jej się przyłączyć
+    danych kontekstowych.
+
+--------------------
 EWDskale 0.3 (16.11.2016)
 
 - Poprawione błędy:

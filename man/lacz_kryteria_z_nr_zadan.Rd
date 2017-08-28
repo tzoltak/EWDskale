@@ -22,4 +22,3 @@ Funkcja łączy, w ramach podanych skal, kryteria oceny poszczególnych zadań
 Jeśli w ramach skali są już zdefiniowane jakieś pseudokryteria, to nie
 będą one w ogóle uwzględniane w procesie łączenia.
 }
-

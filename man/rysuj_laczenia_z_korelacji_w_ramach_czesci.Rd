@@ -17,4 +17,3 @@ data frame
 \description{
 Koń roboczy dla \code{\link{rysuj_laczenia_z_korelacji}}.
 }
-

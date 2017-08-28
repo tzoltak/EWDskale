@@ -33,4 +33,3 @@ frame'ów.
 \description{
 Koń roboczy wywoływany przez \code{\link{skroc_skale_oceny}}.
 }
-

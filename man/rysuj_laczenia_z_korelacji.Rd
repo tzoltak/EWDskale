@@ -26,4 +26,3 @@ w zakresie danej części egzaminu), a kolejne odpowiednio kolejne łączenia.
 Funkcja wizualizuje skutki łączeń kryteriów oceny, będących efektem użycia
 funkcji \code{\link{lacz_kryteria_z_korelacji}} dla dyskryminacji zadań.
 }
-

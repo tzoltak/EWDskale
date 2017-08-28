@@ -24,4 +24,3 @@ data frame (data table)
 Funkcja wczytuje wyskalowane wyniki egzaminu, zapisane wcześniej na dysku
 funkcją \code{\link[EWDdane]{pobierz_wyniki_wyskalowane}} z pakietu EWDdane.
 }
-

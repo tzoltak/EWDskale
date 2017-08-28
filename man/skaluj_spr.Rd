@@ -100,4 +100,3 @@ Funkcja przeprowadza skalowanie wyników sprawdzianu.
 \code{\link[EWDskalowanie]{procedura_1k_1w}},
 \code{\link{sprawdz_wyniki_skalowania}}
 }
-
