@@ -10,13 +10,13 @@ Description: Functions for Educational Value-Added data import/export.
 Depends:
     R (>= 3.0.0),
     polycor,
-    mirt,
+    mirt (>= 1.25),
     EWDdane (>= 0.9),
     ggplot2
 Imports:
-    ZPD (>= 1.5.4),
-    dplyr,
-    reshape2,
+    ZPD (>= 1.5.6),
+    dplyr (>= 0.7.3),
+    reshape2 (>= 1.4.2),
     EWDskalowanie (>= 1.0.0)
 Suggests:
     testthat,
