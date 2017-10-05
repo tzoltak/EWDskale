@@ -1,5 +1,9 @@
 --------------------
-EWDskale 0.3.1 (??.??.2017)
+EWDskale 0.3.1 (05.10.2017)
+
+- Uaktualnienia:
+  - skaluj_matura() i skaluj_matura_rasch() zgadzają się skalować
+    wyniki z 2017 r.
 
 - Poprawione błędy:
   - lacz_kryteria_z_korelacji_w_ramach_czesci_egz() importuje metodę coef()
