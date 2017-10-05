@@ -83,8 +83,9 @@ lacz_kryteria_z_korelacji_w_ramach_skali = function(x, katalogDane, prog,
 #' @param tylkoWWiazkach wartość logiczna - czy dopuszczać łączenie kryteriów
 #' tylko w ramach wiązek pytań/kryteriów?
 #' @return data frame
-#' @importFrom stats setNames na.omit ftable coef
+#' @importFrom stats setNames na.omit ftable
 #' @importFrom utils combn setTxtProgressBar txtProgressBar
+#' @importFrom mirt coef
 #' @import ZPD
 #' @import dplyr
 #' @import polycor
@@ -133,7 +134,7 @@ lacz_kryteria_z_korelacji_w_ramach_czesci_egz = function(x, katalogDane, prog,
       warning("Nie zdefiniowano żadnych wiązek.", immediate. = TRUE)
       return(list(laczenia = NULL, dyskryminacje = NULL))
     }
-  } else {  # usuwanie par, dla których jest zbyt wiele braków w danych
+  } else {# usuwanie par, dla których jest zbyt wiele braków w danych
     message("  Sprawdzanie liczby obserwacji dla poszczególnych par, ",
             "(może trochę potrwać...)")
     pary = cbind(pary, odsWD = NA)

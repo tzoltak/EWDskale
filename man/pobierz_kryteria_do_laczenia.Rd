@@ -23,4 +23,3 @@ przygotowuje obiekt z kryteriami oceny, który obrabiają potem funkcje
 \code{\link{lacz_kryteria_z_nr_zadan}} lub
 \code{\link{lacz_kryteria_z_korelacji}}.
 }
-

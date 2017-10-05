@@ -36,4 +36,3 @@ zwracanego przez funkcję \code{\link[EWDskalowanie]{skaluj}} na format,
 w jakim wartości parametrów zapisywane są w bazie i na klasyczną,
 jednowymiarowąz parametryzację IRT.
 }
-

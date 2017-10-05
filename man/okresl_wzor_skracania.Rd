@@ -33,4 +33,3 @@ Funkcja dokonuje skrótu skali oceny (pseudo)kryterium w oparciu o rozkład jego
 wyników w grupie kalibracyjnej i informację o wszystkich możliwych wartościach,
 jakie może przyjąć dane (pseudo)kryterium.
 }
-

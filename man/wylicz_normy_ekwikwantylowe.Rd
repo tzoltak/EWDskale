@@ -37,4 +37,3 @@ Dodatkowe uproszczenie polega na tym, że w zwracanym data frame'ie kolumna
 \code{skalowanie} jest zawsze wypełniona wartością \code{1}, co w ogólności
 nie zawsze musi być słuszne.
 }
-

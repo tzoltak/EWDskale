@@ -32,4 +32,3 @@ w pseudokryteria. Łączenie odbywa się na podstawie wartości korelacji
 polichorycznych, obliczanych przy pomocy funkcji
 \code{\link[polycor]{polychor}} z pakietu \code{polycor}.
 }
-

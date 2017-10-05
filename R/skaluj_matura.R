@@ -126,8 +126,8 @@ skaluj_matura = function(rok, processors = 2, opis = "skalowanie do EWD",
     stopifnot(length(skala) == 1)
     doPrezentacji = NA
   }
-  if (rok > 2016) {
-    stop("Funkcja nie obsługuje skalowania dla egzaminów po 2016 r.")
+  if (rok > 2017) {
+    stop("Funkcja nie obsługuje skalowania dla egzaminów po 2017 r.")
   }
 
   # sprawdzanie, czy w bazie są zapisane skala i jakieś skalowanie z parametrami

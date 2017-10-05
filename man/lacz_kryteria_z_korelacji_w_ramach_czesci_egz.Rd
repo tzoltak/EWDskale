@@ -27,4 +27,3 @@ data frame
 Koń roboczy wywoływany przez
 \code{\link{lacz_kryteria_z_korelacji_w_ramach_skali}}.
 }
-
