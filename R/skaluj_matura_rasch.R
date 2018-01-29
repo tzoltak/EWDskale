@@ -215,7 +215,6 @@ skaluj_matura_rasch = function(rok, processors = 2,
         select_(~-arkusz) %>%
         distinct()
     )
-    rozlacz(src)
     # dołączanie zmiennych do grupowania
     czesci = unique(czesciEgzaminow$prefiks)
     wyborCzesci = as.data.frame(matrix(nrow = nrow(dane), ncol = length(czesci),

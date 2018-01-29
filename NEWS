@@ -1,4 +1,12 @@
 --------------------
+EWDskale 0.3.2 (29.01.2018)
+
+- Uaktualnienia:
+  - podniesiono wersję pakietu ZPD w zależnościach i dostosowano zarządzanie
+    połączeniami z bazą danych do sposobu działania zmienionego backendu,
+    z którego korzysta teraz pakiet ZPD.
+
+--------------------
 EWDskale 0.3.1 (05.10.2017)
 
 - Uaktualnienia:
