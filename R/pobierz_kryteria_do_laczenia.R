@@ -18,7 +18,6 @@ pobierz_kryteria_do_laczenia = function(skale, nf = FALSE) {
             is.logical(nf), length(nf) == 1)
   # pobieranie danych o kryteriach
   src = polacz()
-  on.exit(rozlacz(src))
   if (is.character(skale)) {
     skale = pobierz_skale(src, doPrezentacji = NA) %>%
       collect() %>%

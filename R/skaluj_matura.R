@@ -206,7 +206,6 @@ skaluj_matura = function(rok, processors = 2, opis = "skalowanie do EWD",
         select_(~-arkusz) %>%
         distinct()
     )
-    rozlacz(src)
     # sufiks służący do wyróżniania param. w grupie zdających w nowej formule
     #   ale tylko, jeśli jednocześnie są też tacy, co zdają w starej
     czyDwieFormuly = all(c(FALSE, TRUE) %in% czesciEgzaminow$czy_sf)
@@ -263,7 +262,6 @@ skaluj_matura = function(rok, processors = 2, opis = "skalowanie do EWD",
                                    c("temat", "zadanie"))) %>%
           distinct()
       )
-      rozlacz(src)
       zadaniaTematy =
         select_(kryteriaRozprawki, ~czesc_egzaminu, ~czy_sf, ~zadanie) %>%
         distinct()
