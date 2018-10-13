@@ -1,4 +1,12 @@
 --------------------
+EWDskale 0.3.3 (13.10.2018)
+
+- Uaktualnienia:
+  - skaluj_matura() i skaluj_matura_rasch() zgadzają się skalować
+    wyniki z 2018 r.;
+  - podniesiono wersję pakietów w zależnościach.
+
+--------------------
 EWDskale 0.3.2 (29.01.2018)
 
 - Uaktualnienia:
