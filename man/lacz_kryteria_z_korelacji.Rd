@@ -4,8 +4,8 @@
 \alias{lacz_kryteria_z_korelacji}
 \title{Laczenie kryteriow na podstawie korelacji polichorycznych}
 \usage{
-lacz_kryteria_z_korelacji(skale, katalogDane = "dane surowe/", prog = 0.5,
-  tylkoWWiazkach = TRUE)
+lacz_kryteria_z_korelacji(skale, katalogDane = "dane surowe/",
+  prog = 0.5, tylkoWWiazkach = TRUE)
 }
 \arguments{
 \item{skale}{wektor liczbowy z id_skali lub ciąg znaków z wyrażeniem

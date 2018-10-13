@@ -4,8 +4,8 @@
 \alias{wczytaj_wyniki_surowe}
 \title{Wczytywanie wynikow egzaminow zapisanych na dysku}
 \usage{
-wczytaj_wyniki_surowe(katalogDane, rodzajEgzaminu, czescEgzaminu, rok, idSkali,
-  kryteria = NULL)
+wczytaj_wyniki_surowe(katalogDane, rodzajEgzaminu, czescEgzaminu, rok,
+  idSkali, kryteria = NULL)
 }
 \arguments{
 \item{katalogDane}{ciąg znaków - ścieżka do katalogu, w którym znajdują
