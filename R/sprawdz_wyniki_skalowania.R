@@ -56,7 +56,7 @@ sprawdz_wyniki_skalowania_konstruktu = function(model) {
   )
   # tytul na wykresy
   tytul = pobierz_skale(polacz(), doPrezentacji = NA) %>%
-    filter_(~id_skali == model$skalowania$id_skali) %>%
+    filter_(~id_skali == local(model$skalowania$id_skali)) %>%
     select_(~opis_skali, ~rok) %>%
     collect() %>%
     distinct()
@@ -114,7 +114,7 @@ sprawdz_wyniki_skalowania_konstruktu = function(model) {
     parametry = suppressMessages(
       pobierz_kryteria_oceny(polacz()) %>%
         select_(~id_skali, ~kolejnosc_w_skali, ~kryterium) %>%
-        filter_(~id_skali == parametry$id_skali[1]) %>%
+        filter_(~id_skali == local(parametry$id_skali[1])) %>%
         collect() %>%
         distinct() %>%
         right_join(parametry)

@@ -99,7 +99,7 @@ skroc_skale_oceny_w_ramach_skali = function(x, katalogDane = "../dane surowe/",
   # pobieranie schematów punktowania zadań
   kryteria = suppressMessages(
     pobierz_kryteria_oceny(polacz(), testy = FALSE) %>%
-      filter_(~id_skali == x$id_skali) %>%
+      filter_(~id_skali == local(x$id_skali)) %>%
       arrange_(~kolejnosc_w_skali) %>%
       select_(~kryterium, ~schemat_pkt) %>%
       distinct() %>%

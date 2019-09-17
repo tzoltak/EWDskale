@@ -1,4 +1,13 @@
 --------------------
+EWDskale 0.3.4 (16.09.2019)
+
+- Uaktualnienia:
+  - skaluj_matura() i skaluj_matura_rasch() zgadzają się skalować
+    wyniki z 2019 r.;
+  - skracanie_poziomy() i sprawdz_wyniki_skalowania() współpracują poprawnie
+    z pakietem dbplyr w wersji 1.4.0 lub nowszej.
+
+--------------------
 EWDskale 0.3.3 (13.10.2018)
 
 - Uaktualnienia:
