@@ -124,8 +124,8 @@ skaluj_matura_rasch = function(rok, processors = 2,
     stopifnot(length(skala) == 1)
     doPrezentacji = NA
   }
-  if (rok > 2018) {
-    stop("Funkcja nie obsługuje skalowania dla egzaminów po 2018 r.")
+  if (rok > 2019) {
+    stop("Funkcja nie obsługuje skalowania dla egzaminów po 2019 r.")
   }
 
   # sprawdzanie, czy w bazie są zapisane skala i jakieś skalowanie z parametrami
