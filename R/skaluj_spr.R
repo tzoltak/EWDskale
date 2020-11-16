@@ -145,9 +145,9 @@ skaluj_spr = function(rok, processors = 2, opis = "skalowanie do EWD",
   tytulWszyscy = paste0("spr", rok, " wszyscy")
   # jeśli nic w bazie nie znaleźliśmy, to robimy skalowanie wzorcowe
   if (!is.data.frame(parametry)) {
-    daneWzorcowe = filter_(dane, ~populacja_wy & !pomin_szkole)
+    daneWzorcowe = filter(dane, .data$populacja_wy & !.data$pomin_szkole)
     if (!all(is.na(dane$laur_s))) {
-      daneWzorcowe = filter_(dane, ~!laur_s)
+      daneWzorcowe = filter(dane, !.data$laur_s)
     }
     daneWzorcowe = daneWzorcowe[, maskaZmienne]
     if (proba > 0) {
@@ -189,7 +189,7 @@ skaluj_spr = function(rok, processors = 2, opis = "skalowanie do EWD",
     if (lPo == 0) {
       message("\n### Brak zdających, dla których trzeba by obliczyć oszacowania. ###\n")
       wyniki = list(s = NULL)
-      class(wyniki) = c(class(wyniki), "listaWynikowSkalowania")
+      class(wyniki) = c("listaWynikowSkalowania", class(wyniki))
       return(wyniki)
     } else if (lPo < lPrzed) {
       message("\n### Obliczanie oszacowań dla ", format(lPo, big.mark = "'"),
@@ -234,10 +234,10 @@ skaluj_spr = function(rok, processors = 2, opis = "skalowanie do EWD",
       zmien_parametry_na_do_bazy(wartosciZakotwiczone, idSkali, skalowanie,
                                  rzetelnoscEmpiryczna)
   }
-  class(wyniki) = c(class(wyniki), "wynikiSkalowania")
+  class(wyniki) = c("wynikiSkalowania", class(wyniki))
   attributes(wyniki)$dataSkalowania = Sys.time()
   wyniki = list("s" = wyniki)
-  class(wyniki) = c(class(wyniki), "listaWynikowSkalowania")
+  class(wyniki) = c("listaWynikowSkalowania", class(wyniki))
   if (zapisz) {
     nazwaObiektu = paste0("s", rok, "Skalowanie")
     assign(nazwaObiektu, wyniki)

@@ -31,12 +31,12 @@ lacz_kryteria_z_korelacji = function(skale, katalogDane = "dane surowe/",
   }
 
   kryteria = pobierz_kryteria_do_laczenia(skale)
-  temp = group_by_(kryteria, ~id_skali) %>%
-    do_(.dots = list(~lacz_kryteria_z_korelacji_w_ramach_skali(.,
-                                                               katalogDane,
-                                                               prog,
-                                                               tylkoWWiazkach)))
-  class(temp) = append(class(temp), "wynikLaczKryteriaZKorelacji")
+  temp = group_by(kryteria, .data$id_skali) %>%
+    summarise(lacz_kryteria_z_korelacji_w_ramach_skali(cur_data_all(),
+                                                       katalogDane,
+                                                       prog,
+                                                       tylkoWWiazkach))
+  class(temp) = c("wynikLaczKryteriaZKorelacji", class(temp))
   return(temp)
 }
 #' @title Laczenie kryteriow na podstawie korelacji polichorycznych
@@ -63,12 +63,12 @@ lacz_kryteria_z_korelacji_w_ramach_skali = function(x, katalogDane, prog,
   stopifnot(dir.exists(katalogDane))
 
   message("Skala '", x$opis_skali[1], "', id_skali = ", x$id_skali[1], ":")
-  x = group_by_(x, ~rodzaj_egzaminu, ~czesc_egzaminu, ~rok) %>%
-    do_(.dots = setNames(list(~lacz_kryteria_z_korelacji_w_ramach_czesci_egz(.,
-                                                                             katalogDane,
-                                                                             prog,
-                                                                             tylkoWWiazkach)),
-                         "laczenia"))
+  x = group_by(x, .data$rodzaj_egzaminu, .data$czesc_egzaminu, .data$rok) %>%
+    summarise(laczenia =
+                lacz_kryteria_z_korelacji_w_ramach_czesci_egz(cur_data_all(),
+                                                              katalogDane,
+                                                              prog,
+                                                              tylkoWWiazkach))
   return(x)
 }
 #' @title Laczenie kryteriow na podstawie korelacji polichorycznych
@@ -103,16 +103,16 @@ lacz_kryteria_z_korelacji_w_ramach_czesci_egz = function(x, katalogDane, prog,
           x$czesc_egzaminu[1], ":")
   # wczytywanie danych z wynikami egzaminu
   dane = wczytaj_wyniki_surowe(katalogDane, x$rodzaj_egzaminu[1],
-                              x$czesc_egzaminu[1], x$rok[1], x$id_skali[1],
-                              x$kryterium)
-  dane = filter_(dane, ~populacja_wy & !pomin_szkole)
+                               x$czesc_egzaminu[1], x$rok[1], x$id_skali[1],
+                               x$kryterium)
+  dane = filter(dane, .data$populacja_wy & !.data$pomin_szkole)
   dane = dane[, grep("^[kp]_", names(dane))]
   # radzenie sobie z syfem, jaki przytrafia się w danych
   dane = subset(dane, ncol(dane) > rowSums(is.na(dane)))
   dane = dane[, unlist(lapply(dane, function(x) {return(!all(is.na(x)))}))]
   dane = dane[, unlist(lapply(dane,
                               function(x) {return(length(unique(na.omit(x))) > 1)}))]
-  x = filter_(x, ~kryterium %in% names(dane))
+  x = filter(x, .data$kryterium %in% names(dane))
   message("  Wczytano dane z wynikami egzaminu.")
 
   # obliczanie dyskryminacji
@@ -124,12 +124,12 @@ lacz_kryteria_z_korelacji_w_ramach_czesci_egz = function(x, katalogDane, prog,
   # przygotowanie obiektu tylko z interesującymi nas parami zmiennych
   pary = setNames(data.frame(t(combn(x$kryterium, 2)), stringsAsFactors = FALSE),
                   c("kryterium", "kryterium2"))
-  temp = select_(x, ~kryterium, ~id_wiazki)
+  temp = select(x, "kryterium", "id_wiazki")
   pary = suppressMessages(left_join(pary, temp))
   names(temp) = paste0(names(temp), "2")
   pary = suppressMessages(left_join(pary, temp))
   if (tylkoWWiazkach) {
-    pary = filter_(pary, ~id_wiazki == id_wiazki2)
+    pary = filter(pary, .data$id_wiazki == .data$id_wiazki2)
     if (nrow(pary) == 0) {
       warning("Nie zdefiniowano żadnych wiązek.", immediate. = TRUE)
       return(list(laczenia = NULL, dyskryminacje = NULL))
@@ -148,7 +148,7 @@ lacz_kryteria_z_korelacji_w_ramach_czesci_egz = function(x, katalogDane, prog,
       setTxtProgressBar(pb, i)
     }
     close(pb)
-    pary = filter_(pary, ~odsWD) %>% select_(~-odsWD)
+    pary = filter(pary, .data$odsWD) %>% select(-"odsWD")
   }
   pary = cbind(pary, korelacja = NA)
   laczenia = matrix(NA, ncol = ncol(pary), nrow = nrow(pary)) %>%
@@ -242,5 +242,5 @@ lacz_kryteria_z_korelacji_w_ramach_czesci_egz = function(x, katalogDane, prog,
 
   laczenia = laczenia[!is.na(laczenia[, 1]), ]
   dyskryminacje = dyskryminacje[1:(nrow(laczenia) + 1), ]
-  return(list(laczenia = laczenia, dyskryminacje = dyskryminacje))
+  return(list(list(laczenia = laczenia, dyskryminacje = dyskryminacje)))
 }

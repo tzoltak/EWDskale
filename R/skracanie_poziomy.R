@@ -38,20 +38,20 @@ skroc_skale_oceny = function(skale, katalogDane = "dane surowe/",
   if (is.character(skale)) {
     skale = pobierz_skale(polacz(), doPrezentacji = NA) %>%
       collect() %>%
-      filter_(~grepl(skale, opis_skali), ~is.na(czesc_egzaminu)) %>%
-      select_(~id_skali, ~opis_skali, ~rodzaj_egzaminu, ~czesc_egzaminu, ~rok) %>%
+      filter(grepl(skale, .data$opis_skali), is.na(.data$czesc_egzaminu)) %>%
+      select("id_skali", "opis_skali", "rodzaj_egzaminu", "czesc_egzaminu", "rok") %>%
       distinct()
   }
   if (nrow(skale) == 0) {
     stop("Nie znaleziono żadnych skal, których opis pasowałby do podanego wyrażenia regularnego.")
   }
 
-  skale = group_by_(skale, ~id_skali, ~czesc_egzaminu) %>%
-    do_(.dots = setNames(list(~skroc_skale_oceny_w_ramach_skali(., katalogDane,
-                                                                maxLPozWyk,
-                                                                minLiczebnPozWyk,
-                                                                minOdsPozWyk, print)),
-                         "elementy"))
+  skale = group_by(skale, .data$id_skali, .data$czesc_egzaminu) %>%
+    summarise(elementy = skroc_skale_oceny_w_ramach_skali(cur_data_all(),
+                                                          katalogDane,
+                                                          maxLPozWyk,
+                                                          minLiczebnPozWyk,
+                                                          minOdsPozWyk, print))
   return(skale)
 }
 #' @title Skracanie skal oceny
@@ -99,9 +99,9 @@ skroc_skale_oceny_w_ramach_skali = function(x, katalogDane = "../dane surowe/",
   # pobieranie schematów punktowania zadań
   kryteria = suppressMessages(
     pobierz_kryteria_oceny(polacz(), testy = FALSE) %>%
-      filter_(~id_skali == local(x$id_skali)) %>%
-      arrange_(~kolejnosc_w_skali) %>%
-      select_(~kryterium, ~schemat_pkt) %>%
+      filter(.data$id_skali == local(x$id_skali)) %>%
+      arrange(.data$kolejnosc_w_skali) %>%
+      select("kryterium", "schemat_pkt") %>%
       distinct() %>%
       collect()
   )

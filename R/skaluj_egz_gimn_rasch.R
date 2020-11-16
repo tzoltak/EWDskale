@@ -147,7 +147,7 @@ skaluj_egz_gimn_rasch = function(rok, processors = 2,
 
   normy = suppressMessages(
     pobierz_normy(polacz()) %>%
-      semi_join(select_(parametry, ~-parametry), copy = TRUE) %>%
+      semi_join(select(parametry, -"parametry"), copy = TRUE) %>%
       collect()
   )
   if (ncol(normy) == 0) {  # semi_join() brzydko zwraca, jak mu się nic nie łączy
@@ -162,9 +162,9 @@ skaluj_egz_gimn_rasch = function(rok, processors = 2,
     stop("Skale są związane z więcej niż jednym egzaminem: '",
          paste0(rodzajEgzaminu, collapse = "', "), "'.")
   }
-  skale = group_by_(parametry, ~id_skali) %>%
-    summarize_(.dots = setNames(list(~n(), ~opis_skali[1]),
-                                c("lSkalowan", "opis"))) %>%
+  skale = group_by(parametry, .data$id_skali) %>%
+    summarise(lSkalowan = n(),
+              opis = .data$opis_skali[1]) %>%
     ungroup()
   if (any(skale$lSkalowan > 1)) {
     stop("Dla skal '", paste0(skale$opis[skale$lSkalowan > 1], collapse = "', '"),
@@ -179,7 +179,7 @@ skaluj_egz_gimn_rasch = function(rok, processors = 2,
     skalowanie = parametry$skalowanie[i]
     parametrySkala = parametry$parametry[[i]]
     rzetelnoscEmpiryczna = attributes(parametrySkala)$"r EAP"$wartosc
-    normySkala = filter_(normy, ~id_skali == idSkali)
+    normySkala = filter(normy, .data$id_skali == idSkali)
     odsUtraconejWariancji = NULL
 
     message(rodzajEgzaminu, " ", rok, " (id_skali: ", idSkali, ", '", opis,
@@ -307,11 +307,11 @@ skaluj_egz_gimn_rasch = function(rok, processors = 2,
         zmien_parametry_na_do_bazy(wartosciZakotwiczone, idSkali, skalowanie,
                                    rzetelnoscEmpiryczna)
     }
-    class(wyniki[[i]]) = c(class(wyniki), "wynikiSkalowania")
+    class(wyniki[[i]]) = c("wynikiSkalowania", class(wyniki))
     attributes(wyniki[[i]])$dataSkalowania = Sys.time()
   }
   # koniec
-  class(wyniki) = c(class(wyniki), "listaWynikowSkalowania")
+  class(wyniki) = c("listaWynikowSkalowania", class(wyniki))
   if (zapisz) {
     nazwaObiektu = paste0("gRasch", rok, "Skalowanie")
     assign(nazwaObiektu, wyniki)

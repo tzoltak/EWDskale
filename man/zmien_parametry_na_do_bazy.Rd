@@ -4,8 +4,14 @@
 \alias{zmien_parametry_na_do_bazy}
 \title{Konwersja tabeli parametrow na format bazy}
 \usage{
-zmien_parametry_na_do_bazy(x, idSkali, skalowanie,
-  rzetelnoscEmpiryczna = NULL, standaryzacja = NULL, grupy = NULL)
+zmien_parametry_na_do_bazy(
+  x,
+  idSkali,
+  skalowanie,
+  rzetelnoscEmpiryczna = NULL,
+  standaryzacja = NULL,
+  grupy = NULL
+)
 }
 \arguments{
 \item{x}{data frame z wartościami parametrów w formacie zwracanym przez

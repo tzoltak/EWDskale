@@ -41,9 +41,9 @@ wczytaj_wyniki_surowe = function(katalogDane, rodzajEgzaminu, czescEgzaminu,
   src = polacz()
   idTestu = suppressMessages(
     pobierz_skale(src, doPrezentacji = NA) %>%
-      filter_(~id_skali == idSkali) %>%
-      select_(~id_testu) %>%
-      semi_join(pobierz_testy(src) %>% filter_(~!czy_egzamin)) %>%
+      filter(.data$id_skali == idSkali) %>%
+      select(.data$id_testu) %>%
+      semi_join(pobierz_testy(src) %>% filter(!.data$czy_egzamin)) %>%
       collect() %>%
       as.matrix() %>%
       as.vector() %>%
@@ -59,7 +59,7 @@ wczytaj_wyniki_surowe = function(katalogDane, rodzajEgzaminu, czescEgzaminu,
     # trzeba usunąć z danych "pierwotne" id_testu poszczególnych części egzaminu
     # i zastąpić je id_testu właśnie tego testu (co dzieje się kawałek dalej).
     if (length(idTestu) == 1) {
-      temp = select_(temp, ~-id_testu)
+      temp = temp[, !(names(temp) %in% "id_testu"), drop = FALSE]
     }
     maska1 = grepl("^[kp]_[[:digit:]]+$", names(temp))
     if (!is.null(kryteria)) {
@@ -80,8 +80,7 @@ wczytaj_wyniki_surowe = function(katalogDane, rodzajEgzaminu, czescEgzaminu,
     }
   }
   if (length(idTestu) == 1) {
-    dane = mutate_(dane, .dots = setNames(list(~idTestu),
-                                         "id_testu"))
+    dane$id_testu =  idTestu
   }
   if (!exists("dane")) {
     stop("W pliku '", plikDane, "' nie ma obiektu, który zawierałby wyniki ",
@@ -147,6 +146,6 @@ wczytaj_wyniki_wyskalowane = function(katalogDane, rodzajEgzaminu, rok, idSkali)
     return(as.data.frame(matrix(nrow = 0, ncol = 1,
                                 dimnames = list(NULL, "id_obserwacji"))))
   } else {
-    return(filter_(get(obiekty), ~id_skali == idSkali))
+    return(filter(get(obiekty), .data$id_skali == idSkali))
   }
 }

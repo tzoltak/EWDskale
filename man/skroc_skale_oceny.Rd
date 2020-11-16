@@ -4,8 +4,14 @@
 \alias{skroc_skale_oceny}
 \title{Skracanie skal oceny}
 \usage{
-skroc_skale_oceny(skale, katalogDane = "dane surowe/", maxLPozWyk = 5,
-  minLiczebnPozWyk = 100, minOdsPozWyk = 0.05, print = TRUE)
+skroc_skale_oceny(
+  skale,
+  katalogDane = "dane surowe/",
+  maxLPozWyk = 5,
+  minLiczebnPozWyk = 100,
+  minOdsPozWyk = 0.05,
+  print = TRUE
+)
 }
 \arguments{
 \item{skale}{wektor liczbowy z id_skali lub ciąg znaków z wyrażeniem

@@ -18,16 +18,15 @@ lacz_kryteria_z_nr_zadan = function(skale) {
               (is.character(skale) & length(skale) == 1))
 
   kryteria = pobierz_kryteria_do_laczenia(skale, nf = TRUE)
-  temp = group_by_(kryteria, ~id_skali) %>%
-    do_(.dots = setNames(list(~lacz_kryteria_z_nr_zadan_w_ramach_skali(.)),
-                         "elementy"))
+  temp = group_by(kryteria, .data$id_skali) %>%
+    summarise(elementy = lacz_kryteria_z_nr_zadan_w_ramach_skali(cur_data_all()))
 
   temp = mapply(function(x, y) {return(list(id_skali = unname(x),
                                             elementy = y))},
-                select_(temp, ~id_skali) %>% as.list %>% unlist %>% as.list,
-                (select_(temp, ~elementy) %>% as.list)[[1]],
+                select(temp, "id_skali") %>% as.list %>% unlist %>% as.list,
+                (select(temp, "elementy") %>% as.list)[[1]],
                 SIMPLIFY = FALSE)
-  class(temp) = append(class(temp), "listaArgumentowEdytujSkale")
+  class(temp) = c("listaArgumentowEdytujSkale", class(temp))
   if (is.character(skale)) {
     names(temp) = paste0(skale, ": skala", 1:length(temp))
   } else {
@@ -45,53 +44,49 @@ lacz_kryteria_z_nr_zadan = function(skale) {
 #' @import reshape2
 lacz_kryteria_z_nr_zadan_w_ramach_skali = function(x) {
   message("id_skali: ", x$id_skali[1])
-  x = mutate_(x,
-              .dots = setNames(list(~sub("^(.*,.*)$", "pseudo", numer_pytania)),
-                               "numer_pytania")) %>%  # zaczynamy od wyłączenia pseudokryteriów
-    mutate_(.dots = setNames(list(~sub("^([[:digit:]]+)(|_.*)$", "\\1", numer_pytania)),
-                             "numer_pytania")) %>%
-    mutate_(.dots = setNames(list(~suppressWarnings(as.numeric(numer_pytania))),
-                             "numer_pytania")) %>%
-    group_by_(~rodzaj_egzaminu, ~czesc_egzaminu, ~numer_pytania) %>%
+  x = mutate(x,
+             numer_pytania = sub("^(.*,.*)$", "pseudo",
+                                 .data$numer_pytania)) %>%  # zaczynamy od wyłączenia pseudokryteriów
+    mutate(numer_pytania = sub("^([[:digit:]]+)(|_.*)$", "\\1",
+                               .data$numer_pytania)) %>%
+    mutate(numer_pytania = suppressWarnings(as.numeric(.data$numer_pytania))) %>%
+    group_by(.data$rodzaj_egzaminu, .data$czesc_egzaminu, .data$numer_pytania) %>%
     mutate(n = n()) %>%
-    mutate_(.dots = setNames(list(~n > 1 &
-                                    (numer_pytania > 0 & !is.na(numer_pytania)) &
-                                    typ_pytania != "rozprawka",
-                                  ~sub("^[kp]_", "", kryterium),
-                                  ~grepl("^[p]_", kryterium)),
-                             c("maska", "id_kryterium", "czy_pseudo")))
+    mutate(maska = .data$n > 1 &
+             (.data$numer_pytania > 0 & !is.na(.data$numer_pytania)) &
+             .data$typ_pytania != "rozprawka",
+           id_kryterium = sub("^[kp]_", "", .data$kryterium),
+           czy_pseudo = grepl("^[p]_", .data$kryterium))
   if (any(x$maska)) {
-    doPolaczenia = filter_(x, ~maska) %>%
-      mutate_(.dots = setNames(list(~paste("ewd", rodzaj_egzaminu, czesc_egzaminu,
-                                           rok, numer_pytania, sep = ";")),
-                               "opis")) %>%
-      group_by_(~opis) %>%
-      select_(~opis, ~id_kryterium) %>%
-      mutate_(.dots = setNames(list(~paste0("id_kryterium_",
-                                            dense_rank(id_kryterium))),
-                               "kolejnosc")) %>%
+    doPolaczenia = filter(x, .data$maska) %>%
+      mutate(opis = paste("ewd", .data$rodzaj_egzaminu, .data$czesc_egzaminu,
+                          .data$rok, .data$numer_pytania, sep = ";")) %>%
+      group_by(.data$opis) %>%
+      select("opis", "id_kryterium") %>%
+      mutate(kolejnosc = paste0("id_kryterium_",
+                                dense_rank(.data$id_kryterium))) %>%
       dcast(... ~ kolejnosc, value.var = "id_kryterium") %>%
-      mutate_(.dots = setNames(list(~NA, ~NA, ~NA,
-                                    ~id_kryterium_1),
-                               c("id_skrotu", "id_kryterium", "id_pseudokryterium",
-                                 "kolejnosc")))
+      mutate(id_skrotu = NA_character_,
+             id_kryterium = NA_character_,
+             id_pseudokryterium = NA_character_,
+             kolejnosc = .data$id_kryterium_1)
   } else {
     doPolaczenia = NULL
   }
-  kryteriaNieLacz = filter_(x, ~!czy_pseudo, ~!maska) %>%
+  kryteriaNieLacz = filter(x, !.data$czy_pseudo, !.data$maska) %>%
     ungroup() %>%
-    select_(~id_kryterium) %>%
-    mutate_(.dots = setNames(list(~NA, ~id_kryterium),
-                             c("id_pseudokryterium", "kolejnosc")))
-  pseudokryteriaNieLacz = filter_(x, ~czy_pseudo, ~!maska) %>%
+    select("id_kryterium") %>%
+    mutate(id_pseudokryterium = NA_character_,
+           kolejnosc = .data$id_kryterium)
+  pseudokryteriaNieLacz = filter(x, .data$czy_pseudo, !.data$maska) %>%
     ungroup() %>%
-    select_(~id_kryterium) %>%
-    mutate_(.dots = setNames(list(~id_kryterium, ~id_kryterium),
-                             c("id_pseudokryterium", "kolejnosc"))) %>%
-    mutate_(.dots = setNames(list(~NA), "id_kryterium"))
+    select("id_kryterium") %>%
+    mutate(id_pseudokryterium = .data$id_kryterium,
+           kolejnosc = .data$id_kryterium) %>%
+    mutate(id_kryterium = NA_character_)
   elementy = bind_rows(kryteriaNieLacz, pseudokryteriaNieLacz, doPolaczenia) %>%
-    arrange_(~kolejnosc) %>%
-    select_(~-kolejnosc) %>%
+    arrange(.data$kolejnosc) %>%
+    select(-"kolejnosc") %>%
     distinct()  # to ostatnie na okoliczność wspólnych zadań starej i nowej formuły matury
-  return(elementy)
+  return(list(elementy))
 }

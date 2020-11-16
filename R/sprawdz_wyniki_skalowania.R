@@ -56,8 +56,8 @@ sprawdz_wyniki_skalowania_konstruktu = function(model) {
   )
   # tytul na wykresy
   tytul = pobierz_skale(polacz(), doPrezentacji = NA) %>%
-    filter_(~id_skali == local(model$skalowania$id_skali)) %>%
-    select_(~opis_skali, ~rok) %>%
+    filter(.data$id_skali == local(model$skalowania$id_skali)) %>%
+    select("opis_skali", "rok") %>%
     collect() %>%
     distinct()
   rok = tytul$rok
@@ -83,13 +83,12 @@ sprawdz_wyniki_skalowania_konstruktu = function(model) {
       if ("mKontekstowe" %in% obiekty) {
         mKontekstowe = get("mKontekstowe")
         oszacowaniaGrupy = suppressMessages(
-          mutate_(model$skalowania_obserwacje, .dots = list(~rok)) %>%
+          mutate(model$skalowania_obserwacje, rok = rok) %>%
             left_join(mKontekstowe) %>%
-            filter_(~populacja_wy == TRUE, ~!pomin_szkole) %>%
-            mutate_(.dots = setNames(list(~c("T", "LO")[1 + as.numeric(grepl("LO", grupa))]),
-                                     "grupa")) %>%
-            select_(~wynik, ~grupa) %>%
-            group_by_(~grupa)
+            filter(.data$populacja_wy == TRUE, !.data$pomin_szkole) %>%
+            mutate(grupa = c("T", "LO")[1 + as.numeric(grepl("LO", .data$grupa))]) %>%
+            select("wynik", "grupa") %>%
+            group_by(.data$grupa)
         )
       }
     }
@@ -113,8 +112,8 @@ sprawdz_wyniki_skalowania_konstruktu = function(model) {
     names(parametry) = sub("kolejnosc", "kolejnosc_w_skali", names(parametry))
     parametry = suppressMessages(
       pobierz_kryteria_oceny(polacz()) %>%
-        select_(~id_skali, ~kolejnosc_w_skali, ~kryterium) %>%
-        filter_(~id_skali == local(parametry$id_skali[1])) %>%
+        select("id_skali", "kolejnosc_w_skali", "kryterium") %>%
+        filter(.data$id_skali == local(parametry$id_skali[1])) %>%
         collect() %>%
         distinct() %>%
         right_join(parametry)
@@ -123,24 +122,23 @@ sprawdz_wyniki_skalowania_konstruktu = function(model) {
     maskaSpecjalne = with(parametry, {is.na(kryterium) & !is.na(uwagi)})
     parametry$kryterium[maskaSpecjalne] = parametry$uwagi[maskaSpecjalne]
     # podział na typy parametrów, przekształcanie i łączenie
-    dyskryminacje = filter_(parametry, ~parametr %in% c("a", "dyskryminacja")) %>%
-      select_(~kryterium, ~wartosc)
+    dyskryminacje = filter(parametry, .data$parametr %in% c("a", "dyskryminacja")) %>%
+      select("kryterium", "wartosc")
     names(dyskryminacje) = sub("wartosc", "dyskryminacja", names(dyskryminacje))
     trudnosciKryteriow = suppressMessages(
-      filter_(parametry, ~parametr == "trudność") %>%
-        select_(~kryterium, ~wartosc) %>%
+      filter(parametry, .data$parametr == "trudność") %>%
+        select("kryterium", "wartosc") %>%
         left_join(dyskryminacje)
     )
     names(trudnosciKryteriow) = sub("wartosc", "trudnosc", names(trudnosciKryteriow))
     trudnosciPoziomow = suppressMessages(
-      filter_(parametry, ~grepl("^b[[:digit:]]+$", parametr)) %>%
-        select_(~kryterium, ~parametr, ~wartosc) %>%
+      filter(parametry, grepl("^b[[:digit:]]+$", .data$parametr)) %>%
+        select("kryterium", "parametr", "wartosc") %>%
         left_join(trudnosciKryteriow) %>%
-        mutate_(.dots = setNames(list(~wartosc + trudnosc,
-                                      ~paste0(kryterium, "$",
-                                              sub("^b", "", parametr))),
-                                 c("wartosc", "kryterium"))) %>%
-        select_(~-trudnosc, ~-parametr)
+        mutate(wartosc = .data$wartosc + .data$trudnosc,
+               kryterium = paste0(.data$kryterium, "$",
+                                  sub("^b", "", .data$parametr))) %>%
+        select(-"trudnosc", -"parametr")
     )
     names(trudnosciPoziomow) = sub("wartosc", "trudnosc", names(trudnosciPoziomow))
     rm(dyskryminacje, parametry)
@@ -167,14 +165,14 @@ sprawdz_wyniki_skalowania_konstruktu = function(model) {
     if (any(abs(trudnosciKryteriow$trudnosc) > 6)) {
       cat("(Pseudo)kryteria o ekstremalnych wartościach trudności\n",
           "     (nie przedstawione na wykresie)\n", sep = "")
-      print(as.data.frame(filter_(trudnosciKryteriow, ~abs(trudnosc) > 6)),
+      print(as.data.frame(filter(trudnosciKryteriow, abs(.data$trudnosc) > 6)),
             row.names = FALSE)
       cat("\n")
     }
     if (any(abs(trudnosciPoziomow$trudnosc) > 6)) {
       cat("Poziomy wykonania (pseudo) kryteriów o ekstremalnych wartościach trudności\n",
           "     (nie przedstawione na wykresie)\n", sep = "")
-      print(as.data.frame(filter_(trudnosciPoziomow, ~abs(trudnosc) > 6)),
+      print(as.data.frame(filter(trudnosciPoziomow, abs(.data$trudnosc) > 6)),
             row.names = FALSE)
       cat("\n")
     }
@@ -303,10 +301,9 @@ sprawdz_wyniki_skalowania_konstruktu = function(model) {
   if (exists("oszacowaniaGrupy")) {
     cat("\nŚrednie i odchylenia standardowe oszacowań umiejętności:\n",
         "(grupa objęta skalowaniem wzorcowym)\n", sep = "")
-    summarise_(oszacowaniaGrupy,
-               .dots = setNames(list(~format(round(mean(wynik), 3), nsmall = 3),
-                                     ~format(round(sd(wynik), 3), nsmall = 3)),
-                                c("średnia", "odch. std."))) %>%
+    summarise(oszacowaniaGrupy,
+              `średnia` = format(round(mean(.data$wynik), 3), nsmall = 3),
+              `odch. std.` = format(round(sd(.data$wynik), 3), nsmall = 3)) %>%
       as.data.frame() %>%
       print(row.names = FALSE)
     cat("\n")

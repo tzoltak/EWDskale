@@ -38,8 +38,9 @@ rysuj_laczenia_z_korelacji = function(x, wielkoscTekstu = 1, prog = NULL) {
     }, prog = prog)
   }
   x = ungroup(x) %>%
-    group_by_(~id_skali, ~czesc_egzaminu) %>%
-    do_(.dots = list(~rysuj_laczenia_z_korelacji_w_ramach_czesci(., wielkoscTekstu)))
+    group_by(.data$id_skali, .data$czesc_egzaminu) %>%
+    summarise(rysuj_laczenia_z_korelacji_w_ramach_czesci(cur_data_all(),
+                                                         wielkoscTekstu))
   class(x) = sub("wynikLaczKryteriaZKorelacji",
                  "wynikRysujLaczeniaZKorelacji", class(x))
   return(x)
@@ -141,12 +142,12 @@ rysuj_laczenia_z_korelacji_w_ramach_czesci = function(x, wielkoscTekstu = 12) {
                                            paste0, collapse = ";")),
                       stringsAsFactors = FALSE)
     polaczone$opis = paste0(czescEgzaminu, ";", polaczone$opis)
-    x = bind_rows(select_(x[maska, ], ~-polaczone), polaczone)
+    x = bind_rows(select(x[maska, ], -"polaczone"), polaczone)
     maska = grepl("^id_kryterium", names(x))
     x = x[, c(names(x)[maska], names(x)[!maska])]
     return(x)
   }, czescEgzaminu = egzamin$czesc_egzaminu)
-  elementy[[1]] = select_(elementy[[1]], ~-polaczone)
+  elementy[[1]] = select(elementy[[1]], -"polaczone")
   # zwracanie
   x = egzamin
   x$wykres[1] = list(wykres)

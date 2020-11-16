@@ -4,10 +4,16 @@
 \alias{skaluj_egz_gimn}
 \title{Procedury skalowania egzaminow}
 \usage{
-skaluj_egz_gimn(rok, processors = 2, opis = "skalowanie do EWD",
+skaluj_egz_gimn(
+  rok,
+  processors = 2,
+  opis = "skalowanie do EWD",
   katalogSurowe = "../../dane surowe",
-  katalogWyskalowane = "../../dane wyskalowane", zapisz = TRUE,
-  skala = NULL, proba = -1)
+  katalogWyskalowane = "../../dane wyskalowane",
+  zapisz = TRUE,
+  skala = NULL,
+  proba = -1
+)
 }
 \arguments{
 \item{rok}{rok przeprowadzenie egzaminu}

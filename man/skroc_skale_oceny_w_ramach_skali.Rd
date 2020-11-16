@@ -4,9 +4,14 @@
 \alias{skroc_skale_oceny_w_ramach_skali}
 \title{Skracanie skal oceny}
 \usage{
-skroc_skale_oceny_w_ramach_skali(x, katalogDane = "../dane surowe/",
-  maxLPozWyk = 5, minLiczebnPozWyk = 100, minOdsPozWyk = 0.05,
-  print = TRUE)
+skroc_skale_oceny_w_ramach_skali(
+  x,
+  katalogDane = "../dane surowe/",
+  maxLPozWyk = 5,
+  minLiczebnPozWyk = 100,
+  minOdsPozWyk = 0.05,
+  print = TRUE
+)
 }
 \arguments{
 \item{x}{pojedynczy wiersz data frame'a, opisujący skalę

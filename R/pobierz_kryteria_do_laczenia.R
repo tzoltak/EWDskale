@@ -21,8 +21,8 @@ pobierz_kryteria_do_laczenia = function(skale, nf = FALSE) {
   if (is.character(skale)) {
     skale = pobierz_skale(src, doPrezentacji = NA) %>%
       collect() %>%
-      filter_(~grepl(skale, opis_skali)) %>%
-      select_(~id_skali) %>%
+      filter(grepl(skale, .data$opis_skali)) %>%
+      select("id_skali") %>%
       distinct() %>%
       as.list() %>% unlist() %>% unname()
   }
@@ -33,20 +33,20 @@ pobierz_kryteria_do_laczenia = function(skale, nf = FALSE) {
   }
   kryteria = suppressMessages(
     pobierz_skale(src, doPrezentacji = NA) %>%
-      filter_(~id_skali %in% skale) %>%
+      filter(.data$id_skali %in% skale) %>%
       # jeśli ze skalą jest powiązany test "nieegzaminacyjny" - bierzemy tylko go
       left_join(pobierz_testy(src)) %>%
-      group_by_(~id_skali) %>%
-      mutate_(.dots = list(tylko_testy_egazminu = ~all(czy_egzamin))) %>%
-      filter_(~czy_egzamin == tylko_testy_egazminu) %>%
-      # filter_(~czy_egzamin) %>%
+      group_by(.data$id_skali) %>%
+      mutate(tylko_testy_egazminu = all(.data$czy_egzamin)) %>%
+      filter(.data$czy_egzamin == .data$tylko_testy_egazminu) %>%
+      # filter(.data$czy_egzamin) %>%
       # koniec j.w.
-      select_(~id_skali, ~opis_skali, ~id_testu, ~rodzaj_egzaminu,
-              ~czesc_egzaminu, ~rok) %>%
+      select("id_skali", "opis_skali", "id_testu", "rodzaj_egzaminu",
+             "czesc_egzaminu", "rok") %>%
       inner_join(pobierz_kryteria_oceny(src)) %>%
-      select_(~id_skali, ~opis_skali, ~rodzaj_egzaminu, ~czesc_egzaminu, ~rok,
-              ~id_wiazki, ~kryterium, ~numer_pytania, ~typ_pytania,
-              ~kolejnosc_w_skali) %>%
+      select("id_skali", "opis_skali", "rodzaj_egzaminu", "czesc_egzaminu",
+             "rok", "id_wiazki", "kryterium", "numer_pytania", "typ_pytania",
+              "kolejnosc_w_skali") %>%
       distinct() %>%
       collect()
   )
@@ -55,8 +55,8 @@ pobierz_kryteria_do_laczenia = function(skale, nf = FALSE) {
          " nie ma przypisanych rzadnych kryteriów.")
   }
   # arrange nie działa dobrze przed collectem
-  kryteria = arrange_(kryteria, ~id_skali, ~kolejnosc_w_skali) %>%
-    select_(~-kolejnosc_w_skali)
+  kryteria = arrange(kryteria, .data$id_skali, .data$kolejnosc_w_skali) %>%
+    select(-"kolejnosc_w_skali")
   if (nrow(kryteria) == 0) {
     stop("Nie znaleziono żadnych kryteriów oceny przypisanych do skal ",
          "o podanych identyfikatorach.\n",
@@ -68,25 +68,24 @@ pobierz_kryteria_do_laczenia = function(skale, nf = FALSE) {
     czesciEgzaminu = suppressMessages(
       pobierz_kryteria_oceny(src, testy = TRUE, skale = FALSE) %>%
         inner_join(pobierz_testy(src)) %>%
-        filter_(~kryterium %in% kryteria$kryterium, ~czy_egzamin == TRUE) %>%
-        select_(~kryterium, ~rodzaj_egzaminu, ~czesc_egzaminu, ~arkusz) %>%
+        filter(.data$kryterium %in% kryteria$kryterium,
+               .data$czy_egzamin == TRUE) %>%
+        select("kryterium", "rodzaj_egzaminu", "czesc_egzaminu", "arkusz") %>%
         distinct() %>%
         collect()
     )
     if (any(czesciEgzaminu$rodzaj_egzaminu == "matura" & nf)) {
       czesciEgzaminu =
-        mutate_(czesciEgzaminu,
-                .dots = setNames(list(~substr(arkusz, 7, 7) %in% c("X", "Y", "Z")),
-                                 "czy_nf")) %>%
-        mutate_(.dots = setNames(list(~paste0(czesc_egzaminu,
-                                              ifelse(czy_nf, " nf", ""))),
-                                 "czesc_egzaminu")) %>%
-        select_(~-czy_nf)
+        mutate(czesciEgzaminu,
+               czy_nf = substr(.data$arkusz, 7, 7) %in% c("X", "Y", "Z")) %>%
+        mutate(czesc_egzaminu = paste0(.data$czesc_egzaminu,
+                                       ifelse(.data$czy_nf, " nf", ""))) %>%
+        select(-"czy_nf")
     }
-    czesciEgzaminu = select_(czesciEgzaminu, ~-rodzaj_egzaminu, ~-arkusz) %>%
+    czesciEgzaminu = select(czesciEgzaminu, -"rodzaj_egzaminu", -"arkusz") %>%
       distinct()
     kryteria = suppressMessages(
-      select_(kryteria, ~-czesc_egzaminu) %>%
+      select(kryteria, -"czesc_egzaminu") %>%
         distinct() %>%
       left_join(czesciEgzaminu)
     )
