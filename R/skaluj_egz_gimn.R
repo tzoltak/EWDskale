@@ -135,9 +135,9 @@ skaluj_egz_gimn = function(rok, processors = 2, opis = "skalowanie do EWD",
     stop("Skale są związane z więcej niż jednym egzaminem: '",
          paste0(rodzajEgzaminu, collapse = "', "), "'.")
   }
-  skale = group_by_(parametry, ~id_skali) %>%
-    summarize_(.dots = setNames(list(~n(), ~opis_skali[1]),
-                                c("lSkalowan", "opis"))) %>%
+  skale = group_by(parametry, .data$id_skali) %>%
+    summarise(lSkalowan = n(),
+              opis = .data$opis_skali[1]) %>%
     ungroup()
   if (any(skale$lSkalowan > 1)) {
     stop("Dla skal '", paste0(skale$opis[skale$lSkalowan > 1], collapse = "', '"),
@@ -276,11 +276,11 @@ skaluj_egz_gimn = function(rok, processors = 2, opis = "skalowanie do EWD",
         zmien_parametry_na_do_bazy(wartosciZakotwiczone, idSkali, skalowanie,
                                    rzetelnoscEmpiryczna)
     }
-    class(wyniki[[i]]) = c(class(wyniki), "wynikiSkalowania")
+    class(wyniki[[i]]) = c("wynikiSkalowania", class(wyniki))
     attributes(wyniki[[i]])$dataSkalowania = Sys.time()
   }
   # koniec
-  class(wyniki) = c(class(wyniki), "listaWynikowSkalowania")
+  class(wyniki) = c("listaWynikowSkalowania", class(wyniki))
   if (zapisz) {
     nazwaObiektu = paste0("g", rok, "Skalowanie")
     assign(nazwaObiektu, wyniki)

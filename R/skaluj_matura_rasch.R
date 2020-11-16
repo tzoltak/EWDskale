@@ -124,8 +124,8 @@ skaluj_matura_rasch = function(rok, processors = 2,
     stopifnot(length(skala) == 1)
     doPrezentacji = NA
   }
-  if (rok > 2019) {
-    stop("Funkcja nie obsługuje skalowania dla egzaminów po 2019 r.")
+  if (rok > 2020) {
+    stop("Funkcja nie obsługuje skalowania dla egzaminów po 2020 r.")
   }
 
   # sprawdzanie, czy w bazie są zapisane skala i jakieś skalowanie z parametrami
@@ -152,7 +152,7 @@ skaluj_matura_rasch = function(rok, processors = 2,
 
   normy = suppressMessages(
     pobierz_normy(polacz()) %>%
-      semi_join(select_(parametry, ~-parametry), copy = TRUE) %>%
+      semi_join(select(parametry, -"parametry"), copy = TRUE) %>%
       collect()
   )
   if (ncol(normy) == 0) {  # semi_join() brzydko zwraca, jak mu się nic nie łączy
@@ -167,9 +167,9 @@ skaluj_matura_rasch = function(rok, processors = 2,
     stop("Skale są związane z więcej niż jednym egzaminem: '",
          paste0(rodzajEgzaminu, collapse = "', "), "'.")
   }
-  skale = group_by_(parametry, ~id_skali) %>%
-    summarize_(.dots = setNames(list(~n(), ~opis_skali[1]),
-                                c("lSkalowan", "opis"))) %>%
+  skale = group_by(parametry, .data$id_skali) %>%
+    summarise(lSkalowan = n(),
+              opis = .data$opis_skali[1]) %>%
     ungroup()
   if (any(skale$lSkalowan > 1)) {
     stop("Dla skal '", paste0(skale$opis[skale$lSkalowan > 1], collapse = "', '"),
@@ -184,14 +184,14 @@ skaluj_matura_rasch = function(rok, processors = 2,
     skalowanie = parametry$skalowanie[i]
     parametrySkala = parametry$parametry[[i]]
     rzetelnoscEmpiryczna = attributes(parametrySkala)$"r EAP"
-    normySkala = filter_(normy, ~id_skali == idSkali)
+    normySkala = filter(normy, .data$id_skali == idSkali)
     odsUtraconejWariancji = NULL
 
     message(rodzajEgzaminu, " ", rok, " (id_skali: ", idSkali, ", '", opis,
             "'; skalowanie ", skalowanie, ".):")
     # wczytywanie danych z dysku i sprawdzanie, czy jest dla kogo skalować
     dane = wczytaj_wyniki_surowe(katalogSurowe, rodzajEgzaminu, "", rok, idSkali)
-    dane = filter_(dane, ~typ_szkoly %in% c("LO", "T"))
+    dane = filter(dane, .data$typ_szkoly %in% c("LO", "T"))
     # będziemy wyrzucać wszystko, co niepotrzebne do skalowania (rypanie po dysku zajmuje potem cenny czas)
     zmienneGrupujace = c("typ_szkoly", "s_mat_r", "czy_sf")
     zmienneKryteria = names(dane)[grep("^[kpst]_[[:digit:]]+$", names(dane))]
@@ -203,16 +203,14 @@ skaluj_matura_rasch = function(rok, processors = 2,
     czesciEgzaminow = suppressMessages(
       pobierz_kryteria_oceny(src, skale = FALSE) %>%
         semi_join(data.frame(kryterium = zmienneKryteria), copy = TRUE) %>%
-        select_(~kryterium, ~id_testu) %>%
+        select("kryterium", "id_testu") %>%
         left_join(pobierz_testy(src)) %>%
-        filter_(~czy_egzamin) %>%
-        select_(~kryterium, ~prefiks, ~arkusz) %>%
+        filter(.data$czy_egzamin) %>%
+        select("kryterium", "prefiks", "arkusz") %>%
         distinct() %>%
         collect() %>%
-        mutate_(.dots = setNames(list(~!(substr(arkusz, 7, 7) %in%
-                                           c("X", "Y", "Z"))),
-                                 "czy_sf")) %>%
-        select_(~-arkusz) %>%
+        mutate(czy_sf = !(substr(.data$arkusz, 7, 7) %in% c("X", "Y", "Z"))) %>%
+        select(-"arkusz") %>%
         distinct()
     )
     # dołączanie zmiennych do grupowania
@@ -220,7 +218,7 @@ skaluj_matura_rasch = function(rok, processors = 2,
     wyborCzesci = as.data.frame(matrix(nrow = nrow(dane), ncol = length(czesci),
                                        dimnames = list(NULL, czesci)))
     for (j in czesci) {
-      temp = dane[, filter_(czesciEgzaminow, ~prefiks == j)$kryterium]
+      temp = dane[, filter(czesciEgzaminow, .data$prefiks == j)$kryterium]
       wyborCzesci[[j]] = rowSums(!is.na(temp)) > 0
     }
     rm(temp)
@@ -229,8 +227,8 @@ skaluj_matura_rasch = function(rok, processors = 2,
     rm(wyborCzesci)
     czyStaraFormula = unique(czesciEgzaminow$czy_sf)
     if (length(czyStaraFormula) > 1) {
-      maskaZmienneTemp = setdiff(filter_(czesciEgzaminow, ~czy_sf)$kryterium,
-                                 filter_(czesciEgzaminow, ~!czy_sf)$kryterium)
+      maskaZmienneTemp = setdiff(filter(czesciEgzaminow, .data$czy_sf)$kryterium,
+                                 filter(czesciEgzaminow, !.data$czy_sf)$kryterium)
       temp = dane[, maskaZmienneTemp]
       dane = cbind(dane, czy_sf = rowSums(!is.na(temp)) > 0)
       rm(temp)
@@ -245,7 +243,7 @@ skaluj_matura_rasch = function(rok, processors = 2,
     # usuwanie grup, których nie jesteśmy w stanie sensownie obsłużyć:
     # uczniów LO piszących starą formułę
     if ("czy_sf" %in% zmienneGrupujace) {
-      grupy = filter_(grupy, ~!(typ_szkoly == "LO" & czy_sf))
+      grupy = filter(grupy, !(.data$typ_szkoly == "LO" & .data$czy_sf))
     }
     grupy = cbind(grupy, gr_tmp1 = 1:nrow(grupy))
     # ładne nazwy grup
@@ -261,7 +259,7 @@ skaluj_matura_rasch = function(rok, processors = 2,
     # usuwanie z danych zdających spoza obsługiwanych grup
     lPrzed = nrow(dane)
     dane = suppressMessages(semi_join(dane, grupy))
-    dane = filter_(dane, ~!(s_mat_r & !s_mat_p))
+    dane = filter(dane, !(.data$s_mat_r & !.data$s_mat_p))
     lPo = nrow(dane)
     if (lPo != lPrzed) {
       message(" Usunięto ", format(lPrzed - lPo, big.mark = "'"), " zdających, ",
@@ -278,17 +276,17 @@ skaluj_matura_rasch = function(rok, processors = 2,
       } else {
         wartosciZakotwiczone = NULL
       }
-      daneWzorcowe = filter_(dane, ~populacja_wy & !pomin_szkole)
+      daneWzorcowe = filter(dane, .data$populacja_wy & !.data$pomin_szkole)
       # czyszczenie wyników laureatów
       for (p in unique(czesciEgzaminow$prefiks)) {
         maskaObserwacje = daneWzorcowe[[paste0("laur_", p)]] %in% TRUE
-        maskaZmienneTemp = filter_(czesciEgzaminow, ~prefiks == p)$kryterium %>%
+        maskaZmienneTemp = filter(czesciEgzaminow, .data$prefiks == p)$kryterium %>%
           unique()
         daneWzorcowe[maskaObserwacje, maskaZmienneTemp] = NA
       }
       daneWzorcowe = daneWzorcowe[, maskaZmienne]
       maskaObserwacje =
-        rowSums(is.na(select_(daneWzorcowe, ~-id_obserwacji, ~-id_testu)))
+        rowSums(is.na(select(daneWzorcowe, -"id_obserwacji", -"id_testu")))
       daneWzorcowe = subset(daneWzorcowe,
                             maskaObserwacje < (ncol(daneWzorcowe) - 2))
       # ew. wybieranie próby
@@ -327,11 +325,11 @@ skaluj_matura_rasch = function(rok, processors = 2,
                                   dimnames = list(NULL, czesci)))
       for (j in czesci) {
         maskaZmienneTemp =
-          filter_(czesciEgzaminow, ~prefiks == j)$kryterium %>% unique()
+          filter(czesciEgzaminow, .data$prefiks == j)$kryterium %>% unique()
         temp[[j]] = rowSums(daneWzorcowe[, maskaZmienneTemp], na.rm = TRUE)
         maskaNA =
-          rowSums(!is.na(daneWzorcowe[, filter_(czesciEgzaminow,
-                                                ~prefiks == j)$kryterium]))
+          rowSums(!is.na(daneWzorcowe[, filter(czesciEgzaminow,
+                                               .data$prefiks == j)$kryterium]))
         temp[[j]][maskaNA == 0] = NA
       }
       names(temp) = sub("^m_", "suma_", names(temp))
@@ -350,22 +348,20 @@ skaluj_matura_rasch = function(rok, processors = 2,
       names(rzetelnoscEmpiryczna) = sub(names(wyniki)[i], "oszacowanie",
                                         names(rzetelnoscEmpiryczna))
       warPopGr = suppressMessages(
-        filter_(wartosciZakotwiczone, ~grepl("^variance", typ)) %>%
-          group_by_(~typ) %>%
-          summarise_(.dots = setNames(list(~as.numeric(sub("^variance.gr", "", typ)),
-                                           ~wartosc),
-                                      c("gr_tmp1", "war_pop"))) %>%
-          left_join(select_(grupy, ~gr_tmp1, ~grupa)) %>%
-          select_(~-typ, ~-gr_tmp1)
+        filter(wartosciZakotwiczone, grepl("^variance", .data$typ)) %>%
+          group_by(.data$typ) %>%
+          summarise(gr_tmp1 = as.numeric(sub("^variance.gr", "", .data$typ)),
+                    war_pop = .data$wartosc) %>%
+          left_join(select(grupy, "gr_tmp1", "grupa")) %>%
+          select(-"typ", -"gr_tmp1")
       )
       rzetelnoscEmpiryczna = suppressMessages(
-        group_by_(rzetelnoscEmpiryczna, ~grupa) %>%
-          summarise_(.dots = setNames(list(~var(oszacowanie, na.rm = TRUE)),
-                                      "war")) %>%
+        group_by(rzetelnoscEmpiryczna, .data$grupa) %>%
+          summarise(war = var(.data$oszacowanie, na.rm = TRUE)) %>%
           full_join(warPopGr) %>%
           right_join(grupy) %>%
-          mutate_(.dots = setNames(list(~war / war_pop), "wartosc")) %>%
-          select_(~grupa, ~wartosc)
+          mutate(wartosc = .data$war / .data$war_pop) %>%
+          select("grupa", "wartosc")
       )
       # wyprowadzanie oszacowań na 0;1 w ramach LO i w ramach T
       maskaLO = grep("^LO ", oszacowania$grupa)
@@ -448,13 +444,13 @@ skaluj_matura_rasch = function(rok, processors = 2,
       wyniki[[i]][["skalowania_elementy"]] =
         zmien_parametry_na_do_bazy(wartosciZakotwiczone, idSkali, skalowanie,
                                    rzetelnoscEmpiryczna,
-                                   grupy = select_(grupy, ~grupa, ~gr_tmp1))
+                                   grupy = select(grupy, "grupa", "gr_tmp1"))
     }
-    class(wyniki[[i]]) = c(class(wyniki), "wynikiSkalowania")
+    class(wyniki[[i]]) = c("wynikiSkalowania", class(wyniki))
     attributes(wyniki[[i]])$dataSkalowania = Sys.time()
   }
   # koniec
-  class(wyniki) = c(class(wyniki), "listaWynikowSkalowania")
+  class(wyniki) = c("listaWynikowSkalowania", class(wyniki))
   if (zapisz) {
     nazwaObiektu = paste0("mRasch", rok, "Skalowanie")
     assign(nazwaObiektu, wyniki)

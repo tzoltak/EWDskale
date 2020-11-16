@@ -4,8 +4,13 @@
 \alias{okresl_wzor_skracania}
 \title{Okreslenie wzoru skrocenia skali oceny}
 \usage{
-okresl_wzor_skracania(x, mozliweWartosci, maxLPozWyk = 5,
-  minLiczebnPozWyk = 100, minOdsPozWyk = 0.05)
+okresl_wzor_skracania(
+  x,
+  mozliweWartosci,
+  maxLPozWyk = 5,
+  minLiczebnPozWyk = 100,
+  minOdsPozWyk = 0.05
+)
 }
 \arguments{
 \item{x}{wektor z wynikami danego pytania}

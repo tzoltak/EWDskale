@@ -59,45 +59,47 @@ zmien_parametry_na_do_bazy = function(x, idSkali, skalowanie,
   # dyskryminacje
   dyskryminacje = with(dyskryminacje, data.frame(
     id_skali = idSkali, skalowanie = skalowanie, kryterium = get("zmienna2"),
-    parametr = "a", model = NA, wartosc = get("wartosc"), uwagi = NA,
-    bs = get("S.E."), id_elementu = NA, grupowy = FALSE, nrGrupy = NA,
-    stringsAsFactors = FALSE
+    parametr = "a", model = NA_character_, wartosc = get("wartosc"),
+    uwagi = NA_character_, bs = get("S.E."), id_elementu = NA_real_,
+    grupowy = FALSE, nrGrupy = NA_character_, stringsAsFactors = FALSE
   ))
   # trudności
   trudnosci = suppressMessages(
     with(trudnosci, data.frame(
       id_skali = idSkali, skalowanie = skalowanie, kryterium = get("zmienna1"),
-      parametr = paste0("b", get("zmienna2")), model = NA,
-      wartosc = get("wartosc"), uwagi = NA, bs = get("S.E."), id_elementu = NA,
-      grupowy = FALSE, nrGrupy = NA, stringsAsFactors = FALSE
+      parametr = paste0("b", get("zmienna2")), model = NA_character_,
+      wartosc = get("wartosc"), uwagi = NA_character_, bs = get("S.E."),
+      id_elementu = NA_real_, grupowy = FALSE, nrGrupy = NA_character_,
+      stringsAsFactors = FALSE
     )) %>%
-      inner_join(setNames(select_(dyskryminacje, ~kryterium, ~wartosc),
+      inner_join(setNames(select(dyskryminacje, "kryterium", "wartosc"),
                           c("kryterium", "a"))) %>%
-      mutate_(.dots = setNames(list(~wartosc / a), "wartosc")) %>%
-      select_(~-a) %>%
-      group_by_(~kryterium) %>%
-      mutate_(.dots = setNames(list(~n()), "lpw")) %>%
+      mutate(wartosc = .data$wartosc / .data$a) %>%
+      select(-"a") %>%
+      group_by(.data$kryterium) %>%
+      mutate(lpw = n()) %>%
       ungroup()
   )
-  trudnosciBinarne = filter_(trudnosci, ~lpw == 1) %>%
-    select_(~-lpw) %>%
-    mutate_(.dots = setNames(list(~"2PL", ~"trudność"), c("model", "parametr")))
+  trudnosciBinarne = filter(trudnosci, .data$lpw == 1) %>%
+    select(-"lpw") %>%
+    mutate(model = "2PL",
+           parametr = "trudność")
   # zmiana parametryzacji trudności poziomów wykonania na względną
-  trudnosciGrm = filter_(trudnosci, ~lpw > 1) %>%
-    mutate_(.dots = setNames(list(~"GRM"), "model"))
-  trudnosciZadanGrm = group_by_(trudnosciGrm, ~kryterium) %>%
-    summarise_(.dots = setNames(list(~mean(wartosc)), "b"))
+  trudnosciGrm = filter(trudnosci, .data$lpw > 1) %>%
+    mutate(model = "GRM")
+  trudnosciZadanGrm = group_by(trudnosciGrm, .data$kryterium) %>%
+    summarise(b = mean(.data$wartosc))
   trudnosciGrm = suppressMessages(
     inner_join(trudnosciGrm, trudnosciZadanGrm) %>%
-      mutate_(.dots = setNames(list(~wartosc - b), "wartosc")) %>%
-      select_(~-b, ~-lpw)
+      mutate(wartosc = .data$wartosc - .data$b) %>%
+      select(-"b", -"lpw")
   )
   if (nrow(trudnosciZadanGrm) > 0) {
     trudnosciZadanGrm = with(trudnosciZadanGrm, data.frame(
       id_skali = idSkali, skalowanie = skalowanie, kryterium = get("kryterium"),
-      parametr = "trudność", model = "GRM", wartosc = get("b"), uwagi = NA,
-      bs = NA, id_elementu = NA, grupowy = FALSE, nrGrupy = NA,
-      stringsAsFactors = FALSE
+      parametr = "trudność", model = "GRM", wartosc = get("b"),
+      uwagi = NA_character_, bs = NA_real_, id_elementu = NA_real_,
+      grupowy = FALSE, nrGrupy = NA_character_, stringsAsFactors = FALSE
     ))
   }
   # przypisywanie modelu dyskryminacjom
@@ -126,7 +128,7 @@ zmien_parametry_na_do_bazy = function(x, idSkali, skalowanie,
                 trudnosciGrm, grupowe)
   x$nrGrupy = as.numeric(x$nrGrupy)
   x = suppressMessages(
-    left_join(x, grupy) %>% select_(~-nrGrupy)
+    left_join(x, grupy) %>% select(-"nrGrupy")
   )
   if (!is.null(rzetelnoscEmpiryczna)) {
     x = bind_rows(x,
@@ -149,14 +151,14 @@ zmien_parametry_na_do_bazy = function(x, idSkali, skalowanie,
                              grupowy = TRUE, grupa = standaryzacja$grupa,
                              stringsAsFactors = FALSE))
   }
-  x = arrange_(x, ~kryterium, ~parametr)
+  x = arrange(x, .data$kryterium, .data$parametr)
   maskaSpecjalne = !(grepl("^[kp]_", x$kryterium) | is.na(x$kryterium))
   x$uwagi[maskaSpecjalne] = x$kryterium[maskaSpecjalne]
   x$kryterium[maskaSpecjalne] = NA
   kryteria = suppressMessages(
     pobierz_kryteria_oceny(polacz()) %>%
-      filter_(~id_skali %in% c(idSkali, idSkali)) %>%
-      select_(~id_skali, ~kryterium, ~kolejnosc_w_skali) %>%
+      filter(.data$id_skali %in% c(idSkali, idSkali)) %>%
+      select("id_skali", "kryterium", "kolejnosc_w_skali") %>%
       collect() %>%
       unique()
   )

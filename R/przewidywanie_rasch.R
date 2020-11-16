@@ -114,10 +114,8 @@ przewidywanie_rasch = function(sumy, oszacowania, maks = NULL, span = 0.2) {
   oszacowania = suppressMessages(inner_join(sumy, oszacowania))
   names(oszacowania) = sub(paste0("^", zmOszacowania, "$"), "oszacowania",
                            names(oszacowania))
-  temp = group_by_(oszacowania,
-                   .dots = lapply(as.list(paste0("~", c(zmSumy, "suma"))),
-                                  formula)) %>%
-    summarize_(.dots = setNames(list(~mean(oszacowania)), "oszacowania"))
+  temp = group_by(oszacowania, across(c(all_of(zmSumy), .data$suma))) %>%
+    summarise(oszacowania = mean(.data$oszacowania))
   # dopisywanie maksów, żeby można z nich było potem skorzystać
   # zawikłane: dla każdej z grup zdających, wyróżnionych ze względu na zestaw
   # zdawanych części egzaminu, obliczamy, ile mogli uzyskać maksymalnie, łacznie
@@ -175,7 +173,7 @@ przewidywanie_rasch = function(sumy, oszacowania, maks = NULL, span = 0.2) {
     mapowanie[[i]] = suppressMessages(
       left_join(cbind(grupy[i, zmSumy, drop = FALSE], nic = 1),
                 cbind(mapowanie[[i]], nic = 1)) %>%
-        select_(~-nic)
+        select(-"nic")
     )
   }
   mapowanie = bind_rows(mapowanie)

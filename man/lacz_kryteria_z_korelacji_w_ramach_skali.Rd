@@ -4,8 +4,7 @@
 \alias{lacz_kryteria_z_korelacji_w_ramach_skali}
 \title{Laczenie kryteriow na podstawie korelacji polichorycznych}
 \usage{
-lacz_kryteria_z_korelacji_w_ramach_skali(x, katalogDane, prog,
-  tylkoWWiazkach)
+lacz_kryteria_z_korelacji_w_ramach_skali(x, katalogDane, prog, tylkoWWiazkach)
 }
 \arguments{
 \item{x}{data frame opisujący kryteria oceny w ramach skali}

@@ -4,10 +4,16 @@
 \alias{skaluj_spr}
 \title{Procedury skalowania egzaminow}
 \usage{
-skaluj_spr(rok, processors = 2, opis = "skalowanie do EWD",
+skaluj_spr(
+  rok,
+  processors = 2,
+  opis = "skalowanie do EWD",
   katalogSurowe = "../../dane surowe",
-  katalogWyskalowane = "../../dane wyskalowane", zapisz = TRUE,
-  skala = NULL, proba = -1)
+  katalogWyskalowane = "../../dane wyskalowane",
+  zapisz = TRUE,
+  skala = NULL,
+  proba = -1
+)
 }
 \arguments{
 \item{rok}{rok przeprowadzenie egzaminu}

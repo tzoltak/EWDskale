@@ -4,11 +4,18 @@
 \alias{skaluj_matura}
 \title{Procedury skalowania egzaminow}
 \usage{
-skaluj_matura(rok, processors = 2, opis = "skalowanie do EWD",
+skaluj_matura(
+  rok,
+  processors = 2,
+  opis = "skalowanie do EWD",
   katalogSurowe = "../../dane surowe",
-  katalogWyskalowane = "../../dane wyskalowane", zapisz = TRUE,
-  skala = NULL, proba = -1, usunWieleNaraz = FALSE,
-  nieEstymuj = FALSE)
+  katalogWyskalowane = "../../dane wyskalowane",
+  zapisz = TRUE,
+  skala = NULL,
+  proba = -1,
+  usunWieleNaraz = FALSE,
+  nieEstymuj = FALSE
+)
 }
 \arguments{
 \item{rok}{rok przeprowadzenie egzaminu}
