@@ -422,7 +422,7 @@ skaluj_matura = function(rok, processors = 2, opis = "skalowanie do EWD",
         wartosciZakotwiczone = NULL
       }
       if (tylkoDaneDoUIRTa) {
-        write.csv(daneWzorcowe, paste0(katalogSurowe, '/', sub(';', '_', opis), '_s', idSkali, '_sk', skalowanie, ".RData"), na = '')
+        write.csv(daneWzorcowe, paste0(katalogSurowe, '/', sub(';', '_', opis), '_s', idSkali, '_sk', skalowanie, ".csv"), na = '')
         next
       }
       # skalowanie wzorcowe
