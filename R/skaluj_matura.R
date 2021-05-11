@@ -32,6 +32,12 @@
 #' pliki \code{.out}, których nazwy odpowiadają tym, jakie powstałyby przy
 #' estymacji modeli dla danych "wzorcowych", to czy wczytać je, zamiast
 #' przeprowadzania estymacji w Mplusie?
+#' @param tylkoDaneDoUIRTa jeśli TRUE, zamiast przeprowadzić (lub wczytać już
+#'   wykonane) skalowanie funkcja zrzuca jedynie w katalogu \code{katalogSurowe}
+#'   pliki CSV z danymi do skalowania parametrów zadań UIRT-em
+#' @param src NULL połączenie z bazą danych IBE zwracane przez funkcję
+#' \code{\link[ZPD]{polacz}}. Jeśli nie podane, podjęta zostanie próba
+#' automatycznego nawiązania połączenia.
 #' @details
 #' \bold{Uwaga}, oszacowania zwracane przez funkcję \bold{nie są porównywalne
 #' pomiędzy LO a T!}
@@ -102,7 +108,9 @@ skaluj_matura = function(rok, processors = 2, opis = "skalowanie do EWD",
                          katalogSurowe = "../../dane surowe",
                          katalogWyskalowane = "../../dane wyskalowane",
                          zapisz = TRUE, skala = NULL, proba = -1,
-                         usunWieleNaraz = FALSE, nieEstymuj = FALSE) {
+                         usunWieleNaraz = FALSE, nieEstymuj = FALSE,
+                         tylkoDaneDoUIRTa = FALSE,
+                         src = NULL) {
   doPrezentacji = TRUE
   stopifnot(is.numeric(rok), length(rok) == 1,
             is.numeric(processors), length(processors) == 1,
@@ -113,7 +121,10 @@ skaluj_matura = function(rok, processors = 2, opis = "skalowanie do EWD",
             is.null(skala) | is.numeric(skala) | is.character(skala),
             is.numeric(proba), length(proba) == 1,
             is.logical(usunWieleNaraz), length(usunWieleNaraz) == 1,
-            is.logical(nieEstymuj), length(nieEstymuj) == 1)
+            is.logical(nieEstymuj), length(nieEstymuj) == 1,
+            is.logical(tylkoDaneDoUIRTa), length(tylkoDaneDoUIRTa) == 1,
+            is.src(src) | is.null(src)
+  )
   stopifnot(as.integer(rok) == rok, rok >= 2010,
             processors %in% (1:32),
             dir.exists(katalogSurowe),
@@ -121,7 +132,11 @@ skaluj_matura = function(rok, processors = 2, opis = "skalowanie do EWD",
             zapisz %in% c(TRUE, FALSE),
             as.integer(proba) == proba, proba == -1 | proba > 0,
             usunWieleNaraz %in% c(TRUE, FALSE),
-            nieEstymuj %in% c(TRUE, FALSE))
+            nieEstymuj %in% c(TRUE, FALSE)
+  )
+  if (is.null(src)) {
+    src = ZPD::polacz()
+  }
   if (!is.null(skala)) {
     stopifnot(length(skala) == 1)
     doPrezentacji = NA
@@ -140,8 +155,8 @@ skaluj_matura = function(rok, processors = 2, opis = "skalowanie do EWD",
     }
   }
   parametry = suppressMessages(
-    pobierz_parametry_skalowania(skala, doPrezentacji = doPrezentacji,
-                                 parametryzacja = "mplus"))
+    pobierz_parametry_skalowania(skala, doPrezentacji = doPrezentacji, parametryzacja = "mplus", src = src)
+  )
   if (nrow(parametry) == 0) {
     if (is.character(skala)) {
       stop("Nie znaleziono skal o opisie pasującym do wyrażenia '", skala,
@@ -157,9 +172,12 @@ skaluj_matura = function(rok, processors = 2, opis = "skalowanie do EWD",
     stop("Skale są związane z więcej niż jednym egzaminem: '",
          paste0(rodzajEgzaminu, collapse = "', "), "'.")
   }
-  skale = group_by(parametry, .data$id_skali) %>%
-    summarise(lSkalowan = n(),
-              opis = .data$opis_skali[1]) %>%
+  skale = parametry %>%
+    group_by(.data$id_skali) %>%
+    summarise(
+      lSkalowan = n(),
+      opis = .data$opis_skali[1]
+    ) %>%
     ungroup()
   if (any(skale$lSkalowan > 1)) {
     stop("Dla skal '", paste0(skale$opis[skale$lSkalowan > 1], collapse = "', '"),
@@ -183,14 +201,13 @@ skaluj_matura = function(rok, processors = 2, opis = "skalowanie do EWD",
     message(rodzajEgzaminu, " ", rok, " (id_skali: ", idSkali, ", '", opis,
             "'; skalowanie ", skalowanie, ".):")
     # wczytywanie danych z dysku i sprawdzanie, czy jest dla kogo skalować
-    dane = wczytaj_wyniki_surowe(katalogSurowe, rodzajEgzaminu, "", rok, idSkali)
+    dane = wczytaj_wyniki_surowe(katalogSurowe, rodzajEgzaminu, "", rok, idSkali, src = src)
     dane = filter(dane, .data$typ_szkoly %in% c("LO", "T"))
 
     zmienneKryteria = names(dane)[grep("^[kp]_[[:digit:]]+$", names(dane))]
     tytulWzorcowe = paste0(names(wyniki)[i], rok, " wzor")
     tytulWszyscy = paste0(names(wyniki)[i], rok, " wszyscy")
     # przyłączanie informacji o tym, kto co zdawał
-    src = polacz()
     czesciEgzaminow = suppressMessages(
       pobierz_kryteria_oceny(src, skale = FALSE) %>%
         semi_join(data.frame(kryterium = zmienneKryteria), copy = TRUE) %>%
@@ -214,7 +231,6 @@ skaluj_matura = function(rok, processors = 2, opis = "skalowanie do EWD",
     }
     # ew. tworzenie zmiennych opisujących wybór tematów
     if (grepl(";m_(jp|h);", opis)) {
-      src = polacz()
       # zawikłane (można pomyśleć, czy nie dałoby się łatwiej):
       # najpierw tworzymy sobie listę wszystkich kryteriów skali, podmieniając
       # (rozmnażając) pseudokryteria na ich kryteria składowe
@@ -375,7 +391,7 @@ skaluj_matura = function(rok, processors = 2, opis = "skalowanie do EWD",
               "(np. uczniowie LO, którzy w 2015 r. zdawali maturę w 'starej formule').")
     }
     # jeśli nic w bazie nie znaleźliśmy, to robimy skalowanie wzorcowe
-    if (!is.data.frame(parametrySkala)) {
+    if (!is.data.frame(parametrySkala) | tylkoDaneDoUIRTa) {
       daneWzorcowe = filter(dane, .data$populacja_wy & !.data$pomin_szkole)
       # czyszczenie wyników laureatów
       for (p in unique(czesciEgzaminow$prefiks)) {
@@ -404,6 +420,10 @@ skaluj_matura = function(rok, processors = 2, opis = "skalowanie do EWD",
                                           grupy$gr_tmp1[!duplicated(grupy$czy_sf)])
       } else {
         wartosciZakotwiczone = NULL
+      }
+      if (tylkoDaneDoUIRTa) {
+        write.csv(daneWzorcowe, paste0(katalogSurowe, '/', sub(';', '_', opis), '_s', idSkali, '_sk', skalowanie, ".RData"), na = '')
+        next
       }
       # skalowanie wzorcowe
       message("\n### Skalowanie wzorcowe ###\n")
