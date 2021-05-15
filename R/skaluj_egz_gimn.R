@@ -18,6 +18,12 @@
 #' @param proba opcjonalnie liczba natrualna - wielkość próby, jaka ma być
 #' wylosowana z danych przed estymacją modelu; przydatne (tylko) do testów
 #' działania funkcji
+#' @param tylkoDaneDoUIRTa jeśli TRUE, zamiast przeprowadzić (lub wczytać już
+#'   wykonane) skalowanie funkcja zrzuca jedynie w katalogu \code{katalogSurowe}
+#'   pliki CSV z danymi do skalowania parametrów zadań UIRT-em
+#' @param src NULL połączenie z bazą danych IBE zwracane przez funkcję
+#' \code{\link[ZPD]{polacz}}. Jeśli nie podane, podjęta zostanie próba
+#' automatycznego nawiązania połączenia.
 #' @return
 #' lista klasy \code{listaWynikowSkalowania}, której elementy są listami
 #' klasy \code{wynikiSkalowania} i składają się z elementów:
@@ -84,7 +90,9 @@
 skaluj_egz_gimn = function(rok, processors = 2, opis = "skalowanie do EWD",
                            katalogSurowe = "../../dane surowe",
                            katalogWyskalowane = "../../dane wyskalowane",
-                           zapisz = TRUE, skala = NULL, proba = -1) {
+                           zapisz = TRUE, skala = NULL, proba = -1,
+                           tylkoDaneDoUIRTa = FALSE,
+                           src = NULL) {
   doPrezentacji = TRUE
   stopifnot(is.numeric(rok), length(rok) == 1,
             is.numeric(processors), length(processors) == 1,
@@ -93,13 +101,20 @@ skaluj_egz_gimn = function(rok, processors = 2, opis = "skalowanie do EWD",
             is.character(katalogWyskalowane), length(katalogWyskalowane) == 1,
             is.logical(zapisz), length(zapisz) == 1,
             is.null(skala) | is.numeric(skala) | is.character(skala),
-            is.numeric(proba), length(proba) == 1)
+            is.numeric(proba), length(proba) == 1,
+            is.logical(tylkoDaneDoUIRTa), length(tylkoDaneDoUIRTa) == 1,
+            dplyr::is.src(src) | is.null(src)
+  )
   stopifnot(as.integer(rok) == rok, rok >= 2002,
             processors %in% (1:32),
             dir.exists(katalogSurowe),
             dir.exists(katalogWyskalowane),
             zapisz %in% c(TRUE, FALSE),
-            as.integer(proba) == proba, proba == -1 | proba > 0)
+            as.integer(proba) == proba, proba == -1 | proba > 0
+  )
+  if (is.null(src)) {
+    src = ZPD::polacz()
+  }
   if (!is.null(skala)) {
     stopifnot(length(skala) == 1)
     doPrezentacji = NA
@@ -116,8 +131,7 @@ skaluj_egz_gimn = function(rok, processors = 2, opis = "skalowanie do EWD",
     }
   }
   parametry = suppressMessages(
-    pobierz_parametry_skalowania(skala, doPrezentacji = doPrezentacji,
-                                 parametryzacja = "mplus"))
+    pobierz_parametry_skalowania(skala, doPrezentacji = doPrezentacji, parametryzacja = "mplus", src = src))
   if (nrow(parametry) == 0) {
     if (is.character(skala)) {
       stop("Nie znaleziono skal o opisie pasującym do wyrażenia '", skala,
@@ -156,14 +170,14 @@ skaluj_egz_gimn = function(rok, processors = 2, opis = "skalowanie do EWD",
     message(rodzajEgzaminu, " ", rok, " (id_skali: ", idSkali, ", '", opis,
             "'; skalowanie ", skalowanie, ".):")
     # wczytywanie danych z dysku i sprawdzanie, czy jest dla kogo skalować
-    dane = wczytaj_wyniki_surowe(katalogSurowe, rodzajEgzaminu, "", rok, idSkali)
+    dane = wczytaj_wyniki_surowe(katalogSurowe, rodzajEgzaminu, "", rok, idSkali, src = src)
     # będziemy wyrzucać wszystko, co niepotrzebne do skalowania (rypanie po dysku zajmuje potem cenny czas)
     zmienneKryteria = names(dane)[grep("^[kpst]_[[:digit:]]+$", names(dane))]
     maskaZmienne = c("id_obserwacji", "id_testu", zmienneKryteria)
     tytulWzorcowe = paste0(names(wyniki)[i], rok, " wzor")
     tytulWszyscy = paste0(names(wyniki)[i], rok, " wszyscy")
     # jeśli nic w bazie nie znaleźliśmy, to robimy skalowanie wzorcowe
-    if (!is.data.frame(parametrySkala)) {
+    if (!is.data.frame(parametrySkala) | tylkoDaneDoUIRTa) {
       zmLaur = paste0("laur_", names(wyniki)[i])
       # trochę baroku, żeby móc wyskalować egzamin z 2005 r., który mamy tylko w danych z CKE
       if (all(c(zmLaur, "populacja_wy", "pomin_szkole") %in% names(dane))) {
@@ -178,6 +192,10 @@ skaluj_egz_gimn = function(rok, processors = 2, opis = "skalowanie do EWD",
       daneWzorcowe = daneWzorcowe[, maskaZmienne]
       if (proba > 0) {
         daneWzorcowe = daneWzorcowe[sample(nrow(daneWzorcowe), proba), ]
+      }
+      if (tylkoDaneDoUIRTa) {
+        write.csv(daneWzorcowe, paste0(katalogSurowe, '/', sub(';', '_', opis), '_s', idSkali, '_sk', skalowanie, ".csv"), na = '', row.names = FALSE)
+        next
       }
       # sztuczka, żeby przy skalowaniu gh i gm w nowej formule już nie usuwał (pseudo)kryteriów
       if ( ((names(wyniki)[i] == "gh") & all(c("gh_h", "gh_p") %in% names(wyniki))) |

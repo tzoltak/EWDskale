@@ -123,7 +123,7 @@ skaluj_matura = function(rok, processors = 2, opis = "skalowanie do EWD",
             is.logical(usunWieleNaraz), length(usunWieleNaraz) == 1,
             is.logical(nieEstymuj), length(nieEstymuj) == 1,
             is.logical(tylkoDaneDoUIRTa), length(tylkoDaneDoUIRTa) == 1,
-            is.src(src) | is.null(src)
+            dplyr::is.src(src) | is.null(src)
   )
   stopifnot(as.integer(rok) == rok, rok >= 2010,
             processors %in% (1:32),
@@ -422,7 +422,7 @@ skaluj_matura = function(rok, processors = 2, opis = "skalowanie do EWD",
         wartosciZakotwiczone = NULL
       }
       if (tylkoDaneDoUIRTa) {
-        write.csv(daneWzorcowe, paste0(katalogSurowe, '/', sub(';', '_', opis), '_s', idSkali, '_sk', skalowanie, ".csv"), na = '')
+        write.csv(daneWzorcowe, paste0(katalogSurowe, '/', sub(';', '_', opis), '_s', idSkali, '_sk', skalowanie, ".csv"), na = '', row.names = FALSE)
         next
       }
       # skalowanie wzorcowe
