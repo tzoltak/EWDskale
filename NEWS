@@ -4,9 +4,9 @@ EWDskale 0.3.6 (11.05.2021)
 - Uaktualnienia:
   - skaluj_matura() i wczytaj_dane() umożliwiają przekazanie połączenia z bazą
     danych jako parametru
-  - skaluj_matura() obsługuje zrzucanie CSV-ek z danymi "jak do MPlusa" do
-    skalowania wyników za pomocą zewnętrznych narzędzi (np. UIRT-a).
-    W tym celu należy ustawić parametr `daneDoUIRTa = TRUE`.
+  - skaluj_matura() oraz skaluj_egz_gimn() obsługują zrzucanie CSV-ek z danymi
+    "jak do MPlusa" do skalowania wyników za pomocą zewnętrznych narzędzi (np.
+    UIRT-a). W tym celu należy ustawić parametr `daneDoUIRTa = TRUE`.
 
 --------------------
 EWDskale 0.3.5 (22.10.2020)
