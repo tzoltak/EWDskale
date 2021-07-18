@@ -298,7 +298,7 @@ sprawdz_wyniki_skalowania_konstruktu = function(model) {
   #         legend("bottomright", lwd=2, col=1:length(grupy), legend = legend,
   #                title = "grupy", bg = "white", cex = 0.7)
   #       }
-  if (exists("oszacowaniaGrupy")) {
+  if (exists("oszacowaniaGrupy", environment(), inherits = FALSE)) {
     cat("\nŚrednie i odchylenia standardowe oszacowań umiejętności:\n",
         "(grupa objęta skalowaniem wzorcowym)\n", sep = "")
     summarise(oszacowaniaGrupy,

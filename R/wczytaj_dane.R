@@ -12,6 +12,9 @@
 #' zastosowana do wyników surowych
 #' @param kryteria opcjonalnie wektor tekstowy z nazwami wszystkich
 #' kryteriów oceny, jakie powinna zawierać dana część/ci egzaminu
+#' @param src NULL połączenie z bazą danych IBE zwracane przez funkcję
+#' \code{\link[ZPD]{polacz}}. Jeśli nie podane, podjęta zostanie próba
+#' automatycznego nawiązania połączenia.
 #' @details
 #' Funkcja co do zasady dołącza do wyników egzaminu dane kontekstowe, zawężając
 #' grupę zwracanych obserwacji do tych, dla których te dane istnieją. Jeśli
@@ -24,13 +27,17 @@
 #' @importFrom stats setNames
 #' @import ZPD
 wczytaj_wyniki_surowe = function(katalogDane, rodzajEgzaminu, czescEgzaminu,
-                                 rok, idSkali, kryteria = NULL) {
+                                 rok, idSkali, kryteria = NULL, src = NULL) {
   stopifnot(is.character(katalogDane), length(katalogDane) == 1,
             is.character(rodzajEgzaminu), length(rodzajEgzaminu) == 1,
             is.numeric(rok), length(rok) == 1,
-            is.numeric(idSkali), length(idSkali) == 1)
+            is.numeric(idSkali), length(idSkali) == 1,
+            dplyr::is.src(src) | is.null(src))
   stopifnot(dir.exists(katalogDane),
             rodzajEgzaminu %in% c("sprawdzian", "egzamin gimnazjalny", "matura"))
+  if (is.null(src)) {
+    src = ZPD::polacz()
+  }
 
   katalogDane = paste0(sub("/$", "", katalogDane), "/")
   plikDane = paste0(katalogDane, rodzajEgzaminu, " ", rok, ".RData")
@@ -38,7 +45,6 @@ wczytaj_wyniki_surowe = function(katalogDane, rodzajEgzaminu, czescEgzaminu,
     stop("Nie można wczytać danych z pliku '", plikDane, "'. Plik nie istnieje.")
   }
   obiekty = load(plikDane)
-  src = polacz()
   idTestu = suppressMessages(
     pobierz_skale(src, doPrezentacji = NA) %>%
       filter(.data$id_skali == idSkali) %>%
@@ -69,7 +75,7 @@ wczytaj_wyniki_surowe = function(katalogDane, rodzajEgzaminu, czescEgzaminu,
     }
     if (any(maska1) & all(maska2) &
         all(c("wynikiSurowe", "czescEgzaminu") %in% class(get(i)))) {
-      if (!exists("dane")) {
+      if (!exists("dane", environment(), inherits = FALSE)) {
         assign("dane", temp)
       } else {
         dane = suppressMessages(full_join(get("dane"), temp))
@@ -82,7 +88,7 @@ wczytaj_wyniki_surowe = function(katalogDane, rodzajEgzaminu, czescEgzaminu,
   if (length(idTestu) == 1) {
     dane$id_testu =  idTestu
   }
-  if (!exists("dane")) {
+  if (!exists("dane", environment(), inherits = FALSE)) {
     stop("W pliku '", plikDane, "' nie ma obiektu, który zawierałby wyniki ",
          "wszystkich (pseudo)kryteriów oceny części '", czescEgzaminu,
          "' egzaminu '", rodzajEgzaminu, "'.")
