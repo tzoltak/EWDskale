@@ -194,7 +194,7 @@ skaluj_egz_gimn = function(rok, processors = 2, opis = "skalowanie do EWD",
         daneWzorcowe = daneWzorcowe[sample(nrow(daneWzorcowe), proba), ]
       }
       if (tylkoDaneDoUIRTa) {
-        write.csv(daneWzorcowe, paste0(katalogSurowe, '/', sub(';', '_', opis), '_s', idSkali, '_sk', skalowanie, ".csv"), na = '', row.names = FALSE)
+        write.csv(daneWzorcowe, paste0(katalogSurowe, '/', opis, '_s', idSkali, '_sk', skalowanie, ".csv"), na = '', row.names = FALSE)
         next
       }
       # sztuczka, żeby przy skalowaniu gh i gm w nowej formule już nie usuwał (pseudo)kryteriów
