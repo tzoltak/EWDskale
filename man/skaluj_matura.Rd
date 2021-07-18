@@ -14,7 +14,9 @@ skaluj_matura(
   skala = NULL,
   proba = -1,
   usunWieleNaraz = FALSE,
-  nieEstymuj = FALSE
+  nieEstymuj = FALSE,
+  tylkoDaneDoUIRTa = FALSE,
+  src = NULL
 )
 }
 \arguments{
@@ -51,6 +53,14 @@ wszystkie w jednym kroku?}
 pliki \code{.out}, których nazwy odpowiadają tym, jakie powstałyby przy
 estymacji modeli dla danych "wzorcowych", to czy wczytać je, zamiast
 przeprowadzania estymacji w Mplusie?}
+
+\item{tylkoDaneDoUIRTa}{jeśli TRUE, zamiast przeprowadzić (lub wczytać już
+wykonane) skalowanie funkcja zrzuca jedynie w katalogu \code{katalogSurowe}
+pliki CSV z danymi do skalowania parametrów zadań UIRT-em}
+
+\item{src}{NULL połączenie z bazą danych IBE zwracane przez funkcję
+\code{\link[ZPD]{polacz}}. Jeśli nie podane, podjęta zostanie próba
+automatycznego nawiązania połączenia.}
 }
 \value{
 lista klasy \code{listaWynikowSkalowania}, której elementy są listami

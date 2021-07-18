@@ -10,7 +10,8 @@ wczytaj_wyniki_surowe(
   czescEgzaminu,
   rok,
   idSkali,
-  kryteria = NULL
+  kryteria = NULL,
+  src = NULL
 )
 }
 \arguments{
@@ -29,6 +30,10 @@ zastosowana do wyników surowych}
 
 \item{kryteria}{opcjonalnie wektor tekstowy z nazwami wszystkich
 kryteriów oceny, jakie powinna zawierać dana część/ci egzaminu}
+
+\item{src}{NULL połączenie z bazą danych IBE zwracane przez funkcję
+\code{\link[ZPD]{polacz}}. Jeśli nie podane, podjęta zostanie próba
+automatycznego nawiązania połączenia.}
 }
 \value{
 data frame (data table)

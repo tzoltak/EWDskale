@@ -44,7 +44,7 @@ wczytaj_parametry_UIRT = function(sciezkaWe, src = NULL, sciezkaWy = NULL, skalo
       ) %>%
       dplyr::select(-.data$source)
     skaleElementy = ZPD::pobierz_kryteria_oceny(src, testy = FALSE, skale = TRUE, krytSkladowe = FALSE) %>%
-      dplyr::filter(id_skali == idSkali) %>%
+      dplyr::filter(.data$id_skali == idSkali) %>%
       dplyr::select(.data$kryterium, .data$kolejnosc_w_skali) %>%
       dplyr::rename(kolejnosc = .data$kolejnosc_w_skali) %>%
       dplyr::collect()
@@ -64,7 +64,7 @@ wczytaj_parametry_UIRT = function(sciezkaWe, src = NULL, sciezkaWy = NULL, skalo
     )
 
     paramGrupy = daneSk %>%
-      dplyr::filter(model == 'GROUP') %>%
+      dplyr::filter(.data$model == 'GROUP') %>%
       dplyr::select(-.data$kryterium, -.data$model) %>%
       dplyr::mutate(
         kolumna  = dplyr::if_else(grepl('se_', .data$parametr), 'bs', 'wartosc'),

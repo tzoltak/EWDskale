@@ -18,7 +18,8 @@ Imports:
     dplyr (>= 0.7.6),
     reshape2 (>= 1.4.3),
     readr,
-    EWDskalowanie (>= 1.0.0)
+    EWDskalowanie (>= 1.0.0),
+    tidyr
 Suggests:
     testthat,
     knitr

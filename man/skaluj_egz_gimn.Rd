@@ -12,7 +12,9 @@ skaluj_egz_gimn(
   katalogWyskalowane = "../../dane wyskalowane",
   zapisz = TRUE,
   skala = NULL,
-  proba = -1
+  proba = -1,
+  tylkoDaneDoUIRTa = FALSE,
+  src = NULL
 )
 }
 \arguments{
@@ -40,6 +42,14 @@ regularnym, do którego ma pasować opis skali}
 \item{proba}{opcjonalnie liczba natrualna - wielkość próby, jaka ma być
 wylosowana z danych przed estymacją modelu; przydatne (tylko) do testów
 działania funkcji}
+
+\item{tylkoDaneDoUIRTa}{jeśli TRUE, zamiast przeprowadzić (lub wczytać już
+wykonane) skalowanie funkcja zrzuca jedynie w katalogu \code{katalogSurowe}
+pliki CSV z danymi do skalowania parametrów zadań UIRT-em}
+
+\item{src}{NULL połączenie z bazą danych IBE zwracane przez funkcję
+\code{\link[ZPD]{polacz}}. Jeśli nie podane, podjęta zostanie próba
+automatycznego nawiązania połączenia.}
 }
 \value{
 lista klasy \code{listaWynikowSkalowania}, której elementy są listami
