@@ -75,7 +75,7 @@ wczytaj_wyniki_surowe = function(katalogDane, rodzajEgzaminu, czescEgzaminu,
     }
     if (any(maska1) & all(maska2) &
         all(c("wynikiSurowe", "czescEgzaminu") %in% class(get(i)))) {
-      if (!exists("dane")) {
+      if (!exists("dane", environment(), inherits = FALSE)) {
         assign("dane", temp)
       } else {
         dane = suppressMessages(full_join(get("dane"), temp))
@@ -88,7 +88,7 @@ wczytaj_wyniki_surowe = function(katalogDane, rodzajEgzaminu, czescEgzaminu,
   if (length(idTestu) == 1) {
     dane$id_testu =  idTestu
   }
-  if (!exists("dane")) {
+  if (!exists("dane", environment(), inherits = FALSE)) {
     stop("W pliku '", plikDane, "' nie ma obiektu, który zawierałby wyniki ",
          "wszystkich (pseudo)kryteriów oceny części '", czescEgzaminu,
          "' egzaminu '", rodzajEgzaminu, "'.")
