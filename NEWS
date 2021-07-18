@@ -1,4 +1,11 @@
 --------------------
+EWDskale 0.4.0 (18.07.2021)
+
+- Nowe funkcjonalności:
+  - nowa funkcja wczytaj_parametry_UIRT() konwertująca parametry skalowania
+    wykonanego UIRT-em z CSV do struktury zgodnej z ZPDzapis::zapisz_skalowanie()
+
+--------------------
 EWDskale 0.3.6 (11.05.2021)
 
 - Uaktualnienia:
