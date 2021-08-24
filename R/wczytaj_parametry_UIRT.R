@@ -20,6 +20,7 @@
 #' @return lista opisująca wyniki skalowania w formacie zgodnym z tym, jakiego
 #'   używa unkcja \code{\link[ZPDzapis]{zapisz_skalowanie}}.
 #' @import dplyr
+#' @export
 wczytaj_parametry_UIRT = function(sciezkaWe, src = NULL, sciezkaWy = NULL, skalowanie = NULL, opis = NULL) {
   dane = suppressMessages(readr::read_csv(sciezkaWe))
   if (is.null(src)) {
