@@ -1,4 +1,28 @@
 --------------------
+EWDskale 0.5.0 (29.09.2021)
+
+- Zmiany w sposobie skalowania:
+  - skaluj_matura() przypisuje laureatów danej części egzaminu do tematu, który
+    wskazuje na najwyższy poziom umiejętności zamiast do tematu "zerowego"
+    (tj. nieznanego).
+
+- Uaktualnienia:
+  - skaluj_matura() zgadza się skalować wyniki z 2021 r.;
+  - zaktualizowano zależności w DESCRIPTION.
+
+- Udoskonalenia:
+  - wszystkie funkcje, które w trakcie działania łączą się z bazą danych EWD
+    otrzymały opcjonalny argument `src`, który pozwala przekazać uchwyt
+    połączenia do bazy (zamiast polegać na wywołaniu ZPD::polacz(), które
+    nie działa po migracji bazy do CIE);
+  - sprawdz_wyniki_skalowania_konstruktu() (a więc pośrednio również
+    sprawdz_wyniki_skalowania()) zwraca na konsolę informacje o obrabianym
+    konstrukcie w formacie przyjaznym dokumentom Rmarkdown;
+  - wszystkie funkcje, w których dokonywane jest przekształcanie danych pomiędzy
+    formą "długą" a "szeroką" lub odwrotnie zostały przepisane z pakietu
+    reshape2 na pakiet tidyr.
+
+--------------------
 EWDskale 0.4.0 (18.07.2021)
 
 - Nowe funkcjonalności:

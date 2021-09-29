@@ -16,6 +16,9 @@
 #' @param grupy data frame zawierający mapowanie numerów grup na ich nazwy);
 #' musi składać się z dwóch zmiennych: 'grupa', zawierającej nazwy grup
 #' i drugiej, o dowolnej nazwie, zawierającej numery grup
+#' @param src NULL połączenie z bazą danych IBE zwracane przez funkcję
+#' \code{\link[ZPD]{polacz}}. Jeśli nie podane, podjęta zostanie próba
+#' automatycznego nawiązania połączenia.
 #' @return
 #' ramka danych w formacie odpowiadającym strukturze tablicy
 #' \code{skalowania_elementy} w bazie
@@ -23,7 +26,8 @@
 #' @import ZPD
 zmien_parametry_na_do_bazy = function(x, idSkali, skalowanie,
                                       rzetelnoscEmpiryczna = NULL,
-                                      standaryzacja = NULL, grupy = NULL) {
+                                      standaryzacja = NULL, grupy = NULL,
+                                      src = NULL) {
   stopifnot(is.data.frame(x),
             is.numeric(idSkali), length(idSkali) == 1,
             is.numeric(skalowanie), length(skalowanie) == 1,
@@ -32,7 +36,11 @@ zmien_parametry_na_do_bazy = function(x, idSkali, skalowanie,
               is.null(rzetelnoscEmpiryczna),
             is.data.frame(standaryzacja) |
               is.null(standaryzacja),
-            is.data.frame(grupy) | is.null(grupy))
+            is.data.frame(grupy) | is.null(grupy),
+            dplyr::is.src(src) | is.null(src))
+  if (is.null(src)) {
+    src = ZPD::polacz()
+  }
   if (is.numeric(rzetelnoscEmpiryczna)) {
     stopifnot(length(rzetelnoscEmpiryczna) == 1)
     rzetelnoscEmpiryczna =
@@ -156,7 +164,7 @@ zmien_parametry_na_do_bazy = function(x, idSkali, skalowanie,
   x$uwagi[maskaSpecjalne] = x$kryterium[maskaSpecjalne]
   x$kryterium[maskaSpecjalne] = NA
   kryteria = suppressMessages(
-    pobierz_kryteria_oceny(polacz()) %>%
+    pobierz_kryteria_oceny(src) %>%
       filter(.data$id_skali %in% c(idSkali, idSkali)) %>%
       select("id_skali", "kryterium", "kolejnosc_w_skali") %>%
       collect() %>%

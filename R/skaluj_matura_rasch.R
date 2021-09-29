@@ -21,6 +21,9 @@
 #' @param proba opcjonalnie liczba natrualna - wielkość próby, jaka ma być
 #' wylosowana z danych przed estymacją modelu; przydatne (tylko) do testów
 #' działania funkcji
+#' @param src NULL połączenie z bazą danych IBE zwracane przez funkcję
+#' \code{\link[ZPD]{polacz}}. Jeśli nie podane, podjęta zostanie próba
+#' automatycznego nawiązania połączenia.
 #' @details
 #' Schemat przekodowania sum punktów na oszacowania umiejętności obliczany jest
 #' na podstawie danych wzorcowych, przy pomocy funkcji
@@ -104,7 +107,8 @@ skaluj_matura_rasch = function(rok, processors = 2,
                                opis = "skalowanie do Kalkulatora EWD",
                                katalogSurowe = "../../dane surowe",
                                katalogWyskalowane = "../../dane wyskalowane",
-                               zapisz = TRUE, skala = NULL, proba = -1) {
+                               zapisz = TRUE, skala = NULL, proba = -1,
+                               src = NULL) {
   doPrezentacji = TRUE
   stopifnot(is.numeric(rok), length(rok) == 1,
             is.numeric(processors), length(processors) == 1,
@@ -113,7 +117,8 @@ skaluj_matura_rasch = function(rok, processors = 2,
             is.character(katalogWyskalowane), length(katalogWyskalowane) == 1,
             is.logical(zapisz), length(zapisz) == 1,
             is.null(skala) | is.numeric(skala) | is.character(skala),
-            is.numeric(proba), length(proba) == 1)
+            is.numeric(proba), length(proba) == 1,
+            dplyr::is.src(src) | is.null(src))
   stopifnot(as.integer(rok) == rok, rok >= 2010,
             processors %in% (1:32),
             dir.exists(katalogSurowe),
@@ -127,6 +132,11 @@ skaluj_matura_rasch = function(rok, processors = 2,
   if (rok > 2020) {
     stop("Funkcja nie obsługuje skalowania dla egzaminów po 2020 r.")
   }
+  if (is.null(src)) {
+    srcTemp = ZPD::polacz()
+  } else {
+    srcTemp = src
+  }
 
   # sprawdzanie, czy w bazie są zapisane skala i jakieś skalowanie z parametrami
   if (is.null(skala)) {
@@ -139,7 +149,7 @@ skaluj_matura_rasch = function(rok, processors = 2,
   }
   parametry = suppressMessages(
     pobierz_parametry_skalowania(skala, doPrezentacji = doPrezentacji,
-                                 parametryzacja = "mplus"))
+                                 parametryzacja = "mplus", src = src))
   if (nrow(parametry) == 0) {
     if (is.character(skala)) {
       stop("Nie znaleziono skal o opisie pasującym do wyrażenia '", skala,
@@ -151,7 +161,7 @@ skaluj_matura_rasch = function(rok, processors = 2,
   }
 
   normy = suppressMessages(
-    pobierz_normy(polacz()) %>%
+    pobierz_normy(srcTemp) %>%
       semi_join(select(parametry, -"parametry"), copy = TRUE) %>%
       collect()
   )
@@ -179,6 +189,11 @@ skaluj_matura_rasch = function(rok, processors = 2,
   wyniki = vector(mode = "list", length = nrow(skale))
   names(wyniki) = gsub("^.*ewd;([^;]+);.*$", "\\1", parametry$opis_skali)
   for (i in 1:nrow(parametry)) {
+    if (is.null(src)) {
+      srcTemp = ZPD::polacz()
+    } else {
+      srcTemp = src
+    }
     idSkali = parametry$id_skali[i]
     opis = parametry$opis_skali[i]
     skalowanie = parametry$skalowanie[i]
@@ -199,12 +214,11 @@ skaluj_matura_rasch = function(rok, processors = 2,
     tytulWzorcowe = paste0(names(wyniki)[i], rok, " wzor")
     tytulWszyscy = paste0(names(wyniki)[i], rok, " wszyscy")
     # przyłączanie informacji o tym, kto co zdawał
-    src = polacz()
     czesciEgzaminow = suppressMessages(
-      pobierz_kryteria_oceny(src, skale = FALSE) %>%
+      pobierz_kryteria_oceny(srcTemp, skale = FALSE) %>%
         semi_join(data.frame(kryterium = zmienneKryteria), copy = TRUE) %>%
         select("kryterium", "id_testu") %>%
-        left_join(pobierz_testy(src)) %>%
+        left_join(pobierz_testy(srcTemp)) %>%
         filter(.data$czy_egzamin) %>%
         select("kryterium", "prefiks", "arkusz") %>%
         distinct() %>%

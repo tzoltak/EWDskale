@@ -4,10 +4,14 @@
 \alias{sprawdz_wyniki_skalowania_konstruktu}
 \title{Diagnostyka skalowania}
 \usage{
-sprawdz_wyniki_skalowania_konstruktu(model)
+sprawdz_wyniki_skalowania_konstruktu(model, src = NULL)
 }
 \arguments{
 \item{model}{obiekt klasy \code{wynikiSkalowania}}
+
+\item{src}{NULL połączenie z bazą danych IBE zwracane przez funkcję
+\code{\link[ZPD]{polacz}}. Jeśli nie podane, podjęta zostanie próba
+automatycznego nawiązania połączenia.}
 }
 \value{
 funkcja nie zwraca żadnych wartości

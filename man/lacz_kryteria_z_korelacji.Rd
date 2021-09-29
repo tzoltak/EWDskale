@@ -8,7 +8,8 @@ lacz_kryteria_z_korelacji(
   skale,
   katalogDane = "dane surowe/",
   prog = 0.5,
-  tylkoWWiazkach = TRUE
+  tylkoWWiazkach = TRUE,
+  src = NULL
 )
 }
 \arguments{
@@ -24,6 +25,10 @@ ma być kontynuowane łączenie}
 
 \item{tylkoWWiazkach}{wartość logiczna - czy dopuszczać łączenie kryteriów
 tylko w ramach wiązek pytań/kryteriów?}
+
+\item{src}{NULL połączenie z bazą danych IBE zwracane przez funkcję
+\code{\link[ZPD]{polacz}}. Jeśli nie podane, podjęta zostanie próba
+automatycznego nawiązania połączenia.}
 }
 \value{
 lista, której każdy element jest dwuelemntową listą, zawierającą id

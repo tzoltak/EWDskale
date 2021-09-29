@@ -18,6 +18,9 @@
 #' @param proba opcjonalnie liczba natrualna - wielkość próby, jaka ma być
 #' wylosowana z danych przed estymacją modelu; przydatne (tylko) do testów
 #' działania funkcji
+#' @param src NULL połączenie z bazą danych IBE zwracane przez funkcję
+#' \code{\link[ZPD]{polacz}}. Jeśli nie podane, podjęta zostanie próba
+#' automatycznego nawiązania połączenia.
 #' @return
 #' lista klasy \code{listaWynikowSkalowania} z jednym elementem "s",
 #' klasy \code{wynikiSkalowania}, będącym listą o elementach:
@@ -84,7 +87,8 @@
 skaluj_spr = function(rok, processors = 2, opis = "skalowanie do EWD",
                       katalogSurowe = "../../dane surowe",
                       katalogWyskalowane = "../../dane wyskalowane",
-                      zapisz = TRUE, skala = NULL, proba = -1) {
+                      zapisz = TRUE, skala = NULL, proba = -1,
+                      src = NULL) {
   stopifnot(is.numeric(rok), length(rok) == 1,
             is.numeric(processors), length(processors) == 1,
             is.character(opis), length(opis) == 1,
@@ -92,7 +96,8 @@ skaluj_spr = function(rok, processors = 2, opis = "skalowanie do EWD",
             is.character(katalogWyskalowane), length(katalogWyskalowane) == 1,
             is.logical(zapisz), length(zapisz) == 1,
             is.null(skala) | is.numeric(skala) | is.character(skala),
-            is.numeric(proba), length(proba) == 1)
+            is.numeric(proba), length(proba) == 1,
+            dplyr::is.src(src) | is.null(src))
   stopifnot(as.integer(rok) == rok, rok >= 2002,
             processors %in% (1:32),
             dir.exists(katalogSurowe),
@@ -114,7 +119,8 @@ skaluj_spr = function(rok, processors = 2, opis = "skalowanie do EWD",
   }
   parametry =
     suppressMessages(pobierz_parametry_skalowania(skala, doPrezentacji = TRUE,
-                                                  parametryzacja = "mplus"))
+                                                  parametryzacja = "mplus",
+                                                  src = src))
   if (nrow(parametry) == 0) {
     if (is.character(skala)) {
       stop("Nie znaleziono skali o opisie pasującym do wyrażenia '", skala,

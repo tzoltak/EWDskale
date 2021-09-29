@@ -29,17 +29,24 @@ sprawdz_wyniki_skalowania = function(nazwaPliku) {
 #' Funkcja wyrysowuje zestaw wykresów diagnostycznych pozwalających przyjrzeć
 #' się wynikom uzyskanym z modelu skalowania.
 #' @param model obiekt klasy \code{wynikiSkalowania}
+#' @param src NULL połączenie z bazą danych IBE zwracane przez funkcję
+#' \code{\link[ZPD]{polacz}}. Jeśli nie podane, podjęta zostanie próba
+#' automatycznego nawiązania połączenia.
 #' @return funkcja nie zwraca żadnych wartości
 #' @importFrom stats na.omit setNames runif median sd
 #' @importFrom graphics hist grid abline legend par
 #' @importFrom grDevices grey
 #' @import ZPD
-sprawdz_wyniki_skalowania_konstruktu = function(model) {
-  stopifnot(is.list(model), "wynikiSkalowania" %in% class(model))
+sprawdz_wyniki_skalowania_konstruktu = function(model, src = NULL) {
+  stopifnot(is.list(model), "wynikiSkalowania" %in% class(model),
+            dplyr::is.src(src) | is.null(src))
   stopifnot("skalowania" %in% names(model), is.data.frame(model$skalowania),
             "skalowania_obserwacje" %in% names(model),
             is.data.frame(model$skalowania_obserwacje))
   stopifnot(nrow(model$skalowania) == 1)
+  if (is.null(src)) {
+    src = ZPD::polacz()
+  }
 
   mapowanieNazw = list(
     "s" = "Sprawdzian",
@@ -55,7 +62,7 @@ sprawdz_wyniki_skalowania_konstruktu = function(model) {
     "m_mp" = "Matura, przedm. mat.-przyr."
   )
   # tytul na wykresy
-  tytul = pobierz_skale(polacz(), doPrezentacji = NA) %>%
+  tytul = pobierz_skale(src, doPrezentacji = NA) %>%
     filter(.data$id_skali == local(model$skalowania$id_skali)) %>%
     select("opis_skali", "rok") %>%
     collect() %>%
@@ -67,8 +74,7 @@ sprawdz_wyniki_skalowania_konstruktu = function(model) {
                    ifelse(grepl("R$", "", tytul), " - model Rascha", ""))
   }
   tytul = paste0(tytul, " ", rok)
-  cat("########################################\n",
-      tytul, ", id_skali: ", model$skalowania$id_skali, ", skalowanie: ",
+  cat("\n\n## ", tytul, ", id_skali: ", model$skalowania$id_skali, ", skalowanie: ",
       model$skalowania$skalowanie, ":\n", sep = "")
 
   # przygotowywanie oszacowań
@@ -111,7 +117,7 @@ sprawdz_wyniki_skalowania_konstruktu = function(model) {
     # dołączanie numerów (pseudo)kryteriów
     names(parametry) = sub("kolejnosc", "kolejnosc_w_skali", names(parametry))
     parametry = suppressMessages(
-      pobierz_kryteria_oceny(polacz()) %>%
+      pobierz_kryteria_oceny(src) %>%
         select("id_skali", "kolejnosc_w_skali", "kryterium") %>%
         filter(.data$id_skali == local(parametry$id_skali[1])) %>%
         collect() %>%
@@ -163,18 +169,20 @@ sprawdz_wyniki_skalowania_konstruktu = function(model) {
       range(trudnosciKryteriow$trudnosc[abs(trudnosciKryteriow$trudnosc) < 6],
             trudnosciPoziomow$trudnosc[abs(trudnosciPoziomow$trudnosc) < 6])
     if (any(abs(trudnosciKryteriow$trudnosc) > 6)) {
-      cat("(Pseudo)kryteria o ekstremalnych wartościach trudności\n",
-          "     (nie przedstawione na wykresie)\n", sep = "")
-      print(as.data.frame(filter(trudnosciKryteriow, abs(.data$trudnosc) > 6)),
-            row.names = FALSE)
-      cat("\n")
+      cat("| kryterium | trudność | dyskryminacja |\n",
+          "|:---|---:|---:|\n", sep = "")
+      cat(with(filter(trudnosciKryteriow, abs(.data$trudnosc) > 6),
+               paste0("| ", kryterium, " | ", round(trudnosc, 2),
+                      " | ", round(dyskryminacja, 2), " |", collapse = "\n")))
+      cat("\n\nTable: (Pseudo)kryteria o ekstremalnych wartościach trudności (nie przedstawione na wykresie)\n\n")
     }
     if (any(abs(trudnosciPoziomow$trudnosc) > 6)) {
-      cat("Poziomy wykonania (pseudo) kryteriów o ekstremalnych wartościach trudności\n",
-          "     (nie przedstawione na wykresie)\n", sep = "")
-      print(as.data.frame(filter(trudnosciPoziomow, abs(.data$trudnosc) > 6)),
-            row.names = FALSE)
-      cat("\n")
+      cat("| kryterium$poziom | trudność | dyskryminacja |\n",
+          "|:---|---:|---:|\n", sep = "")
+      cat(with(filter(trudnosciPoziomow, abs(.data$trudnosc) > 6),
+               paste0("| ", kryterium, " | ", round(trudnosc, 2),
+                      " | ", round(dyskryminacja, 2), " |", collapse = "\n")))
+      cat("\n\nTable: Poziomy wykonania (pseudo) kryteriów o ekstremalnych wartościach trudności (nie przedstawione na wykresie)\n\n")
     }
     zakresUmiejetnosci = range(oszacowania)
     zakresX = c(-1, 1) * max(abs(range(c(zakresTrudnosci,
@@ -299,14 +307,14 @@ sprawdz_wyniki_skalowania_konstruktu = function(model) {
   #                title = "grupy", bg = "white", cex = 0.7)
   #       }
   if (exists("oszacowaniaGrupy", environment(), inherits = FALSE)) {
-    cat("\nŚrednie i odchylenia standardowe oszacowań umiejętności:\n",
-        "(grupa objęta skalowaniem wzorcowym)\n", sep = "")
-    summarise(oszacowaniaGrupy,
-              `średnia` = format(round(mean(.data$wynik), 3), nsmall = 3),
-              `odch. std.` = format(round(sd(.data$wynik), 3), nsmall = 3)) %>%
-      as.data.frame() %>%
-      print(row.names = FALSE)
-    cat("\n")
+    cat("\n\n",
+        "| grupa | średnia | odch. std. |\n",
+        "|:---|---:|---:|\n", sep = "")
+    cat(with(summarise(oszacowaniaGrupy,
+              sr = format(round(mean(.data$wynik), 3), nsmall = 3),
+              os = format(round(sd(.data$wynik), 3), nsmall = 3)),
+             paste0("| ", grupa, " | ", sr, " | ", os, " |", collapse = "\n")))
+    cat("\n\nTable: Średnie i odchylenia standardowe oszacowań umiejętności (grupa objęta skalowaniem wzorcowym)\n\n")
   }
 
   # koniec

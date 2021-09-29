@@ -10,7 +10,8 @@ skroc_skale_oceny(
   maxLPozWyk = 5,
   minLiczebnPozWyk = 100,
   minOdsPozWyk = 0.05,
-  print = TRUE
+  print = TRUE,
+  src = NULL
 )
 }
 \arguments{
@@ -29,6 +30,10 @@ się dane z wynikami surowymi egzaminów, pobranymi przy pomocy funkcji
 poziom}
 
 \item{print}{wartość logiczna - czy pokazywać informacje o skracaniu?}
+
+\item{src}{NULL połączenie z bazą danych IBE zwracane przez funkcję
+\code{\link[ZPD]{polacz}}. Jeśli nie podane, podjęta zostanie próba
+automatycznego nawiązania połączenia.}
 }
 \value{
 data frame

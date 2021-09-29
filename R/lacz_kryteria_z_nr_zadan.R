@@ -7,17 +7,22 @@
 #' będą one w ogóle uwzględniane w procesie łączenia.
 #' @param skale wektor liczbowy z id_skali lub ciąg znaków z wyrażeniem
 #' regularnym identyfikującymi skale po kolumnie 'opis'
+#' @param src NULL połączenie z bazą danych IBE zwracane przez funkcję
+#' \code{\link[ZPD]{polacz}}. Jeśli nie podane, podjęta zostanie próba
+#' automatycznego nawiązania połączenia.
 #' @return lista, której każdy element jest dwuelemntową listą, zawierającą id
 #' skali oraz data frame, której można użyć jako argument \code{elementy}
 #' funkcji \code{\link[ZPDzapis]{edytuj_skale}}
 #' @importFrom stats setNames
+#' @import dplyr
 #' @import ZPD
 #' @export
-lacz_kryteria_z_nr_zadan = function(skale) {
+lacz_kryteria_z_nr_zadan = function(skale, src = NULL) {
   stopifnot((is.numeric(skale) & length(skale) > 0) |
-              (is.character(skale) & length(skale) == 1))
+              (is.character(skale) & length(skale) == 1),
+            dplyr::is.src(src) | is.null(src))
 
-  kryteria = pobierz_kryteria_do_laczenia(skale, nf = TRUE)
+  kryteria = pobierz_kryteria_do_laczenia(skale, nf = TRUE, src = src)
   temp = group_by(kryteria, .data$id_skali) %>%
     summarise(elementy = lacz_kryteria_z_nr_zadan_w_ramach_skali(cur_data_all()))
 
@@ -41,7 +46,7 @@ lacz_kryteria_z_nr_zadan = function(skale) {
 #' funkcji \code{\link[ZPDzapis]{edytuj_skale}}
 #' @importFrom stats setNames
 #' @import dplyr
-#' @import reshape2
+#' @import tidyr
 lacz_kryteria_z_nr_zadan_w_ramach_skali = function(x) {
   message("id_skali: ", x$id_skali[1])
   x = mutate(x,
@@ -65,7 +70,7 @@ lacz_kryteria_z_nr_zadan_w_ramach_skali = function(x) {
       select("opis", "id_kryterium") %>%
       mutate(kolejnosc = paste0("id_kryterium_",
                                 dense_rank(.data$id_kryterium))) %>%
-      dcast(... ~ kolejnosc, value.var = "id_kryterium") %>%
+      pivot_wider(names_from = "kolejnosc", values_from = "id_kryterium") %>%
       mutate(id_skrotu = NA_character_,
              id_kryterium = NA_character_,
              id_pseudokryterium = NA_character_,
