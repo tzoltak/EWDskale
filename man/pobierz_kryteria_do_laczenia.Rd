@@ -4,7 +4,7 @@
 \alias{pobierz_kryteria_do_laczenia}
 \title{Laczenie kryteriow}
 \usage{
-pobierz_kryteria_do_laczenia(skale, nf = FALSE)
+pobierz_kryteria_do_laczenia(skale, nf = FALSE, src = NULL)
 }
 \arguments{
 \item{skale}{wektor liczbowy z id_skali lub ciąg znaków z wyrażeniem
@@ -13,6 +13,10 @@ regularnym identyfikującymi skale po kolumnie 'opis'}
 \item{nf}{opcjonalnie wartość logiczna (domyślnie FALSE) - czy w przypadku
 matury (od 2015 r.) zaznaczać sufiksem dopisywanym do \code{czesc_egzaminu},
 czy kryterium pochodzi z arkusza w "starej", czy w "nowej" formule egzaminu?}
+
+\item{src}{NULL połączenie z bazą danych IBE zwracane przez funkcję
+\code{\link[ZPD]{polacz}}. Jeśli nie podane, podjęta zostanie próba
+automatycznego nawiązania połączenia.}
 }
 \value{
 data table

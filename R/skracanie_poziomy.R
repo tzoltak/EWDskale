@@ -13,6 +13,9 @@
 #' @param minOdsPozWyk minimalny odsetek obserwacji, które ma zawierać każdy
 #' poziom
 #' @param print wartość logiczna - czy pokazywać informacje o skracaniu?
+#' @param src NULL połączenie z bazą danych IBE zwracane przez funkcję
+#' \code{\link[ZPD]{polacz}}. Jeśli nie podane, podjęta zostanie próba
+#' automatycznego nawiązania połączenia.
 #' @return data frame
 #' Kolumna \code{elementy} zawiera data frame'y które mogą zostać użyte
 #' jako argument funkcji \code{\link[ZPDzapis]{edytuj_skale}}.
@@ -20,23 +23,31 @@
 #' @export
 skroc_skale_oceny = function(skale, katalogDane = "dane surowe/",
                              maxLPozWyk = 5, minLiczebnPozWyk = 100,
-                             minOdsPozWyk = 0.05, print = TRUE) {
+                             minOdsPozWyk = 0.05, print = TRUE,
+                             src = NULL) {
   stopifnot((is.numeric(skale) & length(skale) > 0) |
               (is.character(skale) & length(skale) == 1),
             is.character(katalogDane),    length(katalogDane) == 1,
             is.numeric(maxLPozWyk),       length(maxLPozWyk) == 1,
             is.numeric(minLiczebnPozWyk), length(minLiczebnPozWyk) == 1,
-            is.numeric(minLiczebnPozWyk), length(minLiczebnPozWyk) == 1)
+            is.numeric(minLiczebnPozWyk), length(minLiczebnPozWyk) == 1,
+            dplyr::is.src(src) | is.null(src))
   stopifnot(maxLPozWyk >= 2,
             minLiczebnPozWyk >= 0, minLiczebnPozWyk < Inf,
             minOdsPozWyk >= 0, minOdsPozWyk <= 1)
+  if (is.null(src)) {
+    src = ZPD::polacz()
+    srcPass = NULL
+  } else {
+    srcPass = src
+  }
   if (!dir.exists(katalogDane)) {
     stop("Katalog '", katalogDane, "' nie istnieje.")
   }
 
   # pobieranie danych o kryteriach
   if (is.character(skale)) {
-    skale = pobierz_skale(polacz(), doPrezentacji = NA) %>%
+    skale = pobierz_skale(src, doPrezentacji = NA) %>%
       collect() %>%
       filter(grepl(skale, .data$opis_skali), is.na(.data$czesc_egzaminu)) %>%
       select("id_skali", "opis_skali", "rodzaj_egzaminu", "czesc_egzaminu", "rok") %>%
@@ -51,7 +62,8 @@ skroc_skale_oceny = function(skale, katalogDane = "dane surowe/",
                                                           katalogDane,
                                                           maxLPozWyk,
                                                           minLiczebnPozWyk,
-                                                          minOdsPozWyk, print))
+                                                          minOdsPozWyk, print,
+                                                          src = srcPass))
   return(skale)
 }
 #' @title Skracanie skal oceny
@@ -66,6 +78,9 @@ skroc_skale_oceny = function(skale, katalogDane = "dane surowe/",
 #' @param minOdsPozWyk minimalny odsetek obserwacji, które ma zawierać każdy
 #' poziom
 #' @param print wartość logiczna - czy pokazywać informacje o skracaniu?
+#' @param src NULL połączenie z bazą danych IBE zwracane przez funkcję
+#' \code{\link[ZPD]{polacz}}. Jeśli nie podane, podjęta zostanie próba
+#' automatycznego nawiązania połączenia.
 #' @return Data frame, pasujący swoją strukturą jako argument \code{elementy}
 #' do funkcji \code{edytuj_skale} z pakietu \code{ZPD} lub lista takich data
 #' frame'ów.
@@ -74,15 +89,20 @@ skroc_skale_oceny = function(skale, katalogDane = "dane surowe/",
 #' @export
 skroc_skale_oceny_w_ramach_skali = function(x, katalogDane = "../dane surowe/",
                                             maxLPozWyk = 5, minLiczebnPozWyk = 100,
-                                            minOdsPozWyk = 0.05, print = TRUE) {
+                                            minOdsPozWyk = 0.05, print = TRUE,
+                                            src = NULL) {
   stopifnot(is.data.frame(x), nrow(x) == 1,
             is.character(katalogDane),    length(katalogDane) == 1,
             is.numeric(maxLPozWyk),       length(maxLPozWyk) == 1,
             is.numeric(minLiczebnPozWyk), length(minLiczebnPozWyk) == 1,
-            is.numeric(minLiczebnPozWyk), length(minLiczebnPozWyk) == 1)
+            is.numeric(minLiczebnPozWyk), length(minLiczebnPozWyk) == 1,
+            dplyr::is.src(src) | is.null(src))
   stopifnot(maxLPozWyk >= 2,
             minLiczebnPozWyk >= 0, minLiczebnPozWyk < Inf,
             minOdsPozWyk >= 0, minOdsPozWyk <= 1)
+  if (is.null(src)) {
+    src = ZPD::polacz()
+  }
   if (!dir.exists(katalogDane)) {
     stop("Katalog '", katalogDane, "' nie istnieje.")
   }
@@ -98,12 +118,12 @@ skroc_skale_oceny_w_ramach_skali = function(x, katalogDane = "../dane surowe/",
 
   # pobieranie schematów punktowania zadań
   kryteria = suppressMessages(
-    pobierz_kryteria_oceny(polacz(), testy = FALSE) %>%
+    pobierz_kryteria_oceny(src, testy = FALSE) %>%
       filter(.data$id_skali == local(x$id_skali)) %>%
+      collect() %>%
       arrange(.data$kolejnosc_w_skali) %>%
       select("kryterium", "schemat_pkt") %>%
-      distinct() %>%
-      collect()
+      distinct()
   )
   kryteria$schemat_pkt = strsplit(kryteria$schemat_pkt, "-", fixed = TRUE) %>%
     lapply(as.numeric) %>%

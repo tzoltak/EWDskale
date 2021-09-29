@@ -10,7 +10,8 @@ zmien_parametry_na_do_bazy(
   skalowanie,
   rzetelnoscEmpiryczna = NULL,
   standaryzacja = NULL,
-  grupy = NULL
+  grupy = NULL,
+  src = NULL
 )
 }
 \arguments{
@@ -31,6 +32,10 @@ w poszczególnych grupach}
 \item{grupy}{data frame zawierający mapowanie numerów grup na ich nazwy);
 musi składać się z dwóch zmiennych: 'grupa', zawierającej nazwy grup
 i drugiej, o dowolnej nazwie, zawierającej numery grup}
+
+\item{src}{NULL połączenie z bazą danych IBE zwracane przez funkcję
+\code{\link[ZPD]{polacz}}. Jeśli nie podane, podjęta zostanie próba
+automatycznego nawiązania połączenia.}
 }
 \value{
 ramka danych w formacie odpowiadającym strukturze tablicy

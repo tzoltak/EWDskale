@@ -19,6 +19,9 @@
 #' @param proba opcjonalnie liczba natrualna - wielkość próby, jaka ma być
 #' wylosowana z danych przed estymacją modelu; przydatne (tylko) do testów
 #' działania funkcji
+#' @param src NULL połączenie z bazą danych IBE zwracane przez funkcję
+#' \code{\link[ZPD]{polacz}}. Jeśli nie podane, podjęta zostanie próba
+#' automatycznego nawiązania połączenia.
 #' @details
 #' Schemat przekodowania sum punktów na oszacowania umiejętności obliczany jest
 #' na podstawie danych wzorcowych, przy pomocy funkcji
@@ -99,7 +102,8 @@ skaluj_egz_gimn_rasch = function(rok, processors = 2,
                                  opis = "skalowanie do Kalkulatora EWD",
                                  katalogSurowe = "../../dane surowe",
                                  katalogWyskalowane = "../../dane wyskalowane",
-                                 zapisz = TRUE, skala = NULL, proba = -1) {
+                                 zapisz = TRUE, skala = NULL, proba = -1,
+                                 src = NULL) {
   doPrezentacji = TRUE
   stopifnot(is.numeric(rok), length(rok) == 1,
             is.numeric(processors), length(processors) == 1,
@@ -108,13 +112,20 @@ skaluj_egz_gimn_rasch = function(rok, processors = 2,
             is.character(katalogWyskalowane), length(katalogWyskalowane) == 1,
             is.logical(zapisz), length(zapisz) == 1,
             is.null(skala) | is.numeric(skala) | is.character(skala),
-            is.numeric(proba), length(proba) == 1)
+            is.numeric(proba), length(proba) == 1,
+            dplyr::is.src(src) | is.null(src))
   stopifnot(as.integer(rok) == rok, rok >= 2005,
             processors %in% (1:32),
             dir.exists(katalogSurowe),
             dir.exists(katalogWyskalowane),
             zapisz %in% c(TRUE, FALSE),
             as.integer(proba) == proba, proba == -1 | proba > 0)
+  if (is.null(src)) {
+    src = ZPD::polacz()
+    srcPass = NULL
+  } else {
+    srcPass = src
+  }
   if (!is.null(skala)) {
     stopifnot(length(skala) == 1)
     doPrezentacji = NA
@@ -132,7 +143,7 @@ skaluj_egz_gimn_rasch = function(rok, processors = 2,
   }
   parametry = suppressMessages(
     pobierz_parametry_skalowania(skala, doPrezentacji = doPrezentacji,
-                                 parametryzacja = "mplus"))
+                                 parametryzacja = "mplus", src = srcPass))
   if (nrow(parametry) == 0) {
     if (is.character(skala)) {
       stop("Nie znaleziono skal o opisie pasującym do wyrażenia '", skala,
@@ -146,7 +157,7 @@ skaluj_egz_gimn_rasch = function(rok, processors = 2,
   parametry = parametry[order(grepl(";g[hm]R;", parametry$opis_skali)), ]
 
   normy = suppressMessages(
-    pobierz_normy(polacz()) %>%
+    pobierz_normy(src) %>%
       semi_join(select(parametry, -"parametry"), copy = TRUE) %>%
       collect()
   )

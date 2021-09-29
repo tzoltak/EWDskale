@@ -134,15 +134,12 @@ skaluj_matura = function(rok, processors = 2, opis = "skalowanie do EWD",
             usunWieleNaraz %in% c(TRUE, FALSE),
             nieEstymuj %in% c(TRUE, FALSE)
   )
-  if (is.null(src)) {
-    src = ZPD::polacz()
-  }
   if (!is.null(skala)) {
     stopifnot(length(skala) == 1)
     doPrezentacji = NA
   }
-  if (rok > 2020) {
-    stop("Funkcja nie obsługuje skalowania dla egzaminów po 2020 r.")
+  if (rok > 2021) {
+    stop("Funkcja nie obsługuje skalowania dla egzaminów po 2021 r.")
   }
 
   # sprawdzanie, czy w bazie są zapisane skala i jakieś skalowanie z parametrami
@@ -188,6 +185,11 @@ skaluj_matura = function(rok, processors = 2, opis = "skalowanie do EWD",
   names(wyniki) = gsub("^.*ewd;([^;]+);.*$", "\\1", parametry$opis_skali)
   class(wyniki) = c("listaWynikowSkalowania", class(wyniki))
   for (i in 1:nrow(parametry)) {
+    if (is.null(src)) {
+      srcTemp = ZPD::polacz()
+    } else {
+      srcTemp = src
+    }
     idSkali = parametry$id_skali[i]
     opis = parametry$opis_skali[i]
     skalowanie = parametry$skalowanie[i]
@@ -209,10 +211,10 @@ skaluj_matura = function(rok, processors = 2, opis = "skalowanie do EWD",
     tytulWszyscy = paste0(names(wyniki)[i], rok, " wszyscy")
     # przyłączanie informacji o tym, kto co zdawał
     czesciEgzaminow = suppressMessages(
-      pobierz_kryteria_oceny(src, skale = FALSE) %>%
+      pobierz_kryteria_oceny(srcTemp, skale = FALSE) %>%
         semi_join(data.frame(kryterium = zmienneKryteria), copy = TRUE) %>%
         select("kryterium", "id_testu") %>%
-        left_join(pobierz_testy(src)) %>%
+        left_join(pobierz_testy(srcTemp)) %>%
         filter(.data$czy_egzamin) %>%
         select("kryterium", "prefiks", "arkusz") %>%
         distinct() %>%
@@ -235,8 +237,8 @@ skaluj_matura = function(rok, processors = 2, opis = "skalowanie do EWD",
       # najpierw tworzymy sobie listę wszystkich kryteriów skali, podmieniając
       # (rozmnażając) pseudokryteria na ich kryteria składowe
       kryteriaRozprawki = suppressMessages(
-        pobierz_kryteria_oceny(src, krytSkladowe = TRUE) %>%
-          inner_join(pobierz_testy(src) %>% filter(.data$czy_egzamin == TRUE)) %>%
+        pobierz_kryteria_oceny(srcTemp, krytSkladowe = TRUE) %>%
+          inner_join(pobierz_testy(srcTemp) %>% filter(.data$czy_egzamin == TRUE)) %>%
           filter(.data$id_skali == idSkali) %>%
           select("kryterium", "typ_pytania", "kryt_skladowe") %>%
           distinct() %>%
@@ -247,9 +249,9 @@ skaluj_matura = function(rok, processors = 2, opis = "skalowanie do EWD",
           select("kryterium", "kryterium_temp")
       )
       # następnie odfiltrowujemy tylko rozprawki, i wracamy z tą informacją
-      # na poziom elemntów skali (a więc pseudokryteriów, jeśli takie były)
+      # na poziom elementów skali (a więc pseudokryteriów, jeśli takie były)
       kryteriaRozprawki = suppressMessages(
-        pobierz_kryteria_oceny(src) %>%
+        pobierz_kryteria_oceny(srcTemp) %>%
           inner_join(kryteriaRozprawki, copy = TRUE) %>%
           filter(.data$typ_pytania == "rozprawka") %>%
           select("kryterium_temp") %>%
@@ -260,8 +262,8 @@ skaluj_matura = function(rok, processors = 2, opis = "skalowanie do EWD",
       # i używamy tej informacji do odfiltrowania elementów skali, do których
       # mamy przyłączone sporo innych, potrzebnych informacji
       kryteriaRozprawki = suppressMessages(
-        pobierz_kryteria_oceny(src) %>%
-          inner_join(pobierz_testy(src) %>% filter(.data$czy_egzamin == TRUE)) %>%
+        pobierz_kryteria_oceny(srcTemp) %>%
+          inner_join(pobierz_testy(srcTemp) %>% filter(.data$czy_egzamin == TRUE)) %>%
           semi_join(kryteriaRozprawki, copy = TRUE) %>%
           select("czesc_egzaminu", "kryterium", "numer_pytania", "numer_kryterium") %>%
           collect() %>%
@@ -523,6 +525,24 @@ skaluj_matura = function(rok, processors = 2, opis = "skalowanie do EWD",
         message("\n### Obliczanie oszacowań dla wszystkich zdających ###\n")
       }
     }
+    # przypisywanie laureatom najbardziej dyskryminującego tematu
+    if (any(grepl("^t[[:digit:]]+_"), names(wartosciZakotwiczone))) {
+      tematy = wartosciZakotwiczone %>%
+        filter(.data$typ == "by", grepl("^t", .data$zmienna2)) %>%
+        mutate(czescEgzaminu = sub("^t[[:digit:]]+_", "", .data$zmienna2)) %>%
+        group_by(.data$czescEgzaminu) %>%
+        mutate(w = ifelse(.data$wartosc == max(.data$wartosc) & .data$wartosc > 0,
+                          1, 0)) %>%
+        select(.data$czescEgzaminu, zmienna = .data$zmienna2, .data$w)
+      for (j in unique(tematy$czescEgzaminu)) {
+        tematyTemp = filter(tematy, .data$czescEgzaminu == j)
+        for (k in 1:nrow(tematyTemp)) {
+          zmLaur = paste0("laur_m_", j)
+          dane[[tematyTemp$zmienna[k]]][dane[[zmLaur]] %in% TRUE] = tematyTemp$w[k]
+        }
+      }
+    }
+    # wybieranie danych
     maskaZmienne = unique(c("id_obserwacji", "id_testu", zmienneGrupujace,
                             zmienneKryteria, zmienneTematy, zmienneSelekcja))
     dane = dane[, maskaZmienne]

@@ -45,14 +45,12 @@ rysuj_laczenia_z_korelacji = function(x, wielkoscTekstu = 1, prog = NULL) {
                  "wynikRysujLaczeniaZKorelacji", class(x))
   return(x)
 }
-
 #' @title Laczenie kryteriow na podstawie korelacji polichorycznych
 #' @description
 #' Koń roboczy dla \code{\link{rysuj_laczenia_z_korelacji}}.
 #' @param x pojedynczy wiersz obiektu klasy \code{wynikLaczKryteriaZKorelacji}
 #' @param wielkoscTekstu bazowa wielkość tekstu w \code{pts}
 #' @return data frame
-#' @importFrom graphics plot
 #' @import dplyr
 #' @import ggplot2
 rysuj_laczenia_z_korelacji_w_ramach_czesci = function(x, wielkoscTekstu = 12) {
@@ -83,8 +81,11 @@ rysuj_laczenia_z_korelacji_w_ramach_czesci = function(x, wielkoscTekstu = 12) {
   }
   x = x$laczenia[[1]]
   # rysowanie
-  temp = melt(x$dyskryminacje, na.rm = TRUE)
-  names(temp) = c("laczenie", "kryterium", "b")
+  temp = x$dyskryminacje %>%
+    as.data.frame() %>%
+    mutate(laczenie = as.numeric(rownames(x$dyskryminacje))) %>%
+    pivot_longer(-all_of("laczenie"), names_to = "kryterium", values_to = "b",
+                 values_drop_na = TRUE)
   temp = within(temp, {korelacja = c(NA, x$laczenia$korelacja)[get("laczenie") + 1]})
   temp$laczenie =
     factor(temp$laczenie, levels = 0:nrow(x$laczenia),

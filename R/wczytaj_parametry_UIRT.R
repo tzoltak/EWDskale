@@ -22,7 +22,7 @@
 #' @import dplyr
 #' @export
 wczytaj_parametry_UIRT = function(sciezkaWe, src = NULL, sciezkaWy = NULL, skalowanie = NULL, opis = NULL) {
-  dane = suppressMessages(readr::read_csv(sciezkaWe))
+  dane = utils::read.csv(sciezkaWe, stringsAsFactors = FALSE, encoding = "UTF-8")
   if (is.null(src)) {
     src = ZPD::polacz()
   }

@@ -19,8 +19,10 @@
 #' wylosowana z danych przed estymacją modelu; przydatne (tylko) do testów
 #' działania funkcji
 #' @param tylkoDaneDoUIRTa jeśli TRUE, zamiast przeprowadzić (lub wczytać już
-#'   wykonane) skalowanie funkcja zrzuca jedynie w katalogu \code{katalogSurowe}
-#'   pliki CSV z danymi do skalowania parametrów zadań UIRT-em
+#' wykonane) skalowanie funkcja zrzuca jedynie w katalogu \code{katalogSurowe}
+#' pliki CSV z danymi do skalowania parametrów zadań UIRT-em
+#' @param usunDyskrPonizej zadania o dyskryminacji mniejszej, niż wartość podana
+#' tym argumentem będą usuwane z modelu (domyślnie 0,2)
 #' @param src NULL połączenie z bazą danych IBE zwracane przez funkcję
 #' \code{\link[ZPD]{polacz}}. Jeśli nie podane, podjęta zostanie próba
 #' automatycznego nawiązania połączenia.
@@ -91,7 +93,7 @@ skaluj_egz_gimn = function(rok, processors = 2, opis = "skalowanie do EWD",
                            katalogSurowe = "../../dane surowe",
                            katalogWyskalowane = "../../dane wyskalowane",
                            zapisz = TRUE, skala = NULL, proba = -1,
-                           tylkoDaneDoUIRTa = FALSE,
+                           tylkoDaneDoUIRTa = FALSE, usunDyskrPonizej = 0.2,
                            src = NULL) {
   doPrezentacji = TRUE
   stopifnot(is.numeric(rok), length(rok) == 1,
@@ -103,6 +105,7 @@ skaluj_egz_gimn = function(rok, processors = 2, opis = "skalowanie do EWD",
             is.null(skala) | is.numeric(skala) | is.character(skala),
             is.numeric(proba), length(proba) == 1,
             is.logical(tylkoDaneDoUIRTa), length(tylkoDaneDoUIRTa) == 1,
+            is.numeric(usunDyskrPonizej), length(usunDyskrPonizej) == 1,
             dplyr::is.src(src) | is.null(src)
   )
   stopifnot(as.integer(rok) == rok, rok >= 2002,
@@ -110,11 +113,9 @@ skaluj_egz_gimn = function(rok, processors = 2, opis = "skalowanie do EWD",
             dir.exists(katalogSurowe),
             dir.exists(katalogWyskalowane),
             zapisz %in% c(TRUE, FALSE),
-            as.integer(proba) == proba, proba == -1 | proba > 0
+            as.integer(proba) == proba, proba == -1 | proba > 0,
+            usunDyskrPonizej > 0
   )
-  if (is.null(src)) {
-    src = ZPD::polacz()
-  }
   if (!is.null(skala)) {
     stopifnot(length(skala) == 1)
     doPrezentacji = NA
@@ -213,7 +214,8 @@ skaluj_egz_gimn = function(rok, processors = 2, opis = "skalowanie do EWD",
       message("\n### Skalowanie wzorcowe ###\n")
       opisWzorcowe = procedura_1k_1w(zmienneKryteria, names(wyniki)[i],
                                      nigdyNieUsuwaj = nigdyNieUsuwaj,
-                                     processors = processors)
+                                     processors = processors,
+                                     usunDyskrPonizej = usunDyskrPonizej)
       egWzorcowe = skaluj(daneWzorcowe, opisWzorcowe, "id_obserwacji",
                           tytul = tytulWzorcowe, zmienneDolaczaneDoOszacowan = "id_testu")
       # obliczanie rzetelności empirycznej

@@ -4,7 +4,13 @@
 \alias{lacz_kryteria_z_korelacji_w_ramach_skali}
 \title{Laczenie kryteriow na podstawie korelacji polichorycznych}
 \usage{
-lacz_kryteria_z_korelacji_w_ramach_skali(x, katalogDane, prog, tylkoWWiazkach)
+lacz_kryteria_z_korelacji_w_ramach_skali(
+  x,
+  katalogDane,
+  prog,
+  tylkoWWiazkach,
+  src = NULL
+)
 }
 \arguments{
 \item{x}{data frame opisujący kryteria oceny w ramach skali}
@@ -18,6 +24,10 @@ ma być kontynuowane łączenie}
 
 \item{tylkoWWiazkach}{wartość logiczna - czy dopuszczać łączenie kryteriów
 tylko w ramach wiązek pytań/kryteriów?}
+
+\item{src}{NULL połączenie z bazą danych IBE zwracane przez funkcję
+\code{\link[ZPD]{polacz}}. Jeśli nie podane, podjęta zostanie próba
+automatycznego nawiązania połączenia.}
 }
 \value{
 data frame, której można uzyć jako argument \code{elementy}
