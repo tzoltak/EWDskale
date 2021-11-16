@@ -1,4 +1,11 @@
 --------------------
+EWDskale 0.5.1 (16.11.2021)
+
+- Poprawione błędy:
+  - teraz wczytaj_parametry_UIRT() może przetwarzać wiele skalowań z jednego roku
+    (poprzednio ostatnie skalowanie z danego roku nadpisywało poprzednie)
+
+--------------------
 EWDskale 0.5.0 (29.09.2021)
 
 - Zmiany w sposobie skalowania:
