@@ -1,7 +1,7 @@
 Encoding: UTF-8
 Package: EWDskale
 Title: Functions for Educational Value-Added data import/export
-Version: 0.4.0
+Version: 0.4.1
 Authors@R: c(
   person("Tomasz", "Zoltak", , "tomek@zozlak.org", role = c("aut", "cre")),
   person("Mateusz", "Zoltak", , "zozlak@zozlak.org", role = c("aut")),

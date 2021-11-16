@@ -112,8 +112,7 @@ wczytaj_parametry_UIRT = function(sciezkaWe, src = NULL, sciezkaWy = NULL, skalo
       )
 
     class(sk) = c(class(sk), 'wynikiSkalowania')
-    klucz = (strsplit(skalowanieId, ';')[[1]])[2]
-    wyjscie[[klucz]] = sk
+    wyjscie[[skalowanieId]] = sk
   }
   class(wyjscie) = c(class(wyjscie), 'listaWynikowSkalowania')
   if (!is.null(sciezkaWy)) {
