@@ -13,29 +13,41 @@
 #' ma być kontynuowane łączenie
 #' @param tylkoWWiazkach wartość logiczna - czy dopuszczać łączenie kryteriów
 #' tylko w ramach wiązek pytań/kryteriów?
+#' @param src NULL połączenie z bazą danych IBE zwracane przez funkcję
+#' \code{\link[ZPD]{polacz}}. Jeśli nie podane, podjęta zostanie próba
+#' automatycznego nawiązania połączenia.
 #' @return lista, której każdy element jest dwuelemntową listą, zawierającą id
 #' skali oraz data frame, której można użyć jako argument \code{elementy}
 #' funkcji \code{\link[ZPDzapis]{edytuj_skale}}
 #' @import ZPD
 #' @export
 lacz_kryteria_z_korelacji = function(skale, katalogDane = "dane surowe/",
-                                     prog = 0.5, tylkoWWiazkach = TRUE) {
+                                     prog = 0.5, tylkoWWiazkach = TRUE,
+                                     src = NULL) {
   stopifnot((is.numeric(skale) & length(skale) > 0) |
               (is.character(skale) & length(skale) == 1),
             is.character(katalogDane), length(katalogDane) == 1,
             is.numeric(prog), length(prog) == 1,
-            tylkoWWiazkach %in% c(TRUE, FALSE), length(tylkoWWiazkach) == 1)
+            tylkoWWiazkach %in% c(TRUE, FALSE), length(tylkoWWiazkach) == 1,
+            dplyr::is.src(src) | is.null(src))
   stopifnot(prog > 0, prog < 1)
   if (!dir.exists(katalogDane)) {
     stop("Katalog '", katalogDane, "' nie istnieje.")
   }
+  if (is.null(src)) {
+    src = ZPD::polacz()
+    srcPass = NULL
+  } else {
+    srcPass = src
+  }
 
-  kryteria = pobierz_kryteria_do_laczenia(skale)
+  kryteria = pobierz_kryteria_do_laczenia(skale, src = src)
   temp = group_by(kryteria, .data$id_skali) %>%
     summarise(lacz_kryteria_z_korelacji_w_ramach_skali(cur_data_all(),
                                                        katalogDane,
                                                        prog,
-                                                       tylkoWWiazkach))
+                                                       tylkoWWiazkach,
+                                                       src = srcPass))
   class(temp) = c("wynikLaczKryteriaZKorelacji", class(temp))
   return(temp)
 }
@@ -49,16 +61,20 @@ lacz_kryteria_z_korelacji = function(skale, katalogDane = "dane surowe/",
 #' ma być kontynuowane łączenie
 #' @param tylkoWWiazkach wartość logiczna - czy dopuszczać łączenie kryteriów
 #' tylko w ramach wiązek pytań/kryteriów?
+#' @param src NULL połączenie z bazą danych IBE zwracane przez funkcję
+#' \code{\link[ZPD]{polacz}}. Jeśli nie podane, podjęta zostanie próba
+#' automatycznego nawiązania połączenia.
 #' @return data frame, której można uzyć jako argument \code{elementy}
 #' funkcji \code{\link[ZPDzapis]{edytuj_skale}}
 #' @importFrom stats setNames
 #' @import dplyr
-#' @import reshape2
 lacz_kryteria_z_korelacji_w_ramach_skali = function(x, katalogDane, prog,
-                                                    tylkoWWiazkach) {
+                                                    tylkoWWiazkach,
+                                                    src = NULL) {
   stopifnot(tylkoWWiazkach %in% c(TRUE, FALSE), length(tylkoWWiazkach) == 1,
             is.numeric(prog), length(prog) == 1,
-            is.character(katalogDane), length(katalogDane) == 1)
+            is.character(katalogDane), length(katalogDane) == 1,
+            dplyr::is.src(src) | is.null(src))
   stopifnot(prog > 0, prog < 1)
   stopifnot(dir.exists(katalogDane))
 
@@ -68,7 +84,8 @@ lacz_kryteria_z_korelacji_w_ramach_skali = function(x, katalogDane, prog,
                 lacz_kryteria_z_korelacji_w_ramach_czesci_egz(cur_data_all(),
                                                               katalogDane,
                                                               prog,
-                                                              tylkoWWiazkach))
+                                                              tylkoWWiazkach,
+                                                              src = src))
   return(x)
 }
 #' @title Laczenie kryteriow na podstawie korelacji polichorycznych
@@ -82,6 +99,9 @@ lacz_kryteria_z_korelacji_w_ramach_skali = function(x, katalogDane, prog,
 #' ma być kontynuowane łączenie
 #' @param tylkoWWiazkach wartość logiczna - czy dopuszczać łączenie kryteriów
 #' tylko w ramach wiązek pytań/kryteriów?
+#' @param src NULL połączenie z bazą danych IBE zwracane przez funkcję
+#' \code{\link[ZPD]{polacz}}. Jeśli nie podane, podjęta zostanie próba
+#' automatycznego nawiązania połączenia.
 #' @return data frame
 #' @importFrom stats setNames na.omit ftable
 #' @importFrom utils combn setTxtProgressBar txtProgressBar
@@ -91,10 +111,12 @@ lacz_kryteria_z_korelacji_w_ramach_skali = function(x, katalogDane, prog,
 #' @import polycor
 #' @import mirt
 lacz_kryteria_z_korelacji_w_ramach_czesci_egz = function(x, katalogDane, prog,
-                                                         tylkoWWiazkach) {
+                                                         tylkoWWiazkach,
+                                                         src = NULL) {
   stopifnot(tylkoWWiazkach %in% c(TRUE, FALSE), length(tylkoWWiazkach) == 1,
             is.numeric(prog), length(prog) == 1,
-            is.character(katalogDane), length(katalogDane) == 1)
+            is.character(katalogDane), length(katalogDane) == 1,
+            dplyr::is.src(src) | is.null(src))
   stopifnot(prog > 0, prog < 1)
   stopifnot(dir.exists(katalogDane))
 
@@ -104,7 +126,7 @@ lacz_kryteria_z_korelacji_w_ramach_czesci_egz = function(x, katalogDane, prog,
   # wczytywanie danych z wynikami egzaminu
   dane = wczytaj_wyniki_surowe(katalogDane, x$rodzaj_egzaminu[1],
                                x$czesc_egzaminu[1], x$rok[1], x$id_skali[1],
-                               x$kryterium)
+                               x$kryterium, src = src)
   dane = filter(dane, .data$populacja_wy & !.data$pomin_szkole)
   dane = dane[, grep("^[kp]_", names(dane))]
   # radzenie sobie z syfem, jaki przytrafia się w danych
@@ -132,7 +154,7 @@ lacz_kryteria_z_korelacji_w_ramach_czesci_egz = function(x, katalogDane, prog,
     pary = filter(pary, .data$id_wiazki == .data$id_wiazki2)
     if (nrow(pary) == 0) {
       warning("Nie zdefiniowano żadnych wiązek.", immediate. = TRUE)
-      return(list(laczenia = NULL, dyskryminacje = NULL))
+      return(list(list(laczenia = NULL, dyskryminacje = NULL)))
     }
   } else {# usuwanie par, dla których jest zbyt wiele braków w danych
     message("  Sprawdzanie liczby obserwacji dla poszczególnych par, ",

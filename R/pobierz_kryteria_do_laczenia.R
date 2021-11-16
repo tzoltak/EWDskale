@@ -9,15 +9,21 @@
 #' @param nf opcjonalnie wartość logiczna (domyślnie FALSE) - czy w przypadku
 #' matury (od 2015 r.) zaznaczać sufiksem dopisywanym do \code{czesc_egzaminu},
 #' czy kryterium pochodzi z arkusza w "starej", czy w "nowej" formule egzaminu?
+#' @param src NULL połączenie z bazą danych IBE zwracane przez funkcję
+#' \code{\link[ZPD]{polacz}}. Jeśli nie podane, podjęta zostanie próba
+#' automatycznego nawiązania połączenia.
 #' @return data table
 #' @importFrom stats setNames
 #' @import ZPD
-pobierz_kryteria_do_laczenia = function(skale, nf = FALSE) {
+pobierz_kryteria_do_laczenia = function(skale, nf = FALSE, src = NULL) {
   stopifnot((is.numeric(skale) & length(skale) > 0) |
               (is.character(skale) & length(skale) == 1),
-            is.logical(nf), length(nf) == 1)
+            is.logical(nf), length(nf) == 1,
+            dplyr::is.src(src) | is.null(src))
+  if (is.null(src)) {
+    src = ZPD::polacz()
+  }
   # pobieranie danych o kryteriach
-  src = polacz()
   if (is.character(skale)) {
     skale = pobierz_skale(src, doPrezentacji = NA) %>%
       collect() %>%

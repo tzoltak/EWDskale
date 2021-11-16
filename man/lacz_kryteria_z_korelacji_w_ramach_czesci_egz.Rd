@@ -8,7 +8,8 @@ lacz_kryteria_z_korelacji_w_ramach_czesci_egz(
   x,
   katalogDane,
   prog,
-  tylkoWWiazkach
+  tylkoWWiazkach,
+  src = NULL
 )
 }
 \arguments{
@@ -23,6 +24,10 @@ ma być kontynuowane łączenie}
 
 \item{tylkoWWiazkach}{wartość logiczna - czy dopuszczać łączenie kryteriów
 tylko w ramach wiązek pytań/kryteriów?}
+
+\item{src}{NULL połączenie z bazą danych IBE zwracane przez funkcję
+\code{\link[ZPD]{polacz}}. Jeśli nie podane, podjęta zostanie próba
+automatycznego nawiązania połączenia.}
 }
 \value{
 data frame

@@ -4,11 +4,15 @@
 \alias{lacz_kryteria_z_nr_zadan}
 \title{Laczenie kryteriow na podstawie numerow zadan}
 \usage{
-lacz_kryteria_z_nr_zadan(skale)
+lacz_kryteria_z_nr_zadan(skale, src = NULL)
 }
 \arguments{
 \item{skale}{wektor liczbowy z id_skali lub ciąg znaków z wyrażeniem
 regularnym identyfikującymi skale po kolumnie 'opis'}
+
+\item{src}{NULL połączenie z bazą danych IBE zwracane przez funkcję
+\code{\link[ZPD]{polacz}}. Jeśli nie podane, podjęta zostanie próba
+automatycznego nawiązania połączenia.}
 }
 \value{
 lista, której każdy element jest dwuelemntową listą, zawierającą id

@@ -14,6 +14,7 @@ skaluj_egz_gimn(
   skala = NULL,
   proba = -1,
   tylkoDaneDoUIRTa = FALSE,
+  usunDyskrPonizej = 0.2,
   src = NULL
 )
 }
@@ -46,6 +47,9 @@ działania funkcji}
 \item{tylkoDaneDoUIRTa}{jeśli TRUE, zamiast przeprowadzić (lub wczytać już
 wykonane) skalowanie funkcja zrzuca jedynie w katalogu \code{katalogSurowe}
 pliki CSV z danymi do skalowania parametrów zadań UIRT-em}
+
+\item{usunDyskrPonizej}{zadania o dyskryminacji mniejszej, niż wartość podana
+tym argumentem będą usuwane z modelu (domyślnie 0,2)}
 
 \item{src}{NULL połączenie z bazą danych IBE zwracane przez funkcję
 \code{\link[ZPD]{polacz}}. Jeśli nie podane, podjęta zostanie próba
