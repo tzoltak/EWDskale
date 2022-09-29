@@ -1,4 +1,17 @@
 --------------------
+EWDskale 0.5.2 (29.09.2022)
+
+- Uaktualnienia:
+  - skaluj_matura() zgadza się skalować wyniki z 2022 r.
+
+- Poprawione błędy:
+  - rysuj_laczenia_z_korelacji_w_ramach_czesci() w wewnetrznych operacjach
+    używa NA poszczególnych typów przy wypełnianiu wartości kolumn tworzonych
+    ramek danych pustymi wartościami (podczas ich inicjalizacji), co pozwala
+    uniknąć problemów z niezgodnością typów przy wywołaniu bind_rows(), które
+    czasem się pojawiały.
+
+--------------------
 EWDskale 0.5.1 (16.11.2021)
 
 - Poprawione błędy:

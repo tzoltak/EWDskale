@@ -111,8 +111,8 @@ rysuj_laczenia_z_korelacji_w_ramach_czesci = function(x, wielkoscTekstu = 12) {
   elementy[[1]] =
     data.frame(id_kryterium = as.numeric(sub("^[kp]_", "",
                                              colnames(x$dyskryminacje))),
-               polaczone = NA , id_pseudokryterium = NA,
-               opis = NA, id_skrotu = NA)
+               polaczone = NA, id_pseudokryterium = NA_integer_,
+               opis = NA_character_, id_skrotu = NA_integer_)
   for (i in 2:nrow(x$dyskryminacje)) {
     laczoneKryteria = as.numeric(sub("^[kp]_", "",
                                      c(x$laczenia$kryterium[i - 1],

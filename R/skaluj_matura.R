@@ -138,7 +138,7 @@ skaluj_matura = function(rok, processors = 2, opis = "skalowanie do EWD",
     stopifnot(length(skala) == 1)
     doPrezentacji = NA
   }
-  if (rok > 2021) {
+  if (rok > 2022) {
     stop("Funkcja nie obsługuje skalowania dla egzaminów po 2021 r.")
   }
 
@@ -526,7 +526,7 @@ skaluj_matura = function(rok, processors = 2, opis = "skalowanie do EWD",
       }
     }
     # przypisywanie laureatom najbardziej dyskryminującego tematu
-    if (any(grepl("^t[[:digit:]]+_"), names(wartosciZakotwiczone))) {
+    if (any(grepl("^t[[:digit:]]+_", wartosciZakotwiczone$zmienna2))) {
       tematy = wartosciZakotwiczone %>%
         filter(.data$typ == "by", grepl("^t", .data$zmienna2)) %>%
         mutate(czescEgzaminu = sub("^t[[:digit:]]+_", "", .data$zmienna2)) %>%
