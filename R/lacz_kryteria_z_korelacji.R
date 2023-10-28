@@ -16,7 +16,7 @@
 #' @param src NULL połączenie z bazą danych IBE zwracane przez funkcję
 #' \code{\link[ZPD]{polacz}}. Jeśli nie podane, podjęta zostanie próba
 #' automatycznego nawiązania połączenia.
-#' @return lista, której każdy element jest dwuelemntową listą, zawierającą id
+#' @return lista, której każdy element jest dwuelementową listą, zawierającą id
 #' skali oraz data frame, której można użyć jako argument \code{elementy}
 #' funkcji \code{\link[ZPDzapis]{edytuj_skale}}
 #' @import ZPD
@@ -125,7 +125,7 @@ lacz_kryteria_z_korelacji_w_ramach_czesci_egz = function(x, katalogDane, prog,
           x$czesc_egzaminu[1], ":")
   # wczytywanie danych z wynikami egzaminu
   dane = wczytaj_wyniki_surowe(katalogDane, x$rodzaj_egzaminu[1],
-                               x$czesc_egzaminu[1], x$rok[1], x$id_skali[1],
+                               x$rok[1], x$id_skali[1], x$czesc_egzaminu[1],
                                x$kryterium, src = src)
   dane = filter(dane, .data$populacja_wy & !.data$pomin_szkole)
   dane = dane[, grep("^[kp]_", names(dane))]

@@ -143,7 +143,7 @@ skaluj_spr = function(rok, processors = 2, opis = "skalowanie do EWD",
   message(rodzajEgzaminu, " ", rok, " (id_skali: ", idSkali, ", '", opis,
           "'; skalowanie ", skalowanie, ".):")
   # wczytywanie danych z dysku i sprawdzanie, czy jest dla kogo skalować
-  dane = wczytaj_wyniki_surowe(katalogSurowe, rodzajEgzaminu, "", rok, idSkali)
+  dane = wczytaj_wyniki_surowe(katalogSurowe, rodzajEgzaminu, rok, idSkali)
   # będziemy wyrzucać wszystko, co niepotrzebne do skalowania (rypanie po dysku zajmuje potem cenny czas)
   maskaZmienne = grep("^(id_obserwacji|id_testu|[kpst]_[[:digit:]]+)$", names(dane))
   zmienneKryteria = names(dane[grep("^[kpst]_[[:digit:]]+$", names(dane))])

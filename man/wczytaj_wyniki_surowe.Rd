@@ -7,9 +7,9 @@
 wczytaj_wyniki_surowe(
   katalogDane,
   rodzajEgzaminu,
-  czescEgzaminu,
   rok,
   idSkali,
+  czescEgzaminu = "",
   kryteria = NULL,
   src = NULL
 )
@@ -21,12 +21,13 @@ się dane z wynikami surowymi egzaminów, pobranymi przy pomocy funkcji
 
 \item{rodzajEgzaminu}{ciąg znaków}
 
-\item{czescEgzaminu}{ciąg znaków}
-
 \item{rok}{liczba naturalna}
 
 \item{idSkali}{liczba naturalna - id_skali w bazie dla skali, która ma zostać
 zastosowana do wyników surowych}
+
+\item{czescEgzaminu}{ciąg znaków (potrzebny tylko na potrzeby ew. tworzenia
+komunikatu o błędzie)}
 
 \item{kryteria}{opcjonalnie wektor tekstowy z nazwami wszystkich
 kryteriów oceny, jakie powinna zawierać dana część/ci egzaminu}

@@ -20,7 +20,7 @@ skaluj_matura(
 )
 }
 \arguments{
-\item{rok}{rok przeprowadzenie egzaminu}
+\item{rok}{rok przeprowadzenia egzaminu}
 
 \item{processors}{liczba rdzeni do wykorzystania przy estymacji}
 

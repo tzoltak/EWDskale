@@ -171,7 +171,7 @@ skaluj_egz_gimn = function(rok, processors = 2, opis = "skalowanie do EWD",
     message(rodzajEgzaminu, " ", rok, " (id_skali: ", idSkali, ", '", opis,
             "'; skalowanie ", skalowanie, ".):")
     # wczytywanie danych z dysku i sprawdzanie, czy jest dla kogo skalować
-    dane = wczytaj_wyniki_surowe(katalogSurowe, rodzajEgzaminu, "", rok, idSkali, src = src)
+    dane = wczytaj_wyniki_surowe(katalogSurowe, rodzajEgzaminu, rok, idSkali, src = src)
     # będziemy wyrzucać wszystko, co niepotrzebne do skalowania (rypanie po dysku zajmuje potem cenny czas)
     zmienneKryteria = names(dane)[grep("^[kpst]_[[:digit:]]+$", names(dane))]
     maskaZmienne = c("id_obserwacji", "id_testu", zmienneKryteria)

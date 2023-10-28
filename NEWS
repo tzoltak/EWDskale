@@ -1,4 +1,35 @@
 --------------------
+EWDskale 0.6.0 (28.10.2023)
+
+- Nowe funkcje:
+  - lacz_kryteria_recznie() pozwala wygodnie zdefiniować, które (pseudo)kryteria
+    w ramach podanego zestawu skal mają został połączone w pseudokryteria.
+    Użyteczna zwłaszcza do definiowania skal egzaminu na wejściu do modeli
+    latentnej EWD (w których zestaw kryteriów do łączenia należy ustalić
+    w ramach skal obejmujących tylko jeden rok egzaminu, a potem zastosować
+    do tychże skal dla modeli latentnych, które objemują dwa lata egzaminu dla
+    zadanego typu szkoły średniej/pogimnazjalnej).
+
+- Udoskonalenia:
+  - pobierz_kryteria_do_laczenia() zwraca ramkę danych, która nie jest
+    pogrupowana,
+  - skroc_skale_oceny() usuwa ze zwracanych definicji skal kryteria, dla
+    których nie ma żadnych danych (w praktyce: kryteria oceny "a" i "b"
+    wypracowania maturalnego, dla których przechowywana jest tylko łączna ocena
+    "ab").
+  - Kolejność argumentów skroc_skale_oceny() została zmieniona tak, aby
+    argument `czescEgzaminu`, który odgrywa jedynie pomocniczą rolę (przy
+    tworzeniu ew. komunikatu o błędzie) i dalece nie w każdym kontekście
+    wywołania tej funkcji jego podawanie ma sens, był dalej w kolejności.
+    Ponadto otrzymał on wartość domyślną "" (pusty ciąg znaków).
+
+- Poprawione błędy:
+  - skroc_skale_oceny() nie odmawia skracania skal, które są powiązane z tylko
+    jedną częścią egzaminu, kiedy skale definiowane są wyrażeniem regularnym,
+  - skroc_skale_oceny() obsługuje też podanie argumentem `skale` wektora
+    liczb z id skal (jak, zgodnie z dokumentacją, powinna to robić od zawsze).
+
+--------------------
 EWDskale 0.5.2 (29.09.2022)
 
 - Uaktualnienia:

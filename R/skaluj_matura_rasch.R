@@ -205,7 +205,7 @@ skaluj_matura_rasch = function(rok, processors = 2,
     message(rodzajEgzaminu, " ", rok, " (id_skali: ", idSkali, ", '", opis,
             "'; skalowanie ", skalowanie, ".):")
     # wczytywanie danych z dysku i sprawdzanie, czy jest dla kogo skalować
-    dane = wczytaj_wyniki_surowe(katalogSurowe, rodzajEgzaminu, "", rok, idSkali)
+    dane = wczytaj_wyniki_surowe(katalogSurowe, rodzajEgzaminu, rok, idSkali)
     dane = filter(dane, .data$typ_szkoly %in% c("LO", "T"))
     # będziemy wyrzucać wszystko, co niepotrzebne do skalowania (rypanie po dysku zajmuje potem cenny czas)
     zmienneGrupujace = c("typ_szkoly", "s_mat_r", "czy_sf")

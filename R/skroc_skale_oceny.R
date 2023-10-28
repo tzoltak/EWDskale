@@ -47,17 +47,23 @@ skroc_skale_oceny = function(skale, katalogDane = "dane surowe/",
 
   # pobieranie danych o kryteriach
   if (is.character(skale)) {
-    skale = pobierz_skale(src, doPrezentacji = NA) %>%
+    skale = pobierz_skale(src, doPrezentacji = NA, skalowania = FALSE) %>%
       collect() %>%
-      filter(grepl(skale, .data$opis_skali), is.na(.data$czesc_egzaminu)) %>%
-      select("id_skali", "opis_skali", "rodzaj_egzaminu", "czesc_egzaminu", "rok") %>%
+      filter(grepl(skale, .data$opis_skali)) %>%
+      select("id_skali", "opis_skali", "rodzaj_egzaminu", "rok") %>%
       distinct()
+  } else {
+    skale = pobierz_skale(src, doPrezentacji = NA, skalowania = FALSE) %>%
+      filter(.data$id_skali %in% skale) %>%
+      select("id_skali", "opis_skali", "rodzaj_egzaminu", "rok") %>%
+      distinct() %>%
+      collect()
   }
   if (nrow(skale) == 0) {
     stop("Nie znaleziono żadnych skal, których opis pasowałby do podanego wyrażenia regularnego.")
   }
 
-  skale = group_by(skale, .data$id_skali, .data$czesc_egzaminu) %>%
+  skale = group_by(skale, .data$id_skali) %>%
     summarise(elementy = skroc_skale_oceny_w_ramach_skali(cur_data_all(),
                                                           katalogDane,
                                                           maxLPozWyk,
@@ -111,8 +117,7 @@ skroc_skale_oceny_w_ramach_skali = function(x, katalogDane = "../dane surowe/",
           x$rodzaj_egzaminu, " ", x$rok)
   # wczytywanie danych z wynikami egzaminu
   message("  Wczytywanie danych.")
-  dane = wczytaj_wyniki_surowe(katalogDane, x$rodzaj_egzaminu,
-                               x$czesc_egzaminu, x$rok, x$id_skali)
+  dane = wczytaj_wyniki_surowe(katalogDane, x$rodzaj_egzaminu, x$rok, x$id_skali)
   maskaObserwacje = with(dane, {populacja_wy & !pomin_szkole})
   dane = dane[, grep("^[kp]_", names(dane))]
 
@@ -153,6 +158,21 @@ skroc_skale_oceny_w_ramach_skali = function(x, katalogDane = "../dane surowe/",
     unlist() %>% which()
   for (i in maska) {
     kryteria$schemat_pkt[[i]] = c(0, kryteria$schemat_pkt[[i]])
+  }
+
+  # wykrywanie i usuwanie kryteriów, które mają same braki danych
+  # dot. kryteriów oceny wypracowania na maturze: a) sformułowanie stanowiska,
+  # b) uzasadnienie stanowiska, które są oceniane oddzielnie i, zgodnie z planem
+  # testu, mają w naszej bazie tworzone swoje oddzielne kryteria, ale w bazach
+  # danych OKE/CKE zapisywana jest tylko ich łączna punktacja (ab), dla której
+  # w naszej bazie jest tworzone specjalne kryterium (i ono, w przeciwieństwie
+  # do poprzednich przechowuje wyniki, a nie tylko braki danych)
+  puste = sapply(dane, function(x) {return(all(is.na(x)))})
+  if (any(puste)) {
+    message("  Ze skali zostaną usunięte kryteria oceny, które nie przechowują żanych danych:\n  - ",
+            paste(names(dane)[puste], collapse = ",\n  - "), ".\n")
+    dane = dane[, !puste, drop = FALSE]
+    kryteria = kryteria[!puste, ]
   }
 
   # samo skracanie skal

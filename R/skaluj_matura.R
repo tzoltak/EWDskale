@@ -8,7 +8,7 @@
 #' wielogrupowe modele 2PL/SGRM. Grupy definiowane są albo przez wybór poziomu
 #' rozszerzonego i typ szkoły (LO/T) - dla wskaźników 1), i 4), albo przez
 #' typ szkoły (LO/T) - dla wskaźników 2), i 3).
-#' @param rok rok przeprowadzenie egzaminu
+#' @param rok rok przeprowadzenia egzaminu
 #' @param processors liczba rdzeni do wykorzystania przy estymacji
 #' @param opis opcjonalnie ciąg znaków - opis skalowania
 #' @param katalogSurowe opcjonalnie ścieżka do katalogu, w którym znajdują się
@@ -139,7 +139,7 @@ skaluj_matura = function(rok, processors = 2, opis = "skalowanie do EWD",
     doPrezentacji = NA
   }
   if (rok > 2022) {
-    stop("Funkcja nie obsługuje skalowania dla egzaminów po 2021 r.")
+    stop("Funkcja nie obsługuje skalowania dla egzaminów po 2022 r.")
   }
 
   # sprawdzanie, czy w bazie są zapisane skala i jakieś skalowanie z parametrami
@@ -152,7 +152,8 @@ skaluj_matura = function(rok, processors = 2, opis = "skalowanie do EWD",
     }
   }
   parametry = suppressMessages(
-    pobierz_parametry_skalowania(skala, doPrezentacji = doPrezentacji, parametryzacja = "mplus", src = src)
+    pobierz_parametry_skalowania(skala, doPrezentacji = doPrezentacji,
+                                 parametryzacja = "mplus", src = src)
   )
   if (nrow(parametry) == 0) {
     if (is.character(skala)) {
@@ -203,7 +204,7 @@ skaluj_matura = function(rok, processors = 2, opis = "skalowanie do EWD",
     message(rodzajEgzaminu, " ", rok, " (id_skali: ", idSkali, ", '", opis,
             "'; skalowanie ", skalowanie, ".):")
     # wczytywanie danych z dysku i sprawdzanie, czy jest dla kogo skalować
-    dane = wczytaj_wyniki_surowe(katalogSurowe, rodzajEgzaminu, "", rok, idSkali, src = src)
+    dane = wczytaj_wyniki_surowe(katalogSurowe, rodzajEgzaminu, rok, idSkali, src = src)
     dane = filter(dane, .data$typ_szkoly %in% c("LO", "T"))
 
     zmienneKryteria = names(dane)[grep("^[kp]_[[:digit:]]+$", names(dane))]
