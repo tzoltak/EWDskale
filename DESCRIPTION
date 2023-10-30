@@ -1,7 +1,7 @@
 Encoding: UTF-8
 Package: EWDskale
 Title: Functions for Educational Value-Added data import/export
-Version: 0.6.0
+Version: 0.6.1
 Authors@R: c(
   person("Tomasz", "Zoltak", , "tomek@zozlak.org", role = c("aut", "cre")),
   person("Mateusz", "Zoltak", , "zozlak@zozlak.org", role = c("aut")),
@@ -15,7 +15,7 @@ Depends:
     ggplot2
 Imports:
     ZPD (>= 1.7.5),
-    dplyr (>= 1.0.7),
+    dplyr (>= 1.1.1),
     EWDskalowanie (>= 1.0.1),
     tidyr (>= 1.1.4)
 Suggests:

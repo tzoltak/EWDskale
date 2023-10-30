@@ -138,7 +138,7 @@ skaluj_matura = function(rok, processors = 2, opis = "skalowanie do EWD",
     stopifnot(length(skala) == 1)
     doPrezentacji = NA
   }
-  if (rok > 2022) {
+  if (rok > 2023) {
     stop("Funkcja nie obsługuje skalowania dla egzaminów po 2022 r.")
   }
 
@@ -146,7 +146,7 @@ skaluj_matura = function(rok, processors = 2, opis = "skalowanie do EWD",
   if (is.null(skala)) {
     skala = paste0("^ewd;m_(h|jp|m|mp);", rok)
   } else if (is.character(skala)) {
-    if (!grepl("^ewd;m_", skala)) {
+    if (!grepl("^\\^?ewd;m_", skala)) {
       warning("Skale, których opis ma pasować do wyrażenia '", skala,
               "' raczej nie odnoszą się do matury!", immediate. = TRUE)
     }
@@ -356,6 +356,9 @@ skaluj_matura = function(rok, processors = 2, opis = "skalowanie do EWD",
     if ("czy_sf" %in% zmienneGrupujace) {
       grupy = filter(grupy, !(.data$typ_szkoly == "LO" & .data$czy_sf))
     }
+    if (rok == 2023) {
+      grupy = filter(grupy, .data$typ_szkoly == "T")
+    }
     grupy = cbind(grupy, gr_tmp1 = 1:nrow(grupy))
     # ładne nazwy grup
     if (grepl(";m_(jp|m);", opis)) {
@@ -392,6 +395,11 @@ skaluj_matura = function(rok, processors = 2, opis = "skalowanie do EWD",
               "należących do grup, które nie występują w zbiorowości 'wzorcowej' ",
               "i nie da się im w związku z tym przypisać wyskalowanych wyników ",
               "(np. uczniowie LO, którzy w 2015 r. zdawali maturę w 'starej formule').")
+    }
+    # obsługa modeli hum. i mat.-przyr. z 2023 r. (gdy skalowane są tylko technika)
+    if (rok == 2023) {
+      zmienneGrupujace = setdiff(zmienneGrupujace, "typ_szkoly")
+      if (length(zmienneGrupujace) == 0) zmienneGrupujace = NULL
     }
     # jeśli nic w bazie nie znaleźliśmy, to robimy skalowanie wzorcowe
     if (!is.data.frame(parametrySkala) | tylkoDaneDoUIRTa) {
@@ -444,16 +452,29 @@ skaluj_matura = function(rok, processors = 2, opis = "skalowanie do EWD",
                          bezWartosciStartowychParametrowTypu = "threshold",
                          nieEstymuj = nieEstymuj)
       # kontrola grupowania
-      mapowanieGrup =
-        mWzorcowe[[1]][[length(mWzorcowe[[1]])]]$parametry$grupyMapowanie
-      if (suppressMessages(nrow(semi_join(grupy, mapowanieGrup)) < nrow(grupy))) {
-        blad = paste0("Schemat kodowania grup z wyestymowanego modelu nie jest ",
-                      "zgodny z założonym na podstawie danych.")
-        if (proba > 0) {
-          warning(blad, immediate. = TRUE)
-        } else {
-          stop(blad)
+      if (!is.null(zmienneGrupujace)) { # zawsze poza 2023 r. hum. i mat.-przyr.
+        mapowanieGrup =
+          mWzorcowe[[1]][[length(mWzorcowe[[1]])]]$parametry$grupyMapowanie
+        if (suppressMessages(nrow(semi_join(grupy, mapowanieGrup)) < nrow(grupy))) {
+          blad = paste0("Schemat kodowania grup z wyestymowanego modelu nie jest ",
+                        "zgodny z założonym na podstawie danych.")
+          if (proba > 0) {
+            warning(blad, immediate. = TRUE)
+          } else {
+            stop(blad)
+          }
         }
+      } else { # obsługa modeli hum. i mat.-przyr. z 2023 r. (gdy skalowane są tylko technika)
+        mWzorcowe[[1]][[length(mWzorcowe[[1]])]]$parametry =
+          lapply(mWzorcowe[[1]][[length(mWzorcowe[[1]])]]$parametry,
+                 function(x) {
+                   x$typ = ifelse(x$typ %in% c("mean", "variance", "r2"),
+                                  paste0(x$typ, ".gr1"), x$typ)
+                   return(x)
+                 })
+        mWzorcowe[[1]][[length(mWzorcowe[[1]])]]$zapis =
+          cbind(mWzorcowe[[1]][[length(mWzorcowe[[1]])]]$zapis,
+                gr_tmp1 = 1L, typ_szkoly = "T")
       }
       # zapamiętywanie parametrów modelu
       wartosciZakotwiczone =
@@ -558,6 +579,11 @@ skaluj_matura = function(rok, processors = 2, opis = "skalowanie do EWD",
                                   wartosciZakotwiczone, processors = processors)
     mWszyscy = skaluj(dane, opisWszyscy, "id_obserwacji", tytul = tytulWszyscy,
                       zmienneDolaczaneDoOszacowan = "id_testu")
+    if (is.null(zmienneGrupujace)) { # obsługa modeli hum. i mat.-przyr. z 2023 r. (gdy skalowane są tylko technika)
+      mWszyscy[[1]][[length(mWszyscy[[1]])]]$zapis =
+        cbind(mWszyscy[[1]][[length(mWszyscy[[1]])]]$zapis,
+              gr_tmp1 = 1L, typ_szkoly = "T")
+    }
 
     oszacowania = suppressMessages(
       mWszyscy[[1]][[length(mWszyscy[[1]])]]$zapis %>%

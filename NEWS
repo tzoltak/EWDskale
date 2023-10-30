@@ -1,4 +1,11 @@
 --------------------
+EWDskale 0.6.1 (30.10.2023)
+
+- Uaktualnienia:
+  - skaluj_matura() zgadza się skalować wyniki z 2023 r. (przy czym w skalowaniu bierze pod uwagę tylko uczniów techników, co wymagało dodania w kilku miejscach rozwiązań pozwalających to obsłużyć);
+  - lacz_kryteria_z_korelacji() zostało przepisane tak, aby nie używało funkcjonalności, które przestały działać po zmianie API summarise() w wersji 1.1.0 pakietu dplyr; podniesiono zależność od dplyr-a do wersji 1.1.1.
+
+--------------------
 EWDskale 0.6.0 (28.10.2023)
 
 - Nowe funkcje:

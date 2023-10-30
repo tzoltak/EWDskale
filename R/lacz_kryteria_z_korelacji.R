@@ -20,6 +20,7 @@
 #' skali oraz data frame, której można użyć jako argument \code{elementy}
 #' funkcji \code{\link[ZPDzapis]{edytuj_skale}}
 #' @import ZPD
+#' @importFrom dplyr bind_rows
 #' @export
 lacz_kryteria_z_korelacji = function(skale, katalogDane = "dane surowe/",
                                      prog = 0.5, tylkoWWiazkach = TRUE,
@@ -42,12 +43,12 @@ lacz_kryteria_z_korelacji = function(skale, katalogDane = "dane surowe/",
   }
 
   kryteria = pobierz_kryteria_do_laczenia(skale, src = src)
-  temp = group_by(kryteria, .data$id_skali) %>%
-    summarise(lacz_kryteria_z_korelacji_w_ramach_skali(cur_data_all(),
-                                                       katalogDane,
-                                                       prog,
-                                                       tylkoWWiazkach,
-                                                       src = srcPass))
+  temp = split(kryteria, kryteria$id_skali)
+  temp = lapply(temp, lacz_kryteria_z_korelacji_w_ramach_skali,
+                katalogDane = katalogDane, prog = prog,
+                tylkoWWiazkach = tylkoWWiazkach, src = srcPass)
+  temp = bind_rows(temp, .id = "id_skali")
+  temp$id_skali = as.integer(temp$id_skali)
   class(temp) = c("wynikLaczKryteriaZKorelacji", class(temp))
   return(temp)
 }
@@ -176,7 +177,7 @@ lacz_kryteria_z_korelacji_w_ramach_czesci_egz = function(x, katalogDane, prog,
   laczenia = matrix(NA, ncol = ncol(pary), nrow = nrow(pary)) %>%
     as.data.frame %>%
     setNames(names(pary))
-  dyskryminacje = matrix(NA, ncol = ncol(dane), nrow = nrow(pary))
+  dyskryminacje = matrix(NA, ncol = ncol(dane), nrow = nrow(pary) + 1)
   colnames(dyskryminacje) = names(dane)
   rownames(dyskryminacje) = 0:(nrow(dyskryminacje) - 1)
   dyskryminacje[1, ] = dyskryminacjeTemp[grep("^[kp]_", names(dyskryminacjeTemp))]

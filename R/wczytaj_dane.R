@@ -35,7 +35,8 @@ wczytaj_wyniki_surowe = function(katalogDane, rodzajEgzaminu, rok, idSkali,
             is.numeric(idSkali), length(idSkali) == 1,
             dplyr::is.src(src) | is.null(src))
   stopifnot(dir.exists(katalogDane),
-            rodzajEgzaminu %in% c("sprawdzian", "egzamin gimnazjalny", "matura"))
+            rodzajEgzaminu %in% c("sprawdzian", "egzamin gimnazjalny", "matura",
+                                  "egzamin ósmoklasisty"))
   if (is.null(src)) {
     src = ZPD::polacz()
   }
