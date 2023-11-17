@@ -13,6 +13,9 @@
 #' @param minOdsPozWyk minimalny odsetek obserwacji, które ma zawierać każdy
 #' poziom
 #' @param print wartość logiczna - czy pokazywać informacje o skracaniu?
+#' @param populacja ciąg znaków określający, czy przy obliczaniu rozkładów
+#' mają zostać uwzględnione obserwacje spełniające kryterium przynależności
+#' do \emph{populacji na wyjściu} (domyślnie) czy do \emph{populacji na wejściu}
 #' @param src NULL połączenie z bazą danych IBE zwracane przez funkcję
 #' \code{\link[ZPD]{polacz}}. Jeśli nie podane, podjęta zostanie próba
 #' automatycznego nawiązania połączenia.
@@ -24,7 +27,7 @@
 skroc_skale_oceny = function(skale, katalogDane = "dane surowe/",
                              maxLPozWyk = 5, minLiczebnPozWyk = 100,
                              minOdsPozWyk = 0.05, print = TRUE,
-                             src = NULL) {
+                             populacja = c("wy", "we"), src = NULL) {
   stopifnot((is.numeric(skale) & length(skale) > 0) |
               (is.character(skale) & length(skale) == 1),
             is.character(katalogDane),    length(katalogDane) == 1,
@@ -32,6 +35,7 @@ skroc_skale_oceny = function(skale, katalogDane = "dane surowe/",
             is.numeric(minLiczebnPozWyk), length(minLiczebnPozWyk) == 1,
             is.numeric(minLiczebnPozWyk), length(minLiczebnPozWyk) == 1,
             dplyr::is.src(src) | is.null(src))
+  populacja = match.arg(populacja)
   stopifnot(maxLPozWyk >= 2,
             minLiczebnPozWyk >= 0, minLiczebnPozWyk < Inf,
             minOdsPozWyk >= 0, minOdsPozWyk <= 1)
@@ -69,6 +73,7 @@ skroc_skale_oceny = function(skale, katalogDane = "dane surowe/",
                                                           maxLPozWyk,
                                                           minLiczebnPozWyk,
                                                           minOdsPozWyk, print,
+                                                          populacja,
                                                           src = srcPass))
   return(skale)
 }
@@ -84,6 +89,9 @@ skroc_skale_oceny = function(skale, katalogDane = "dane surowe/",
 #' @param minOdsPozWyk minimalny odsetek obserwacji, które ma zawierać każdy
 #' poziom
 #' @param print wartość logiczna - czy pokazywać informacje o skracaniu?
+#' @param populacja ciąg znaków określający, czy przy obliczaniu rozkładów
+#' mają zostać uwzględnione obserwacje spełniające kryterium przynależności
+#' do \emph{populacji na wyjściu} (domyślnie) czy do \emph{populacji na wejściu}
 #' @param src NULL połączenie z bazą danych IBE zwracane przez funkcję
 #' \code{\link[ZPD]{polacz}}. Jeśli nie podane, podjęta zostanie próba
 #' automatycznego nawiązania połączenia.
@@ -96,6 +104,7 @@ skroc_skale_oceny = function(skale, katalogDane = "dane surowe/",
 skroc_skale_oceny_w_ramach_skali = function(x, katalogDane = "../dane surowe/",
                                             maxLPozWyk = 5, minLiczebnPozWyk = 100,
                                             minOdsPozWyk = 0.05, print = TRUE,
+                                            populacja = c("wy", "we"),
                                             src = NULL) {
   stopifnot(is.data.frame(x), nrow(x) == 1,
             is.character(katalogDane),    length(katalogDane) == 1,
@@ -103,6 +112,7 @@ skroc_skale_oceny_w_ramach_skali = function(x, katalogDane = "../dane surowe/",
             is.numeric(minLiczebnPozWyk), length(minLiczebnPozWyk) == 1,
             is.numeric(minLiczebnPozWyk), length(minLiczebnPozWyk) == 1,
             dplyr::is.src(src) | is.null(src))
+  populacja = match.arg(populacja)
   stopifnot(maxLPozWyk >= 2,
             minLiczebnPozWyk >= 0, minLiczebnPozWyk < Inf,
             minOdsPozWyk >= 0, minOdsPozWyk <= 1)
@@ -118,7 +128,11 @@ skroc_skale_oceny_w_ramach_skali = function(x, katalogDane = "../dane surowe/",
   # wczytywanie danych z wynikami egzaminu
   message("  Wczytywanie danych.")
   dane = wczytaj_wyniki_surowe(katalogDane, x$rodzaj_egzaminu, x$rok, x$id_skali)
-  maskaObserwacje = with(dane, {populacja_wy & !pomin_szkole})
+  if (populacja == "wy") {
+    maskaObserwacje = with(dane, {populacja_wy & !pomin_szkole})
+  } else {
+    maskaObserwacje = with(dane, {populacja_we & !pomin_szkole})
+  }
   dane = dane[, grep("^[kp]_", names(dane))]
 
   # pobieranie schematów punktowania zadań
@@ -161,8 +175,9 @@ skroc_skale_oceny_w_ramach_skali = function(x, katalogDane = "../dane surowe/",
   }
 
   # wykrywanie i usuwanie kryteriów, które mają same braki danych
-  # dot. kryteriów oceny wypracowania na maturze: a) sformułowanie stanowiska,
-  # b) uzasadnienie stanowiska, które są oceniane oddzielnie i, zgodnie z planem
+  # dot. kryteriów oceny wypracowania na maturze (w formułach wcześniejszych
+  # niż 2023 r.): a) sformułowanie stanowiska, b) uzasadnienie stanowiska,
+  # które są oceniane oddzielnie i, zgodnie z planem
   # testu, mają w naszej bazie tworzone swoje oddzielne kryteria, ale w bazach
   # danych OKE/CKE zapisywana jest tylko ich łączna punktacja (ab), dla której
   # w naszej bazie jest tworzone specjalne kryterium (i ono, w przeciwieństwie
@@ -188,9 +203,11 @@ skroc_skale_oceny_w_ramach_skali = function(x, katalogDane = "../dane surowe/",
   rm(dane)
 
   # ew. wypluwanie na ekran
+  opisySkracania = vector(mode = "list", length = nrow(kryteria))
+  names(opisySkracania) = kryteria
   if (print) {
     message("  Dokonane skrocenia:")
-    for (i in 1:nrow(kryteria)) {
+    for (i in seq_len(nrow(kryteria))) {
       temp = kryteria$skrot[i][[1]]
       if (all(temp$przedSkroceniem == temp$poSkroceniu)) {
         next
@@ -201,25 +218,23 @@ skroc_skale_oceny_w_ramach_skali = function(x, katalogDane = "../dane surowe/",
           setNames(rep(NA, length(temp$rozkladPrzed) - length(temp$rozkladPo)),
                    temp$poSkroceniu[duplicated(temp$poSkroceniu)]))
       temp$rozkladPo = temp$rozkladPo[order(as.numeric(names(temp$rozkladPo)))]
-      print(data.frame(" " = "  ",
-                       "wartość" = temp$przedSkroceniem,
-                       "po skróceniu" = temp$poSkroceniu,
-                       "przed [n]" =
-                         format(unclass(temp$rozkladPrzed), big.mark = "'"),
-                       "przed [%]" =
-                         paste0(format(100 * temp$rozkladPrzed /
-                                         sum(temp$rozkladPrzed),
-                                       digits = 1, nsmall = 1), " %"),
-                       "po [n]" =
-                         sub("NA", "  ",
-                             format(unclass(temp$rozkladPo), big.mark = "'")),
-                       "po [%]" =
-                         sub("NA %", "   ",
-                             paste0(format(100 * temp$rozkladPo /
-                                             sum(temp$rozkladPo, na.rm = TRUE),
-                                           digits = 1, nsmall = 1), " %")),
-                       check.names = FALSE),
-            row.names = FALSE)
+      opisSkracania = data.frame(
+        " " = "  ",
+        "wartość" = temp$przedSkroceniem,
+        "po skróceniu" = temp$poSkroceniu,
+        "przed [n]" =
+          format(unclass(temp$rozkladPrzed), big.mark = "'"),
+        "przed [%]" =
+          paste0(format(100 * temp$rozkladPrzed / sum(temp$rozkladPrzed),
+                        digits = 1, nsmall = 1), " %"),
+        "po [n]" = sub("NA", "  ", format(unclass(temp$rozkladPo), big.mark = "'")),
+        "po [%]" = sub("NA %", "   ",
+                       paste0(format(100 * temp$rozkladPo /
+                                       sum(temp$rozkladPo, na.rm = TRUE),
+                                     digits = 1, nsmall = 1), " %")),
+        check.names = FALSE)
+      opisySkracania[[i]] = opisSkracania
+      print(opisSkracania, row.names = FALSE)
     }
   }
 
@@ -241,6 +256,7 @@ skroc_skale_oceny_w_ramach_skali = function(x, katalogDane = "../dane surowe/",
     id_skrotu = unlist(kryteria$skrot),
     stringsAsFactors = FALSE
   )
+  attributes(kryteria)$opisySkracania = opisySkracania
   return(list(kryteria))
 }
 #' @title Okreslenie wzoru skrocenia skali oceny

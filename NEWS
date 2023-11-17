@@ -1,4 +1,11 @@
 --------------------
+EWDskale 0.6.2 (17.11.2023)
+
+- Udoskonalenia:
+  - skroc_skale_oceny() i skroc_skale_oceny_w_ramach_skali() otrzymały dodatkowy argument `populacja`, który pozwala wskazać, czy przy obliczaniu rozkładów powinny zostać wykorzystane obserwacje spełniające kryterium przynależności do populacji *na wyjściu* (jak to było zakładane do tej pory i co pozostało opcją domyślną), czy też do populacji *na wejściu*. Jest to niezbędne w odniesieniu do egzaminu ósmoklasisty.
+  - skroc_skale_oceny() dodaje listy ramek danych z opisem dokonanych skrótów jako atrybuty `opisySkracania` elementów kolumny-listy `elementy` w zwracanej przez siebie ramce danych (co wynika z faktu, że skroc_skale_oceny_w_ramach_skali() dodaje listę tych ramek danych jako atrybut `opisySkracania` zwracanej ramki danych).
+
+--------------------
 EWDskale 0.6.1 (30.10.2023)
 
 - Uaktualnienia:
