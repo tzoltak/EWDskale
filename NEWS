@@ -1,4 +1,62 @@
 --------------------
+EWDskale 0.6.2 (17.11.2023)
+
+- Udoskonalenia:
+  - skroc_skale_oceny() i skroc_skale_oceny_w_ramach_skali() otrzymały dodatkowy argument `populacja`, który pozwala wskazać, czy przy obliczaniu rozkładów powinny zostać wykorzystane obserwacje spełniające kryterium przynależności do populacji *na wyjściu* (jak to było zakładane do tej pory i co pozostało opcją domyślną), czy też do populacji *na wejściu*. Jest to niezbędne w odniesieniu do egzaminu ósmoklasisty.
+  - skroc_skale_oceny() dodaje listy ramek danych z opisem dokonanych skrótów jako atrybuty `opisySkracania` elementów kolumny-listy `elementy` w zwracanej przez siebie ramce danych (co wynika z faktu, że skroc_skale_oceny_w_ramach_skali() dodaje listę tych ramek danych jako atrybut `opisySkracania` zwracanej ramki danych).
+
+--------------------
+EWDskale 0.6.1 (30.10.2023)
+
+- Uaktualnienia:
+  - skaluj_matura() zgadza się skalować wyniki z 2023 r. (przy czym w skalowaniu bierze pod uwagę tylko uczniów techników, co wymagało dodania w kilku miejscach rozwiązań pozwalających to obsłużyć);
+  - lacz_kryteria_z_korelacji() zostało przepisane tak, aby nie używało funkcjonalności, które przestały działać po zmianie API summarise() w wersji 1.1.0 pakietu dplyr; podniesiono zależność od dplyr-a do wersji 1.1.1.
+
+--------------------
+EWDskale 0.6.0 (28.10.2023)
+
+- Nowe funkcje:
+  - lacz_kryteria_recznie() pozwala wygodnie zdefiniować, które (pseudo)kryteria
+    w ramach podanego zestawu skal mają został połączone w pseudokryteria.
+    Użyteczna zwłaszcza do definiowania skal egzaminu na wejściu do modeli
+    latentnej EWD (w których zestaw kryteriów do łączenia należy ustalić
+    w ramach skal obejmujących tylko jeden rok egzaminu, a potem zastosować
+    do tychże skal dla modeli latentnych, które objemują dwa lata egzaminu dla
+    zadanego typu szkoły średniej/pogimnazjalnej).
+
+- Udoskonalenia:
+  - pobierz_kryteria_do_laczenia() zwraca ramkę danych, która nie jest
+    pogrupowana,
+  - skroc_skale_oceny() usuwa ze zwracanych definicji skal kryteria, dla
+    których nie ma żadnych danych (w praktyce: kryteria oceny "a" i "b"
+    wypracowania maturalnego, dla których przechowywana jest tylko łączna ocena
+    "ab").
+  - Kolejność argumentów skroc_skale_oceny() została zmieniona tak, aby
+    argument `czescEgzaminu`, który odgrywa jedynie pomocniczą rolę (przy
+    tworzeniu ew. komunikatu o błędzie) i dalece nie w każdym kontekście
+    wywołania tej funkcji jego podawanie ma sens, był dalej w kolejności.
+    Ponadto otrzymał on wartość domyślną "" (pusty ciąg znaków).
+
+- Poprawione błędy:
+  - skroc_skale_oceny() nie odmawia skracania skal, które są powiązane z tylko
+    jedną częścią egzaminu, kiedy skale definiowane są wyrażeniem regularnym,
+  - skroc_skale_oceny() obsługuje też podanie argumentem `skale` wektora
+    liczb z id skal (jak, zgodnie z dokumentacją, powinna to robić od zawsze).
+
+--------------------
+EWDskale 0.5.2 (29.09.2022)
+
+- Uaktualnienia:
+  - skaluj_matura() zgadza się skalować wyniki z 2022 r.
+
+- Poprawione błędy:
+  - rysuj_laczenia_z_korelacji_w_ramach_czesci() w wewnetrznych operacjach
+    używa NA poszczególnych typów przy wypełnianiu wartości kolumn tworzonych
+    ramek danych pustymi wartościami (podczas ich inicjalizacji), co pozwala
+    uniknąć problemów z niezgodnością typów przy wywołaniu bind_rows(), które
+    czasem się pojawiały.
+
+--------------------
 EWDskale 0.5.1 (16.11.2021)
 
 - Poprawione błędy:

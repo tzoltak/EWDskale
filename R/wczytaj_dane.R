@@ -6,7 +6,8 @@
 #' się dane z wynikami surowymi egzaminów, pobranymi przy pomocy funkcji
 #' \code{\link[EWDdane]{pobierz_wyniki_surowe}}
 #' @param rodzajEgzaminu ciąg znaków
-#' @param czescEgzaminu ciąg znaków
+#' @param czescEgzaminu ciąg znaków (potrzebny tylko na potrzeby ew. tworzenia
+#' komunikatu o błędzie)
 #' @param rok liczba naturalna
 #' @param idSkali liczba naturalna - id_skali w bazie dla skali, która ma zostać
 #' zastosowana do wyników surowych
@@ -26,15 +27,16 @@
 #' @return data frame (data table)
 #' @importFrom stats setNames
 #' @import ZPD
-wczytaj_wyniki_surowe = function(katalogDane, rodzajEgzaminu, czescEgzaminu,
-                                 rok, idSkali, kryteria = NULL, src = NULL) {
+wczytaj_wyniki_surowe = function(katalogDane, rodzajEgzaminu, rok, idSkali,
+                                 czescEgzaminu ="", kryteria = NULL, src = NULL) {
   stopifnot(is.character(katalogDane), length(katalogDane) == 1,
             is.character(rodzajEgzaminu), length(rodzajEgzaminu) == 1,
             is.numeric(rok), length(rok) == 1,
             is.numeric(idSkali), length(idSkali) == 1,
             dplyr::is.src(src) | is.null(src))
   stopifnot(dir.exists(katalogDane),
-            rodzajEgzaminu %in% c("sprawdzian", "egzamin gimnazjalny", "matura"))
+            rodzajEgzaminu %in% c("sprawdzian", "egzamin gimnazjalny", "matura",
+                                  "egzamin ósmoklasisty"))
   if (is.null(src)) {
     src = ZPD::polacz()
   }

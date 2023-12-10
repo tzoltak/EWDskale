@@ -31,7 +31,7 @@ tylko w ramach wiązek pytań/kryteriów?}
 automatycznego nawiązania połączenia.}
 }
 \value{
-lista, której każdy element jest dwuelemntową listą, zawierającą id
+lista, której każdy element jest dwuelementową listą, zawierającą id
 skali oraz data frame, której można użyć jako argument \code{elementy}
 funkcji \code{\link[ZPDzapis]{edytuj_skale}}
 }

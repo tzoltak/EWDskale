@@ -44,6 +44,7 @@ pobierz_kryteria_do_laczenia = function(skale, nf = FALSE, src = NULL) {
       left_join(pobierz_testy(src)) %>%
       group_by(.data$id_skali) %>%
       mutate(tylko_testy_egazminu = all(.data$czy_egzamin)) %>%
+      ungroup() %>%
       filter(.data$czy_egzamin == .data$tylko_testy_egazminu) %>%
       # filter(.data$czy_egzamin) %>%
       # koniec j.w.
