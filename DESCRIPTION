@@ -1,7 +1,7 @@
 Encoding: UTF-8
 Package: EWDskale
 Title: Functions for Educational Value-Added data import/export
-Version: 0.6.2
+Version: 0.7.0
 Authors@R: c(
   person("Tomasz", "Zoltak", , "tomek@zozlak.org", role = c("aut", "cre")),
   person("Mateusz", "Zoltak", , "zozlak@zozlak.org", role = c("aut")),
@@ -23,7 +23,5 @@ Suggests:
     knitr
 License: MIT + file LICENSE
 Language: pl
-VignetteBuilder: knitr
 NeedsCompilation: no
-LazyData: true
-RoxygenNote: 7.2.3
+RoxygenNote: 7.3.2

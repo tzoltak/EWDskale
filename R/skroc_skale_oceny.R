@@ -67,14 +67,16 @@ skroc_skale_oceny = function(skale, katalogDane = "dane surowe/",
     stop("Nie znaleziono żadnych skal, których opis pasowałby do podanego wyrażenia regularnego.")
   }
 
-  skale = group_by(skale, .data$id_skali) %>%
+  skale = group_by(skale, .data$id_skali, .data$rok) %>%
     summarise(elementy = skroc_skale_oceny_w_ramach_skali(cur_data_all(),
                                                           katalogDane,
                                                           maxLPozWyk,
                                                           minLiczebnPozWyk,
                                                           minOdsPozWyk, print,
                                                           populacja,
-                                                          src = srcPass))
+                                                          src = srcPass)) %>%
+    group_by(.data$id_skali) %>%
+    summarise(elementy = list(bind_rows(.data$elementy)))
   return(skale)
 }
 #' @title Skracanie skal oceny
@@ -155,8 +157,8 @@ skroc_skale_oceny_w_ramach_skali = function(x, katalogDane = "../dane surowe/",
         return(x)
       }
     })
-  stopifnot(all(names(dane) %in% kryteria$kryterium),
-            all(kryteria$kryterium %in% names(dane)))
+  stopifnot(all(names(dane) %in% kryteria$kryterium))
+  kryteria = kryteria[kryteria$kryterium %in% names(dane), ]
   dane = dane[, kryteria$kryterium]
 
   # uzupełnianie schematów punktowania dla pseudokryteriow
@@ -206,7 +208,7 @@ skroc_skale_oceny_w_ramach_skali = function(x, katalogDane = "../dane surowe/",
   opisySkracania = vector(mode = "list", length = nrow(kryteria))
   names(opisySkracania) = kryteria
   if (print) {
-    message("  Dokonane skrocenia:")
+    message("  Dokonane skrócenia:")
     for (i in seq_len(nrow(kryteria))) {
       temp = kryteria$skrot[i][[1]]
       if (all(temp$przedSkroceniem == temp$poSkroceniu)) {

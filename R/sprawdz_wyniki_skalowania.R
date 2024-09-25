@@ -40,10 +40,11 @@ sprawdz_wyniki_skalowania = function(nazwaPliku) {
 sprawdz_wyniki_skalowania_konstruktu = function(model, src = NULL) {
   stopifnot(is.list(model), "wynikiSkalowania" %in% class(model),
             dplyr::is.src(src) | is.null(src))
-  stopifnot("skalowania" %in% names(model), is.data.frame(model$skalowania),
-            "skalowania_obserwacje" %in% names(model),
-            is.data.frame(model$skalowania_obserwacje))
+  stopifnot("skalowania" %in% names(model), is.data.frame(model$skalowania))
   stopifnot(nrow(model$skalowania) == 1)
+  if ("skalowania_obserwacje" %in% names(model)) {
+    stopifnot(is.data.frame(model$skalowania_obserwacje))
+  }
   if (is.null(src)) {
     src = ZPD::polacz()
   }
@@ -59,7 +60,20 @@ sprawdz_wyniki_skalowania_konstruktu = function(model, src = NULL) {
     "m_h"  = "Matura, przedm. humanistyczne",
     "m_jp" = "Matura, język polski",
     "m_m"  = "Matura, matematyka",
-    "m_mp" = "Matura, przedm. mat.-przyr."
+    "m_mp" = "Matura, przedm. mat.-przyr.",
+    "m_b" = "Matura, biologia",
+    "m_c" = "Matura, chemia",
+    "m_f" = "Matura, fizyka",
+    "m_g" = "Matura, geografia",
+    "m_i" = "Matura, informatyka",
+    "m_ja" = "Matura, język angielski",
+    "m_w" = "Matura, WOS",
+    "e8jpLO" = "Egz. ósmoklasisty, język polski, LO",
+    "e8jpT" = "Egz. ósmoklasisty, język polski, T",
+    "e8mLO" = "Egz. ósmoklasisty, matematyka, LO",
+    "e8mT" = "Egz. ósmoklasisty, matematyka, T",
+    "e8jaLO" = "Egz. ósmoklasisty, język angielski, LO",
+    "e8jaT" = "Egz. ósmoklasisty, język angielski, T"
   )
   # tytul na wykresy
   tytul = pobierz_skale(src, doPrezentacji = NA) %>%
@@ -67,8 +81,10 @@ sprawdz_wyniki_skalowania_konstruktu = function(model, src = NULL) {
     select("opis_skali", "rok") %>%
     collect() %>%
     distinct()
-  rok = tytul$rok
-  tytul = sub("^ewd;([^;]+);.*$", "\\1", tytul$opis_skali)
+  # obsługa niejednocznaczności nazw pomiędzy starszą a nowszą formułą skal EWD
+  if (grepl(";BK", unique(tytul$opis_skali))) mapowanieNazw$m_h = "Matura, historia"
+  rok = paste(tytul$rok, collapse = ", ")
+  tytul = sub("^ewd;([^;]+);.*$", "\\1", unique(tytul$opis_skali))
   if (sub("R$", "", tytul) %in% names(mapowanieNazw)) {
     tytul = paste0(mapowanieNazw[[tytul]],
                    ifelse(grepl("R$", "", tytul), " - model Rascha", ""))
@@ -79,26 +95,30 @@ sprawdz_wyniki_skalowania_konstruktu = function(model, src = NULL) {
 
   # przygotowywanie oszacowań
   lBD = sum(is.na(model$skalowania_obserwacj$wynik))
-  oszacowania = na.omit(model$skalowania_obserwacje$wynik)
-  if (grepl("^Matura", tytul)) {
-    pliki = c("../../dane surowe/matura-kontekstowe.RData",
-              "../../../dane surowe/matura-kontekstowe.RData",
-              "../matura-kontekstowe.RData", "matura-kontekstowe.RData")
-    if (any(file.exists(pliki))) {
-      obiekty = load(pliki[file.exists(pliki)][1])
-      if ("mKontekstowe" %in% obiekty) {
-        mKontekstowe = get("mKontekstowe")
-        oszacowaniaGrupy = suppressMessages(
-          mutate(model$skalowania_obserwacje, rok = rok) %>%
-            left_join(mKontekstowe) %>%
-            filter(.data$populacja_wy == TRUE, !.data$pomin_szkole) %>%
-            mutate(grupa = c("T", "LO")[1 + as.numeric(grepl("LO", .data$grupa))]) %>%
-            select("wynik", "grupa") %>%
-            group_by(.data$grupa)
-        )
+  if ("skalowania_obserwacje" %in% names(model)) {
+    oszacowania = na.omit(model$skalowania_obserwacje$wynik)
+    if (grepl("^Matura", tytul)) {
+      pliki = c("../../dane surowe/matura-kontekstowe.RData",
+                "../../../dane surowe/matura-kontekstowe.RData",
+                "../matura-kontekstowe.RData", "matura-kontekstowe.RData")
+      if (any(file.exists(pliki))) {
+        obiekty = load(pliki[file.exists(pliki)][1])
+        if ("mKontekstowe" %in% obiekty) {
+          mKontekstowe = get("mKontekstowe")
+          oszacowaniaGrupy = suppressMessages(
+            mutate(model$skalowania_obserwacje, rok = rok) %>%
+              left_join(mKontekstowe) %>%
+              filter(.data$populacja_wy == TRUE, !.data$pomin_szkole) %>%
+              mutate(grupa = c("T", "LO")[1 + as.numeric(grepl("LO", .data$grupa))]) %>%
+              select("wynik", "grupa") %>%
+              group_by(.data$grupa)
+          )
+        }
       }
     }
-
+    zakresUmiejetnosci = range(oszacowania)
+  } else {
+    zakresUmiejetnosci = c(-4, 4)
   }
 
   # obsługa parametrów okna wykresu
@@ -114,6 +134,8 @@ sprawdz_wyniki_skalowania_konstruktu = function(model, src = NULL) {
     if ("r EAP" %in% parametry$parametr) {
       rzetelnoscEmpiryczna = parametry$wartosc[parametry$parametr %in% "r EAP"]
     }
+    parametryGrupowe = parametry %>%
+      filter(.data$grupowy)
     # dołączanie numerów (pseudo)kryteriów
     names(parametry) = sub("kolejnosc", "kolejnosc_w_skali", names(parametry))
     parametry = suppressMessages(
@@ -131,20 +153,34 @@ sprawdz_wyniki_skalowania_konstruktu = function(model, src = NULL) {
     dyskryminacje = filter(parametry, .data$parametr %in% c("a", "dyskryminacja")) %>%
       select("kryterium", "wartosc")
     names(dyskryminacje) = sub("wartosc", "dyskryminacja", names(dyskryminacje))
+    # przeliczanie trudności GRM na trudność zadania i względne trudności progów
+    parametry = bind_rows(parametry,
+                          parametry %>%
+                            filter(model == "GRM") %>%
+                            group_by(.data$id_skali, .data$kolejnosc_w_skali,
+                                     .data$kryterium, .data$skalowanie,
+                                     .data$model) %>%
+                            summarise(wartosc = mean(.data$wartosc[grepl("^b[[:digit:]]+$",
+                                                                         .data$parametr)]),
+                                      parametr = "b")) %>%
+      arrange(.data$kolejnosc_w_skali, .data$parametr)
+
     trudnosciKryteriow = suppressMessages(
-      filter(parametry, .data$parametr == "trudność") %>%
+      filter(parametry, .data$parametr %in% c("trudność", "b")) %>%
         select("kryterium", "wartosc") %>%
         left_join(dyskryminacje)
     )
     names(trudnosciKryteriow) = sub("wartosc", "trudnosc", names(trudnosciKryteriow))
     trudnosciPoziomow = suppressMessages(
       filter(parametry, grepl("^b[[:digit:]]+$", .data$parametr)) %>%
-        select("kryterium", "parametr", "wartosc") %>%
+        select("kryterium", "parametr", "wartosc", "model") %>%
         left_join(trudnosciKryteriow) %>%
-        mutate(wartosc = .data$wartosc + .data$trudnosc,
+        mutate(wartosc = ifelse(.data$model != "GRM",
+                                .data$wartosc + .data$trudnosc,
+                                .data$wartosc),
                kryterium = paste0(.data$kryterium, "$",
                                   sub("^b", "", .data$parametr))) %>%
-        select(-"trudnosc", -"parametr")
+        select(-"trudnosc", -"parametr", -"model")
     )
     names(trudnosciPoziomow) = sub("wartosc", "trudnosc", names(trudnosciPoziomow))
     rm(dyskryminacje, parametry)
@@ -184,7 +220,6 @@ sprawdz_wyniki_skalowania_konstruktu = function(model, src = NULL) {
                       " | ", round(dyskryminacja, 2), " |", collapse = "\n")))
       cat("\n\nTable: Poziomy wykonania (pseudo) kryteriów o ekstremalnych wartościach trudności (nie przedstawione na wykresie)\n\n")
     }
-    zakresUmiejetnosci = range(oszacowania)
     zakresX = c(-1, 1) * max(abs(range(c(zakresTrudnosci,
                                          zakresUmiejetnosci, 3))))
     with(trudnosciKryteriow,
@@ -211,7 +246,7 @@ sprawdz_wyniki_skalowania_konstruktu = function(model, src = NULL) {
       with(trudnosciPoziomow,
            points(trudnosc, dyskryminacja, pch = 3, col = 4))
     }
-    if (length(model$usunieteKryteria) > 0 ) {
+    if (length(model$usunieteKryteria) > 0) {
       legend("bottomright", legend = model$usunieteKryteria,
              title = "usunięte (pseudo)kryteria:", ncol = 2, bg = "white",
              cex = 0.6)
@@ -222,90 +257,92 @@ sprawdz_wyniki_skalowania_konstruktu = function(model, src = NULL) {
     zakresX = c(-1, 1) * max(c(abs(range(oszacowania)), 3))
   }
   # histogram oszacowań
-  h = hist(oszacowania,
-           seq(zakresX[1] - 0.05, zakresX[2] + 0.05, length.out = 100),
-           xlim = zakresX, col = 2,
-           main = paste0(tytul, "\nrozkład oszacowań (n = ",
-                         prettyNum(length(oszacowania), big.mark = "'"),
-                         ifelse(lBD > 0,
-                                paste0(" oraz ", prettyNum(lBD, big.mark = "'"),
-                                       " b.d."),
-                                ""),
-                         ")"),
-           xlab = paste0("oszacowania poziomu umiejętności\nid_skali: ",
-                         model$skalowania$id_skali, ", skalowanie: ",
-                         model$skalowania$skalowanie),
-           ylab = "liczebność")
-  grid(col = grey(0.5))
-  srednia = mean(oszacowania)
-  mediana = median(oszacowania)
-  odchStd = sd(oszacowania)
-  abline(v = srednia, col = 3, lty = 2, lwd = 2)
-  abline(v = mediana, col = 4, lty = 2, lwd = 2)
-  legend("topright", col = c(3, 4, NA, NA), lty = 2, lwd = 2,
-         legend = c(
-           paste0("średnia ", format(round(srednia, 3), nsmall = 3)),
-           paste0("mediana ", format(round(mediana, 3), nsmall = 3)),
-           paste0("odch. stand. ", format(round(odchStd, 3), nsmall = 3)),
-           ifelse(!is.null(rzetelnoscEmpiryczna),
-                  paste0("rzetelność emp. ",
-                         format(round(rzetelnoscEmpiryczna, 3), nsmall = 3)),
-                  "")),
-         title = "parametry rozkładu", bg = "white", cex = 0.7)
-  #       # ew. różnice między grupami w modelu wielogrupowym
-  #       if (any(grepl("[.]gr[[:digit:]]+$", model$parametry$typ))) {
-  #         wartOcz =
-  #           wariancje =
-  #           y = seq(0, max(h$counts), length.out=nrow(wartOcz) + 2)[-1]
-  #         for (i in 1:nrow(wartOcz)) {
-  #           wartOczTemp =
-  #             odchStandTemp =
-  #             arrows(wartOczTemp - 2 * odchStandTemp, y[i], wartOczTemp, y[i],
-  #                    0.1, 90, 3, lwd=2)
-  #           arrows(wartOczTemp + 2 * odchStandTemp, y[i], wartOczTemp, y[i],
-  #                  0.1, 90, 3, lwd=2)
-  #           strona = ifelse ((wartOczTemp + 2 * odchStandTemp) >
-  #                              (zakresX[1] + 0.75 * (zakresX[2] - zakresX[1])),
-  #                            -1, 1)
-  #           text(wartOczTemp + 2 * strona * odchStandTemp, y[i], paste0("gr. ", i),
-  #                pos=3 + strona, font=2)
-  #         }
-  #       }
-  #       # ew. wyrysowywanie mapowań sum punktów na wyniki wyskalowane
-  #       if ("mapowanie" %in% names(model)) {
-  #         zmSumy = names(model$mapowanie)[grep("^suma_", names(model$mapowanie))]
-  #         names(model$mapowanie)[!grepl("^suma", names(model$mapowanie))] = "oszacowania"
-  #         # taka sztuczka, żeby mieć listę, po której będę się mógł wygodnie iterować pętlą
-  #         grupy = dlply(model$mapowanie, zmSumy, function(x) {return(x)})
-  #         # rysowanie
-  #         legend = vector(mode="character", length=length(grupy))
-  #         with(model$mapowanie,
-  #              plot(NA, NA,
-  #                   xlim = c(0, 100),#range(suma),
-  #                   ylim = range(oszacowania),
-  #                   main = paste0(tytul, "\nmapowanie procentów punktów na oszacowania IRT (Rasch)"),
-  #                   xlab = "procent punktów", ylab = "oszacowania"))
-  #         grid(col=grey(0.5))
-  #         for (i in 1:length(grupy)) {
-  #           with(grupy[[i]], lines(100* suma / max(suma), oszacowania, lwd=2, col=i))
-  #           legend[i] = paste0(zmSumy, "=", grupy[[i]][1, zmSumy], collapse="; ")
-  #         }
-  #         legend("bottomright", lwd=2, col=1:length(grupy), legend = legend,
-  #                title = "grupy", bg = "white", cex = 0.7)
-  #         with(model$mapowanie,
-  #              plot(NA, NA,
-  #                   xlim = c(0, max(model$mapowanie$suma)),#range(suma),
-  #                   ylim = range(oszacowania),
-  #                   main = paste0(tytul, "\nmapowanie sum punktów na oszacowania IRT (Rasch)"),
-  #                   xlab = "suma punktów", ylab = "oszacowania"))
-  #         grid(col=grey(0.5))
-  #         for (i in 1:length(grupy)) {
-  #           with(grupy[[i]], lines(suma, oszacowania, lwd=2, col=i))
-  #           legend[i] = paste0(zmSumy, "=", grupy[[i]][1, zmSumy], collapse="; ")
-  #         }
-  #         legend("bottomright", lwd=2, col=1:length(grupy), legend = legend,
-  #                title = "grupy", bg = "white", cex = 0.7)
-  #       }
+  if (!is.null(get0("oszacowania"))) {
+    h = hist(oszacowania,
+             seq(zakresX[1] - 0.05, zakresX[2] + 0.05, length.out = 100),
+             xlim = zakresX, col = 2,
+             main = paste0(tytul, "\nrozkład oszacowań (n = ",
+                           prettyNum(length(oszacowania), big.mark = "'"),
+                           ifelse(lBD > 0,
+                                  paste0(" oraz ", prettyNum(lBD, big.mark = "'"),
+                                         " b.d."),
+                                  ""),
+                           ")"),
+             xlab = paste0("oszacowania poziomu umiejętności\nid_skali: ",
+                           model$skalowania$id_skali, ", skalowanie: ",
+                           model$skalowania$skalowanie),
+             ylab = "liczebność")
+    grid(col = grey(0.5))
+    srednia = mean(oszacowania)
+    mediana = median(oszacowania)
+    odchStd = sd(oszacowania)
+    abline(v = srednia, col = 3, lty = 2, lwd = 2)
+    abline(v = mediana, col = 4, lty = 2, lwd = 2)
+    legend("topright", col = c(3, 4, NA, NA), lty = 2, lwd = 2,
+           legend = c(
+             paste0("średnia ", format(round(srednia, 3), nsmall = 3)),
+             paste0("mediana ", format(round(mediana, 3), nsmall = 3)),
+             paste0("odch. stand. ", format(round(odchStd, 3), nsmall = 3)),
+             ifelse(!is.null(rzetelnoscEmpiryczna),
+                    paste0("rzetelność emp. ",
+                           format(round(rzetelnoscEmpiryczna, 3), nsmall = 3)),
+                    "")),
+           title = "parametry rozkładu", bg = "white", cex = 0.7)
+    #       # ew. różnice między grupami w modelu wielogrupowym
+    #       if (any(grepl("[.]gr[[:digit:]]+$", model$parametry$typ))) {
+    #         wartOcz =
+    #           wariancje =
+    #           y = seq(0, max(h$counts), length.out=nrow(wartOcz) + 2)[-1]
+    #         for (i in 1:nrow(wartOcz)) {
+    #           wartOczTemp =
+    #             odchStandTemp =
+    #             arrows(wartOczTemp - 2 * odchStandTemp, y[i], wartOczTemp, y[i],
+    #                    0.1, 90, 3, lwd=2)
+    #           arrows(wartOczTemp + 2 * odchStandTemp, y[i], wartOczTemp, y[i],
+    #                  0.1, 90, 3, lwd=2)
+    #           strona = ifelse ((wartOczTemp + 2 * odchStandTemp) >
+    #                              (zakresX[1] + 0.75 * (zakresX[2] - zakresX[1])),
+    #                            -1, 1)
+    #           text(wartOczTemp + 2 * strona * odchStandTemp, y[i], paste0("gr. ", i),
+    #                pos=3 + strona, font=2)
+    #         }
+    #       }
+    #       # ew. wyrysowywanie mapowań sum punktów na wyniki wyskalowane
+    #       if ("mapowanie" %in% names(model)) {
+    #         zmSumy = names(model$mapowanie)[grep("^suma_", names(model$mapowanie))]
+    #         names(model$mapowanie)[!grepl("^suma", names(model$mapowanie))] = "oszacowania"
+    #         # taka sztuczka, żeby mieć listę, po której będę się mógł wygodnie iterować pętlą
+    #         grupy = dlply(model$mapowanie, zmSumy, function(x) {return(x)})
+    #         # rysowanie
+    #         legend = vector(mode="character", length=length(grupy))
+    #         with(model$mapowanie,
+    #              plot(NA, NA,
+    #                   xlim = c(0, 100),#range(suma),
+    #                   ylim = range(oszacowania),
+    #                   main = paste0(tytul, "\nmapowanie procentów punktów na oszacowania IRT (Rasch)"),
+    #                   xlab = "procent punktów", ylab = "oszacowania"))
+    #         grid(col=grey(0.5))
+    #         for (i in 1:length(grupy)) {
+    #           with(grupy[[i]], lines(100* suma / max(suma), oszacowania, lwd=2, col=i))
+    #           legend[i] = paste0(zmSumy, "=", grupy[[i]][1, zmSumy], collapse="; ")
+    #         }
+    #         legend("bottomright", lwd=2, col=1:length(grupy), legend = legend,
+    #                title = "grupy", bg = "white", cex = 0.7)
+    #         with(model$mapowanie,
+    #              plot(NA, NA,
+    #                   xlim = c(0, max(model$mapowanie$suma)),#range(suma),
+    #                   ylim = range(oszacowania),
+    #                   main = paste0(tytul, "\nmapowanie sum punktów na oszacowania IRT (Rasch)"),
+    #                   xlab = "suma punktów", ylab = "oszacowania"))
+    #         grid(col=grey(0.5))
+    #         for (i in 1:length(grupy)) {
+    #           with(grupy[[i]], lines(suma, oszacowania, lwd=2, col=i))
+    #           legend[i] = paste0(zmSumy, "=", grupy[[i]][1, zmSumy], collapse="; ")
+    #         }
+    #         legend("bottomright", lwd=2, col=1:length(grupy), legend = legend,
+    #                title = "grupy", bg = "white", cex = 0.7)
+    #       }
+  }
   if (exists("oszacowaniaGrupy", environment(), inherits = FALSE)) {
     cat("\n\n",
         "| grupa | średnia | odch. std. |\n",
@@ -315,6 +352,16 @@ sprawdz_wyniki_skalowania_konstruktu = function(model, src = NULL) {
               os = format(round(sd(.data$wynik), 3), nsmall = 3)),
              paste0("| ", grupa, " | ", sr, " | ", os, " |", collapse = "\n")))
     cat("\n\nTable: Średnie i odchylenia standardowe oszacowań umiejętności (grupa objęta skalowaniem wzorcowym)\n\n")
+  } else if (is.data.frame(get0("parametryGrupowe"))) {
+    cat("\n\n",
+        "| grupa | średnia | odch. std. |\n",
+        "|:---|---:|---:|\n", sep = "")
+    cat(with(parametryGrupowe %>%
+               select("grupa", "parametr", "wartosc") %>%
+               pivot_wider(names_from = .data$parametr, values_from = .data$wartosc) %>%
+               mutate(sr = format(round(.data$group_mean, 3), nsmall = 3),
+                      os = format(round(.data$group_sd, 3), nsmall = 3)),
+             paste0("| ", grupa, " | ", sr, " | ", os, " |", collapse = "\n")))
   }
 
   # koniec
