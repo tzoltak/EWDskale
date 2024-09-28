@@ -3,6 +3,7 @@
 export(lacz_kryteria_recznie)
 export(lacz_kryteria_z_korelacji)
 export(lacz_kryteria_z_nr_zadan)
+export(pobierz_polaczone_kryteria)
 export(przewidywanie_rasch)
 export(rysuj_laczenia_z_korelacji)
 export(skaluj_egz_gimn)
