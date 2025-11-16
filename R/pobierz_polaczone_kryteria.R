@@ -55,6 +55,9 @@ pobierz_polaczone_kryteria = function(skale, echo = FALSE, src = NULL) {
     distinct() %>%
     left_join(skale,
               by = "id_skali")
+  pseudokryt = pseudokryt %>%
+    select("kryterium", "kryt_skladowe") %>%
+    distinct()
   pseudokryt = split(pseudokryt$kryt_skladowe, pseudokryt$kryterium)
   if (echo) {
     cat(paste0("\nlaczenia = list(",

@@ -1,4 +1,17 @@
 --------------------
+EWDskale 0.7.1 (17.11.2025)
+
+- Naprawione błędy
+  - pobierz_polaczone_kryteria() nie zwraca powtórzonych nazw kryteriów do
+    łączenia w sytuacji, gdy dane pseudokryterium jest przypisane do kilku
+    różnych skal;
+  - W sprawdz_wyniki_skalowania_konstruktu() poprawiono wywołanie grepl()
+    odpowiedzialne za dopisywanie do tytułu sekcji adnotacji o tym, że dane
+    skalowanie zostało zrobione modelem Rascha, które nigdy nie dzialało (bo
+    zostało napisane, jak wywołanie sub()), ale dopiero teraz zaczęło skutkować
+    błędem.
+
+--------------------
 EWDskale 0.7.0 (28.09.2024)
 
 - Nowe funkcje:
