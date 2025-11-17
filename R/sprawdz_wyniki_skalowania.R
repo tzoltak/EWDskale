@@ -87,7 +87,7 @@ sprawdz_wyniki_skalowania_konstruktu = function(model, src = NULL) {
   tytul = sub("^ewd;([^;]+);.*$", "\\1", unique(tytul$opis_skali))
   if (sub("R$", "", tytul) %in% names(mapowanieNazw)) {
     tytul = paste0(mapowanieNazw[[tytul]],
-                   ifelse(grepl("R$", "", tytul), " - model Rascha", ""))
+                   ifelse(grepl("R$", tytul), " - model Rascha", ""))
   }
   tytul = paste0(tytul, " ", rok)
   cat("\n\n## ", tytul, ", id_skali: ", model$skalowania$id_skali, ", skalowanie: ",
