@@ -39,8 +39,12 @@ rysuj_laczenia_z_korelacji = function(x, wielkoscTekstu = 1, prog = NULL) {
   }
   x = ungroup(x) %>%
     group_by(.data$id_skali, .data$czesc_egzaminu) %>%
-    summarise(rysuj_laczenia_z_korelacji_w_ramach_czesci(cur_data_all(),
-                                                         wielkoscTekstu))
+    summarise(
+      rysuj_laczenia_z_korelacji_w_ramach_czesci(
+        cbind(data.frame(id_skali = .data$id_skali,
+                         czesc_egzaminu = .data$czesc_egzaminu),
+              pick(everything())),
+        wielkoscTekstu))
   class(x) = sub("wynikLaczKryteriaZKorelacji",
                  "wynikRysujLaczeniaZKorelacji", class(x))
   return(x)

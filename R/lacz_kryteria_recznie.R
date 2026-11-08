@@ -39,8 +39,11 @@ lacz_kryteria_recznie = function(skale, laczenia, src = NULL) {
 
   suppressWarnings(pobierz_kryteria_do_laczenia(skale, src = src)) %>%
     group_by(.data$id_skali) %>%
-    summarise(elementy = list(zdefiniuj_laczenia(cur_data_all(),
-                                                 laczenia = laczenia)),
+    summarise(elementy =
+                list(zdefiniuj_laczenia(
+                  cbind(data.frame(id_skali = .data$id_skali),
+                        pick(everything())),
+                  laczenia = laczenia)),
               .groups = "drop") %>%
     filter(!sapply(.data$elementy, is.null)) %>%
     return()
@@ -109,8 +112,7 @@ zdefiniuj_laczenia = function(kryteriaSkali, laczenia) {
                          paste0(kryteriaSkali$rodzaj_egzaminu[1], ";",
                                 kryteriaSkali$czesc_egzaminu[1], ";",
                                 kryteriaSkali$rok[1], ";",
-                                cur_data() %>%
-                                  select(starts_with("id_kryterium_")) %>%
+                                pick(starts_with("id_kryterium_")) %>%
                                   apply(1, function(x) {
                                     return(paste(x[!is.na(x)], collapse = ";"))
                                   })),
