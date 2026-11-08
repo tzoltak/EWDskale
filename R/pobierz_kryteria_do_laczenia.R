@@ -43,7 +43,7 @@ pobierz_kryteria_do_laczenia = function(skale, nf = FALSE, src = NULL) {
       # jeśli ze skalą jest powiązany test "nieegzaminacyjny" - bierzemy tylko go
       left_join(pobierz_testy(src)) %>%
       group_by(.data$id_skali) %>%
-      mutate(tylko_testy_egazminu = all(.data$czy_egzamin)) %>%
+      mutate(tylko_testy_egazminu = all(.data$czy_egzamin, na.rm = TRUE)) %>%
       ungroup() %>%
       filter(.data$czy_egzamin == .data$tylko_testy_egazminu) %>%
       # filter(.data$czy_egzamin) %>%

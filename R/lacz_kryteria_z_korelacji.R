@@ -82,11 +82,15 @@ lacz_kryteria_z_korelacji_w_ramach_skali = function(x, katalogDane, prog,
   message("Skala '", x$opis_skali[1], "', id_skali = ", x$id_skali[1], ":")
   x = group_by(x, .data$rodzaj_egzaminu, .data$czesc_egzaminu, .data$rok) %>%
     summarise(laczenia =
-                lacz_kryteria_z_korelacji_w_ramach_czesci_egz(cur_data_all(),
-                                                              katalogDane,
-                                                              prog,
-                                                              tylkoWWiazkach,
-                                                              src = src))
+                lacz_kryteria_z_korelacji_w_ramach_czesci_egz(
+                  cbind(data.frame(rodzaj_egzaminu = .data$rodzaj_egzaminu,
+                                   czesc_egzaminu = .data$czesc_egzaminu,
+                                   rok = .data$rok),
+                        pick(everything())),
+                  katalogDane,
+                  prog,
+                  tylkoWWiazkach,
+                  src = src))
   return(x)
 }
 #' @title Laczenie kryteriow na podstawie korelacji polichorycznych

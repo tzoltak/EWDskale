@@ -1,4 +1,15 @@
 --------------------
+EWDskale 0.7.2 (08.11.2026)
+
+- Uaktualnienia:
+  - `sprawdz_wyniki_skalowania_konstruktu()` potrafi ładnie etykietować również
+    WOS z HiT i WOS bez HiT;
+  - przepisano kod tak, aby nie korzystał z `dplyr::cur_data()`;
+  - dodano argument `na.rm=TRUE` w wywołaniu `all()`, które odbywa się na bazie
+    danych, aby nie generować ostrzeżeń o różnicach w zachowaniu pomiędzy
+    wywołaniami wykonywanymi w R a wywoływanymi w bazie danych.
+
+--------------------
 EWDskale 0.7.1 (17.11.2025)
 
 - Naprawione błędy
@@ -249,7 +260,7 @@ Nowe funkcje:
 - zmien_parametry_na_do_bazy();
 
 --------------------
-Publikacja EWDskale 0.1 (30.08.2015)
+EWDskale 0.1 (30.08.2015)
 
 Nowe funkcje:
 - wylicz_normy_ekwikwantylowe();

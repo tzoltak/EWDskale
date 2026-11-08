@@ -24,7 +24,10 @@ lacz_kryteria_z_nr_zadan = function(skale, src = NULL) {
 
   kryteria = pobierz_kryteria_do_laczenia(skale, nf = TRUE, src = src)
   temp = group_by(kryteria, .data$id_skali) %>%
-    summarise(elementy = lacz_kryteria_z_nr_zadan_w_ramach_skali(cur_data_all()))
+    summarise(elementy =
+                lacz_kryteria_z_nr_zadan_w_ramach_skali(
+                  cbind(data.frame(id_skali = .data$id_skali),
+                        pick(everything()))))
 
   temp = mapply(function(x, y) {return(list(id_skali = unname(x),
                                             elementy = y))},

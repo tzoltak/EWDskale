@@ -23,6 +23,7 @@
 #' Kolumna \code{elementy} zawiera data frame'y które mogą zostać użyte
 #' jako argument funkcji \code{\link[ZPDzapis]{edytuj_skale}}.
 #' @importFrom stats setNames
+#' @importFrom dplyr %>% collect distinct everything filter group_by pick select summarise
 #' @export
 skroc_skale_oceny = function(skale, katalogDane = "dane surowe/",
                              maxLPozWyk = 5, minLiczebnPozWyk = 100,
@@ -68,13 +69,12 @@ skroc_skale_oceny = function(skale, katalogDane = "dane surowe/",
   }
 
   skale = group_by(skale, .data$id_skali, .data$rok) %>%
-    summarise(elementy = skroc_skale_oceny_w_ramach_skali(cur_data_all(),
-                                                          katalogDane,
-                                                          maxLPozWyk,
-                                                          minLiczebnPozWyk,
-                                                          minOdsPozWyk, print,
-                                                          populacja,
-                                                          src = srcPass)) %>%
+    summarise(elementy =
+                skroc_skale_oceny_w_ramach_skali(
+                  cbind(data.frame(id_skali = .data$id_skali, rok = .data$rok),
+                        pick(everything())),
+                  katalogDane, maxLPozWyk, minLiczebnPozWyk, minOdsPozWyk, print,
+                  populacja, src = srcPass)) %>%
     group_by(.data$id_skali) %>%
     summarise(elementy = list(bind_rows(.data$elementy)))
   return(skale)
@@ -101,6 +101,7 @@ skroc_skale_oceny = function(skale, katalogDane = "dane surowe/",
 #' do funkcji \code{edytuj_skale} z pakietu \code{ZPD} lub lista takich data
 #' frame'ów.
 #' @importFrom stats setNames na.omit
+#' @importFrom dplyr %>% arrange collect distinct filter select
 #' @import ZPD
 #' @export
 skroc_skale_oceny_w_ramach_skali = function(x, katalogDane = "../dane surowe/",

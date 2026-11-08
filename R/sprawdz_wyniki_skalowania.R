@@ -68,6 +68,8 @@ sprawdz_wyniki_skalowania_konstruktu = function(model, src = NULL) {
     "m_i" = "Matura, informatyka",
     "m_ja" = "Matura, język angielski",
     "m_w" = "Matura, WOS",
+    "m_wzh" = "Matura, WOS z HiT",
+    "m_wbh" = "Matura, WOS bez HiT",
     "e8jpLO" = "Egz. ósmoklasisty, język polski, LO",
     "e8jpT" = "Egz. ósmoklasisty, język polski, T",
     "e8mLO" = "Egz. ósmoklasisty, matematyka, LO",
